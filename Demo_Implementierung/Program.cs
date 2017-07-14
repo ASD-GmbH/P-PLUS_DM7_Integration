@@ -11,7 +11,7 @@ namespace Demo_Implementierung
     /// </summary>
     class Program
     {
-        private const string URL = "tcp://demo";
+        private const string URL = "demo://level-1";
 
         /// <summary>
         /// Repräsentiert die lokale Persistenz, z.B. die HVP Datenbank
@@ -44,11 +44,10 @@ namespace Demo_Implementierung
 
         static void Main()
         {
-            Konfiguration config;
             var log = new ConsoleLogger();
 
             // Rückgabe von Connect muss Disposed werden, um alle Verbindungen zu schließen
-            using (var api = PPLUS.Connect(URL, config, log).Result)
+            using (var api = PPLUS.Connect(URL, log).Result)
             {
                 if (api==null) throw new ApplicationException("P-PLUS API war unterwarteterweise <null>.");
 

@@ -16,13 +16,11 @@ namespace DM7_PPLUS_Integration
     [Serializable]
     public sealed class ConnectionErrorException : Exception
     {
-        public ConnectionErrorException()
-        {
-        }
+        public ConnectionErrorException(){}
 
-        public ConnectionErrorException(string message) : base(message)
-        {
-        }
+        public ConnectionErrorException(string message, Exception exception) : base(message, exception) {}
+
+        public ConnectionErrorException(string message) : base(message) { }
     }
 
 }
