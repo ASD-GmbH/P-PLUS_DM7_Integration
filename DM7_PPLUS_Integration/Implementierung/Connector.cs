@@ -16,18 +16,21 @@ namespace DM7_PPLUS_Integration.Implementierung
             return verbindung.ContinueWith(task =>
             {
                 var parts = networkAddress.Split('|');
-                if (parts.Length > 1 && parts[0] == "test://")
+                if (parts.Length > 2 && parts[0] == "test://")
                 {
-                    var client_api_level_request = int.Parse(parts[1]);
-                    var result = task.Result.Item1.Connect("test", client_api_level_request, client_api_level_request).Result;
+                    var client_min_api_level_request = int.Parse(parts[1]);
+                    var client_max_api_level_request = int.Parse(parts[2]);
+                    var result = task.Result.Item1.Connect("test", client_max_api_level_request, client_min_api_level_request).Result;
                     if (result is ConnectionSucceeded)
                     {
                         var success = (ConnectionSucceeded) result;
-                        var client_api_level = success.Api_Level;
-                        if (client_api_level != 1)
-                            throw new UnsupportedVersionException(
-                                $"P-PLUS API Level {client_api_level} wird nicht unterstützt.");
-                        return (DM7_PPLUS_API) new API_Level_1_Proxy(task.Result.Item2, success.Session, success.Auswahllistenversion);
+                        var possible_client_api_level = success.Api_Level;
+                        Guard_Api_Level(possible_client_api_level, client_min_api_level_request, client_max_api_level_request);
+
+                        return
+                            possible_client_api_level == 1
+                                ? (DM7_PPLUS_API) new API_Level_1_Proxy(task.Result.Item2, success.Session, success.Auswahllistenversion)
+                                : (DM7_PPLUS_API) new API_Level_2_Proxy(task.Result.Item2, success.Session, success.Auswahllistenversion);
                     }
                     else if (result is ConnectionFailed)
                     {
@@ -51,6 +54,12 @@ namespace DM7_PPLUS_Integration.Implementierung
                 throw new UnsupportedVersionException(
                     $"Das Protokoll der Netzwerkadresse {networkAddress} wird nicht unterstützt.");
             });
+        }
+
+        private static void Guard_Api_Level(int possible_client_api_level, int client_min_api_level_request, int client_max_api_level_request)
+        {
+            if (!(possible_client_api_level >= client_min_api_level_request && possible_client_api_level <= client_max_api_level_request))
+                throw new UnsupportedVersionException($"P-PLUS API Level {possible_client_api_level} wird nicht unterstützt.");
         }
     }
 
