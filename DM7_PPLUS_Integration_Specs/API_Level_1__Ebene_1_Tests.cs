@@ -158,6 +158,28 @@ namespace DM7_PPLUS_Integration_Specs
         }
     }
 
+    [TestFixture]
+    public class API_Level_1__Ebene_3 : API_Test_Base
+    {
+        private NetMQ_Server _netMQServer;
+
+        protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
+        {
+            var session = Guid.NewGuid();
+            var server = new Test_PPLUS_Backend();
+            var adapter = new API_Level_1_Adapter(server, ex => { throw new Exception("Unexpected exception", ex); }, session, auswahllistenversion);
+            var router = new API_Router(adapter);
+            var deserialisierung = new Deserialisierung_Adapter(router);
+            _netMQServer = new NetMQ_Server(deserialisierung);
+
+
+            var netMqClient = new Fake_NetMQ_Client(_netMQServer);
+            var serialisierung = new Serialisierung_Proxy(netMqClient);
+            var proxy = new API_Level_1_Proxy(serialisierung, session, auswahllistenversion);
+            Setup_Testframework(proxy, server);
+        }
+    }
+
     public abstract class API_Test_Base
     {
         private DM7_PPLUS_API API;
@@ -234,6 +256,7 @@ namespace DM7_PPLUS_Integration_Specs
             var data = API.Mitarbeiterdaten_abrufen(bekannter_Stand, verfuegbarerStand).Result;
             Anzahl(data).Should().Be(1);
         }
+
 
         private Stand Stand(Task<Mitarbeiterdatensaetze> data) => data.Result.Stand;
 
