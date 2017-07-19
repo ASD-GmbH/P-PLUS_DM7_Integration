@@ -2,11 +2,9 @@
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Daten;
-using DM7_PPLUS_Integration.Implementierung;
 using DM7_PPLUS_Integration.Implementierung.Client;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
 using DM7_PPLUS_Integration.Implementierung.Server;
-using DM7_PPLUS_Integration.Implementierung.Shared;
 using DM7_PPLUS_Integration.Implementierung.Testing;
 using FluentAssertions;
 using NUnit.Framework;
@@ -140,7 +138,7 @@ namespace DM7_PPLUS_Integration_Specs
             var session = Guid.NewGuid();
 
             var server = new Test_PPLUS_Backend();
-            var adapter = new API_Level_1_Adapter(server, ex => { throw new Exception("Unexpected exception", ex); }, session, auswahllistenversion);
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
 
             Setup_Testframework(adapter, server);
         }
@@ -154,9 +152,11 @@ namespace DM7_PPLUS_Integration_Specs
             var session = Guid.NewGuid();
 
             var server = new Test_PPLUS_Backend();
-            var adapter = new API_Level_1_Adapter(server, ex => { throw new Exception("Unexpected exception", ex); }, session, auswahllistenversion);
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
             var router = new API_Router(Guid.NewGuid(), auswahllistenversion, null, adapter);
-            var proxy = new API_Level_1_Proxy(router, session, auswahllistenversion);
+            var connector = (Ebene_2_Protokoll__Verbindungsaufbau) router;
+            var connection = (ConnectionSucceeded)connector.Connect("test", 1, 1).Result;
+            var proxy = new API_Level_1_Proxy(router, session, connection.Auswahllistenversion);
 
             Setup_Testframework(proxy, server);
         }
@@ -169,11 +169,16 @@ namespace DM7_PPLUS_Integration_Specs
         {
             var session = Guid.NewGuid();
             var server = new Test_PPLUS_Backend();
-            var adapter = new API_Level_1_Adapter(server, ex => { throw new Exception("Unexpected exception", ex); }, session, auswahllistenversion);
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
             var router = new API_Router(Guid.NewGuid(), auswahllistenversion, null, adapter);
+            var connector = (Ebene_2_Protokoll__Verbindungsaufbau) router;
+
             var deserialisierung = new Serialization_Adapter(router);
             var serialisierung = new Serialization_Proxy(deserialisierung);
-            var proxy = new API_Level_1_Proxy(serialisierung, session, auswahllistenversion);
+
+
+            var connection = (ConnectionSucceeded)connector.Connect("test", 1, 1).Result;
+            var proxy = new API_Level_1_Proxy(serialisierung, session, connection.Auswahllistenversion);
             Setup_Testframework(proxy, server);
         }
     }
@@ -228,7 +233,7 @@ namespace DM7_PPLUS_Integration_Specs
 
             API.Stand_Mitarbeiterdaten.Subscribe(new Observer<Stand>(
                 stand => { benachrichtigt++; },
-                ex => { throw new Exception("Unexpected exception", ex); }));
+                ex => throw new Exception("Unexpected exception", ex)));
 
             Mitarbeiter_anlegen("Martha", "Musterfrau");
 
