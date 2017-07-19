@@ -1,4 +1,4 @@
-﻿namespace DM7_PPLUS_Integration.Implementierung
+namespace DM7_PPLUS_Integration.Implementierung.Protokoll
 {
     internal static class Datenquellen
     {

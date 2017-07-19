@@ -3,6 +3,11 @@ using System.Threading.Tasks;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung;
+using DM7_PPLUS_Integration.Implementierung.Client;
+using DM7_PPLUS_Integration.Implementierung.Protokoll;
+using DM7_PPLUS_Integration.Implementierung.Server;
+using DM7_PPLUS_Integration.Implementierung.Shared;
+using DM7_PPLUS_Integration.Implementierung.Testing;
 using FluentAssertions;
 using NUnit.Framework;
 

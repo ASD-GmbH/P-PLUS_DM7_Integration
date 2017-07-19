@@ -1,4 +1,6 @@
-namespace DM7_PPLUS_Integration.Implementierung
+using DM7_PPLUS_Integration.Implementierung.Protokoll;
+
+namespace DM7_PPLUS_Integration.Implementierung.Testing
 {
     internal class Level_0_Test_Proxy : Level_0_Test_API
     {

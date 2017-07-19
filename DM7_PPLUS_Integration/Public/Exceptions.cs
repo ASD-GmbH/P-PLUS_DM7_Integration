@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace DM7_PPLUS_Integration
 {

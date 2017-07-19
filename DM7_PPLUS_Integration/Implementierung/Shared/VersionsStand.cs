@@ -1,6 +1,6 @@
 using System;
 
-namespace DM7_PPLUS_Integration.Implementierung
+namespace DM7_PPLUS_Integration.Implementierung.Shared
 {
     public struct VersionsStand : Stand
     {

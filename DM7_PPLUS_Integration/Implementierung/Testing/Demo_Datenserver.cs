@@ -5,8 +5,10 @@ using System.Linq;
 using System.Timers;
 using DM7_PPLUS_Integration.Auswahllisten;
 using DM7_PPLUS_Integration.Daten;
+using DM7_PPLUS_Integration.Implementierung.Server;
+using DM7_PPLUS_Integration.Implementierung.Shared;
 
-namespace DM7_PPLUS_Integration.Implementierung
+namespace DM7_PPLUS_Integration.Implementierung.Testing
 {
     public class Demo_Datenserver : PPLUS_Backend
     {

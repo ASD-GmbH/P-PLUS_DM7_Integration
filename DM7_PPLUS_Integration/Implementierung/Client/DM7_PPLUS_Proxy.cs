@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using DM7_PPLUS_Integration.Daten;
-
-namespace DM7_PPLUS_Integration.Implementierung
+﻿namespace DM7_PPLUS_Integration.Implementierung.Client
 {
     /*internal class DM7_PPLUS_Proxy : DM7_PPLUS_API
     {

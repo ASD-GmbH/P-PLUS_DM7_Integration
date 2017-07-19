@@ -4,8 +4,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Daten;
+using DM7_PPLUS_Integration.Implementierung.Shared;
 
-namespace DM7_PPLUS_Integration.Implementierung
+namespace DM7_PPLUS_Integration.Implementierung.Server
 {
     /// <summary>
     /// Stellt die Version 1 der API zur Verfügung und erfüllt Anfragen nach Daten und Notifications

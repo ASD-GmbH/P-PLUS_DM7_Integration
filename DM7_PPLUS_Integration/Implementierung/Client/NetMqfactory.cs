@@ -1,7 +1,8 @@
 using System;
 using System.Threading.Tasks;
+using DM7_PPLUS_Integration.Implementierung.Protokoll;
 
-namespace DM7_PPLUS_Integration.Implementierung
+namespace DM7_PPLUS_Integration.Implementierung.Client
 {
     public class NetMqfactory : ProxyFactory
     {

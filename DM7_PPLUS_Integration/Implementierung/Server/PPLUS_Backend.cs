@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using DM7_PPLUS_Integration.Daten;
 
-namespace DM7_PPLUS_Integration.Implementierung
+namespace DM7_PPLUS_Integration.Implementierung.Server
 {
     public interface PPLUS_Backend
     {

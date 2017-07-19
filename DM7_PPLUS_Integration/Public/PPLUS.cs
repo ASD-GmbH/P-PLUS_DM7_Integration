@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Implementierung;
+using DM7_PPLUS_Integration.Implementierung.Client;
 
 namespace DM7_PPLUS_Integration
 {
