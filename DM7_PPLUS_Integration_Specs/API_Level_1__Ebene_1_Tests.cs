@@ -183,6 +183,31 @@ namespace DM7_PPLUS_Integration_Specs
         }
     }
 
+    [TestFixture]
+    public class API_Level_1__Ebene_5 : API_Test_Base
+    {
+        private IDisposable _host;
+
+        protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
+        {
+            var port = "34711";
+            var session = Guid.NewGuid();
+            var server = new Test_PPLUS_Backend();
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
+            var router = new API_Router(Guid.NewGuid(), auswahllistenversion, null, adapter);
+            var deserialisierung = new Serialization_Adapter(router);
+            _host = new NetMQ_Server(deserialisierung, "tcp://127.0.0.1:"+port);
+            var proxy = PPLUS.Connect("tcp://127.0.0.1:"+port, null).Result;
+            Setup_Testframework(proxy, server);
+        }
+
+        [TearDown]
+        public void Cleanup()
+        {
+            _host.Dispose();
+        }
+    }
+
     public abstract class API_Test_Base
     {
         private DM7_PPLUS_API API;

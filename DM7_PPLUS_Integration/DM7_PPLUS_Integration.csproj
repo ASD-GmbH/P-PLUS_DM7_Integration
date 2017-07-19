@@ -61,6 +61,7 @@
     <Compile Include="Daten\Kontakt.cs" />
     <Compile Include="Daten\Mitarbeiterfoto.cs" />
     <Compile Include="Daten\Qualifikation.cs" />
+    <Compile Include="Implementierung\Server\API_Router.cs" />
     <Compile Include="Public\DM7_PPLUS_API.cs" />
     <Compile Include="Implementierung\Protokoll\Datenquellen.cs" />
     <Compile Include="Implementierung\Protokoll\Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung.cs" />
@@ -93,7 +94,7 @@
     <Compile Include="Public\Exceptions.cs" />
     <Compile Include="Implementierung\Testing\Demo_Datenserver.cs" />
     <Compile Include="Implementierung\Server\API_Level_1_Adapter.cs" />
-    <Compile Include="Implementierung\Server\API_Router.cs" />
+    <Compile Include="Implementierung\Server\netmq_impl.cs" />
     <Compile Include="Implementierung\Server\PPLUS_Backend.cs" />
     <Compile Include="Public\Stand.cs" />
   </ItemGroup>
