@@ -13,7 +13,7 @@ namespace DM7_PPLUS_Integration
         /// <returns>Instanz der DM7_PPLUS_Integrationsschnittstelle</returns>
         public static Task<DM7_PPLUS_API> Connect(string network_address, Log log)
         {
-            return Connector.Instance(network_address, log);
+            return Connector.Instance_API_Level_1(network_address, log);
         }
     }
 }

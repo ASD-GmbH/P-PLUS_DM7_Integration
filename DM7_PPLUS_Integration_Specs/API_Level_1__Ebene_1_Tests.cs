@@ -12,70 +12,103 @@ namespace DM7_PPLUS_Integration_Specs
     [TestFixture]
     public class Verbindungsaufbau_Tests
     {
-        private Type API_Level_1()
+        private Test_PPLUS_Backend _server;
+        private Test_ProxyFactory _factory;
+
+        private Level_0_Test_API Verbindungsaufbau_0(string netzwerkadresse)
         {
-            return typeof(API_Level_1_Proxy);
+            return Connector.Instance_API_level_0_nur_fuer_Testzwecke(netzwerkadresse, null, _factory).Result;
         }
 
-        private Type API_Level_2()
+        private DM7_PPLUS_API Verbindungsaufbau_1(string netzwerkadresse)
         {
-            return typeof(API_Level_2_Proxy);
+            return Connector.Instance_API_Level_1(netzwerkadresse, null, _factory).Result;
         }
 
-        private DM7_PPLUS_API Verbindungsaufbau(string netzwerkadresse, int server_min_api_level, int server_max_api_level)
+        private void Server_kompatibel_mit_API_level(int server_min_api_level, int server_max_api_level)
         {
             var session = Guid.NewGuid();
-            var server = new Test_PPLUS_Backend();
+            _server = new Test_PPLUS_Backend();
 
-            var testProxyFactory =
-                new Test_ProxyFactory(
-                    new Test_Connector(server_max_api_level, server_min_api_level, 0, session),
-                    new API_Router(new API_Level_1_Adapter(server, ex => { throw new Exception("Unexpected exception", ex); }, session, 0)));
-            return Connector.Instance(netzwerkadresse, null, testProxyFactory).Result;
+
+            var level0 = new TestBackend_Level_0();
+            var level1 = new API_Level_1_Adapter(_server, ex => throw new Exception("Unexpected exception", ex), session, 0);
+
+            if (server_min_api_level > 0) level0 = null;
+            if (server_max_api_level < 1) level1 = null;
+
+            var router = new API_Router(session, 0, level0, level1);
+            _factory = new Test_ProxyFactory(router, router);
         }
 
         [Test]
-        public void Verbindungsaufbau__Proxy_fuer_API_Level_1__Host_unterstuetzt_nur_API_Level_1__liefert_API_Level_1()
+        public void Verbindungsaufbau__Proxy_fuer_API_Level_1__Host_unterstuetzt_API_Level_1__liefert_API_Level_1()
         {
-            var api = Verbindungsaufbau("test://|1|1", 1, 1);
-            api.Should().BeOfType(API_Level_1(), "Kleinster gemeinsamer API-Level zwischen Client und Server ist 1");
+            Server_kompatibel_mit_API_level(1, 1);
+            var api = Verbindungsaufbau_1("test://test");
+            api.Should().NotBeNull("Kein gemeinsames API Level gefunden!");
         }
 
         [Test]
-        public void Verbindungsaufbau__Proxy_fuer_API_Level_1__Host_unterstuetzt_nur_API_Level_2__schlaegt_fehl()
+        public void Verbindungsaufbau__Proxy_fuer_API_Level_0__Host_unterstuetzt_nur_API_Level_1__schlaegt_fehl()
         {
-            Action connect = () => Verbindungsaufbau("test://|1|1", 2, 2);
+            Server_kompatibel_mit_API_level(1, 1);
+            Action connect = () => Verbindungsaufbau_0("test://test");
             connect.ShouldThrow<UnsupportedVersionException>();
         }
 
         [Test]
-        public void Verbindungsaufbau__Proxy_fuer_API_Level_1__Host_unterstuetzt_API_Level_1_und_2__liefert_API_Level_1()
+        public void Verbindungsaufbau__Proxy_fuer_API_Level_1__Host_unterstuetzt_nur_API_Level_0__schlaegt_fehl()
         {
-            var api = Verbindungsaufbau("test://|1|1", 1, 2);
-            api.Should().BeOfType(API_Level_1(), "Kleinster gemeinsamer API-Level zwischen Client und Server ist 1");
+            Server_kompatibel_mit_API_level(0, 0);
+            Action connect = () => Verbindungsaufbau_1("test://test");
+            connect.ShouldThrow<UnsupportedVersionException>();
         }
 
         [Test]
-        public void Verbindungsaufbau__Proxy_fuer_API_Level_1_bis_2__Host_unterstuetzt_API_Level_1_und_2__liefert_API_Level_2()
+        public void
+            Verbindungsaufbau__Proxy_fuer_API_Level_0__Host_unterstuetzt_API_Level_0_und_1__liefert_API_Level_0()
         {
-            var api = Verbindungsaufbau("test://|1|2", 1, 2);
-            api.Should().BeOfType(API_Level_2(), "Größter gemeinsamer API-Level zwischen Client und Server ist 2");
+            Server_kompatibel_mit_API_level(0, 1);
+            var api = Verbindungsaufbau_0("test://test");
+            api.Should().NotBeNull("Kein gemeinsames API Level gefunden!");
         }
 
         [Test]
-        public void Verbindungsaufbau__Proxy_fuer_API_Level_1_bis_3__Host_unterstuetzt_API_Level_1_und_2__liefert_API_Level_2()
+        public void
+            Verbindungsaufbau__Proxy_fuer_API_Level_1__Host_unterstuetzt_API_Level_0_und_1__liefert_API_Level_1()
         {
-            var api = Verbindungsaufbau("test://|1|3", 1, 2);
-            api.Should().BeOfType(API_Level_2(), "Größter gemeinsamer API-Level zwischen Client und Server ist 2");
+            Server_kompatibel_mit_API_level(0, 1);
+            var api = Verbindungsaufbau_1("test://test");
+            api.Should().NotBeNull("Kein gemeinsames API Level gefunden!");
+        }
+
+        [Test]
+        public void
+            Verbindungsaufbau__Proxy_fuer_API_Level_0_und_1_angefragt_level_0__Host_unterstuetzt_API_Level_0__liefert_API_Level_0()
+        {
+            Server_kompatibel_mit_API_level(0, 0);
+            var api = Verbindungsaufbau_0("test://test");
+            api.Should().NotBeNull("Kein gemeinsames API Level gefunden!");
+        }
+
+        [Test]
+        public void
+            Verbindungsaufbau__Proxy_fuer_API_Level_0_und_1_angefragt_level_1__Host_unterstuetzt_API_Level_0__liefert_API_Level_1_downgrade()
+        {
+            Server_kompatibel_mit_API_level(0, 0);
+            var api = Verbindungsaufbau_1("test://0");
+            api.Should().NotBeNull("Kein gemeinsames API Level gefunden!");
+            api.Auswahllisten_Version.Should().Be(4711);
         }
     }
 
     internal class Test_ProxyFactory : ProxyFactory
     {
-        private readonly Test_Connector _verbindung;
+        private readonly Ebene_2_Protokoll__Verbindungsaufbau _verbindung;
         private readonly API_Router _api;
 
-        public Test_ProxyFactory(Test_Connector verbindung, API_Router api)
+        public Test_ProxyFactory(Ebene_2_Protokoll__Verbindungsaufbau verbindung, API_Router api)
         {
             _verbindung = verbindung;
             _api = api;
@@ -93,40 +126,6 @@ namespace DM7_PPLUS_Integration_Specs
         }
     }
 
-    internal class Test_Connector : Ebene_2_Protokoll__Verbindungsaufbau
-    {
-        private readonly int _maxApiLevel;
-        private readonly int _minApiLevel;
-        private readonly int _auswahllistenversion;
-        private readonly Guid _session;
-
-        public Test_Connector(int maxApiLevel, int minApiLevel, int auswahllistenversion, Guid session)
-        {
-            _maxApiLevel = maxApiLevel;
-            _minApiLevel = minApiLevel;
-            _auswahllistenversion = auswahllistenversion;
-            _session = session;
-        }
-
-        public void Dispose()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ConnectionResult> Connect(string login, int maxApiLevel, int minApiLevel)
-        {
-            var task = new Task<ConnectionResult>(() =>
-            {
-                var max = Math.Min(maxApiLevel, _maxApiLevel);
-                var min = Math.Max(minApiLevel, _minApiLevel);
-                if (max >= min) return new ConnectionSucceeded(max, _auswahllistenversion, _session);
-                var range = (_maxApiLevel == _minApiLevel) ? $"des Levels {_maxApiLevel}" : $"von Level {_minApiLevel} bis {_maxApiLevel}";
-                return new ConnectionFailed(ConnectionFailure.Unable_to_provide_API_level, $"Dieser P-PLUS-Server kann nur APIs {range} bereitstellen.");
-            });
-            task.RunSynchronously();
-            return task;
-        }
-    }
 
     [TestFixture]
     public sealed class API_Level_1__Ebene_1 : API_Test_Base
@@ -151,7 +150,7 @@ namespace DM7_PPLUS_Integration_Specs
 
             var server = new Test_PPLUS_Backend();
             var adapter = new API_Level_1_Adapter(server, ex => { throw new Exception("Unexpected exception", ex); }, session, auswahllistenversion);
-            var router = new API_Router(adapter);
+            var router = new API_Router(Guid.NewGuid(), auswahllistenversion, null, adapter);
             var proxy = new API_Level_1_Proxy(router, session, auswahllistenversion);
 
             Setup_Testframework(proxy, server);
@@ -161,20 +160,14 @@ namespace DM7_PPLUS_Integration_Specs
     [TestFixture]
     public class API_Level_1__Ebene_3 : API_Test_Base
     {
-        private NetMQ_Server _netMQServer;
-
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
             var session = Guid.NewGuid();
             var server = new Test_PPLUS_Backend();
             var adapter = new API_Level_1_Adapter(server, ex => { throw new Exception("Unexpected exception", ex); }, session, auswahllistenversion);
-            var router = new API_Router(adapter);
-            var deserialisierung = new Deserialisierung_Adapter(router);
-            _netMQServer = new NetMQ_Server(deserialisierung);
-
-
-            var netMqClient = new Fake_NetMQ_Client(_netMQServer);
-            var serialisierung = new Serialisierung_Proxy(netMqClient);
+            var router = new API_Router(Guid.NewGuid(), auswahllistenversion, null, adapter);
+            var deserialisierung = new Serialization_Adapter(router);
+            var serialisierung = new Serialization_Proxy(deserialisierung);
             var proxy = new API_Level_1_Proxy(serialisierung, session, auswahllistenversion);
             Setup_Testframework(proxy, server);
         }

@@ -51,8 +51,13 @@
     <Compile Include="Daten\Qualifikation.cs" />
     <Compile Include="DM7_PPLUS_API.cs" />
     <Compile Include="Implementierung\Datenquellen.cs" />
+    <Compile Include="Implementierung\Level_0_Test_API.cs" />
+    <Compile Include="Implementierung\Level_0_Test_Proxy.cs" />
+    <Compile Include="Implementierung\Level_1_upgrade_Test_Proxy.cs" />
+    <Compile Include="Implementierung\NetMqfactory.cs" />
     <Compile Include="Implementierung\Observer.cs" />
     <Compile Include="Implementierung\Subject.cs" />
+    <Compile Include="Implementierung\ArrayExtensions.cs" />
     <Compile Include="Implementierung\VersionsStand.cs" />
     <Compile Include="PPLUS.cs" />
     <Compile Include="Implementierung\DM7_PPLUS_Proxy.cs" />

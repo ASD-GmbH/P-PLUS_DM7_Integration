@@ -388,19 +388,19 @@ namespace DM7_PPLUS_Integration.Implementierung
         }
     }
 
-    public class Serialisierung_Proxy : Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung
+    public class Serialization_Proxy : Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung
     {
         private readonly Ebene_3_Protokoll__Netzwerkuebertragung _proxy;
         private readonly IDisposable _subscription;
 
-        public Serialisierung_Proxy(Ebene_3_Protokoll__Netzwerkuebertragung proxy)
+        public Serialization_Proxy(Ebene_3_Protokoll__Netzwerkuebertragung proxy)
         {
             _proxy = proxy;
             var subject = new Subject<Notification>();
             _subscription = proxy.Notifications.Subscribe(new Observer<byte[]>(
                 datagram =>
                 {
-                    var notification = Deserialise(datagram);
+                    var notification = Deserialize(datagram);
                     subject.Next(notification);
                 },
                 ex => { throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex); }));
@@ -408,7 +408,7 @@ namespace DM7_PPLUS_Integration.Implementierung
             Notifications = subject;
         }
 
-        private Notification Deserialise(byte[] datagram)
+        private Notification Deserialize(byte[] datagram)
         {
             var guidbuffer = new byte[16];
             var position = 0;
@@ -439,84 +439,85 @@ namespace DM7_PPLUS_Integration.Implementierung
                 BitConverter.GetBytes(von),
                 BitConverter.GetBytes(bis)
             };
-            var resultarray = new byte[query.Sum(_ => _.Length)];
-
-            var pos = 0;
-            foreach (var ar in query)
-            {
-                Array.Copy(ar, 0, resultarray, pos, ar.Length);
-                pos += ar.Length;
-            }
 
             return _proxy
-                .Request(resultarray)
+                .Request(query.Concat())
                 .ContinueWith(task => (QueryResponse) new QueryResult(task.Result));
         }
-
 
         public IObservable<Notification> Notifications { get; }
     }
 
-    public class Fake_NetMQ_Client : Ebene_3_Protokoll__Netzwerkuebertragung
-    {
-        private readonly NetMQ_Server _netMqServer;
+    //public class NetMQ_Client : Ebene_3_Protokoll__Netzwerkuebertragung
+    //{
+    //    private readonly NetMQ_Server _netMqServer;
 
-        public Fake_NetMQ_Client(NetMQ_Server netMQ_Server) // TODO: parameter entfernen, NetMQ messages an den NetMQ-Server senden.
-        {
-            _netMqServer = netMQ_Server;
-            Notifications = new Subject<byte[]>();
-        }
+    //    public NetMQ_Client(NetMQ_Server netMQ_Server) // TODO: parameter entfernen, NetMQ messages an den NetMQ-Server senden.
+    //    {
+    //        _netMqServer = netMQ_Server;
+    //        Notifications = new Subject<byte[]>();
+    //    }
 
-        // sendet serialisierte Nachrichten über ZeroMQ an NetMQ_Server
-        public void Dispose()
-        {
-        }
+    //    // sendet serialisierte Nachrichten über ZeroMQ an NetMQ_Server
+    //    public void Dispose()
+    //    {
+    //    }
 
-        public Task<byte[]> Request(byte[] request)
-        {
-            return _netMqServer.Respond_to(request);
-        }
+    //    public Task<byte[]> Request(byte[] request)
+    //    {
+    //        return _netMqServer.Respond_to(request);
+    //    }
 
-        public IObservable<byte[]> Notifications { get; }
-    }
+    //    public IObservable<byte[]> Notifications { get; }
+    //}
 
-    public class NetMQ_Server
-    {
-        private readonly Ebene_3_Protokoll__Netzwerkuebertragung _backend;
+    //public class NetMQ_Server
+    //{
+    //    private readonly Ebene_3_Protokoll__Netzwerkuebertragung _backend;
 
-        public NetMQ_Server(Ebene_3_Protokoll__Netzwerkuebertragung backend)
-        {
-            _backend = backend;
-        }
+    //    public NetMQ_Server(Ebene_3_Protokoll__Netzwerkuebertragung backend)
+    //    {
+    //        _backend = backend;
+    //    }
 
-        // empfängt serialisierte Nachrichten über ZeroMQ und gibt sie weiter an das Backend
-        public Task<byte[]> Respond_to(byte[] request)
-        {
-            return _backend.Request(request);
-        }
-    }
+    //    // empfängt serialisierte Nachrichten über ZeroMQ und gibt sie weiter an das Backend
+    //    public Task<byte[]> Respond_to(byte[] request)
+    //    {
+    //        return _backend.Request(request);
+    //    }
+    //}
 
-    public class Deserialisierung_Adapter : Ebene_3_Protokoll__Netzwerkuebertragung
+    public class Serialization_Adapter : Ebene_3_Protokoll__Netzwerkuebertragung
     {
         private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _backend;
         private readonly IDisposable _subscription;
 
-        public Deserialisierung_Adapter(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung backend)
+        public Serialization_Adapter(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung backend)
         {
             _backend = backend;
             var subject = new Subject<byte[]>();
             _subscription = backend.Notifications.Subscribe(new Observer<Notification>(
                 notification =>
                 {
-                    var datagram = Serialise(notification);
+                    var datagram = Serialize_Notification(notification);
                     subject.Next(datagram);
                 },
-                ex => { throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex); }));
+                ex => throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex)));
             Notifications = subject;
         }
 
-        private byte[] Serialise(Notification notification)
+        private byte[] Serialize_Notification(Notification notification)
         {
+            if (notification is NotificationData)
+            {
+                var data = (NotificationData) notification;
+                var a_01 = data.Session.ToByteArray();
+                var a_02 = BitConverter.GetBytes(data.Datenquelle);
+                var a_03 = BitConverter.GetBytes(data.Version);
+
+                return new List<byte[]> {a_01, a_02, a_03}.Concat();
+
+            }
             throw new NotImplementedException();
         }
 
@@ -544,12 +545,17 @@ namespace DM7_PPLUS_Integration.Implementierung
             return
                 _backend
                 .Query(api_level, session, datenquelle, von, bis)
-                .ContinueWith(task => Serialise(task.Result));
+                .ContinueWith(task => Serialize_QueryResponse(task.Result));
         }
 
-        private byte[] Serialise(QueryResponse response)
+        private byte[] Serialize_QueryResponse(QueryResponse response)
         {
-            return ((QueryResult) response).Data;
+            if (response is QueryResult)
+            {
+                return ((QueryResult) response).Data;
+            }
+            throw new NotImplementedException();
+
         }
 
         public IObservable<byte[]> Notifications { get; }
@@ -562,25 +568,53 @@ namespace DM7_PPLUS_Integration.Implementierung
     {
         private readonly DM7_PPLUS_API _backendLevel1;
         private readonly IDisposable _subscription;
+        private readonly int _maxApiLevel = 1;
+        private readonly int _minApiLevel = 1;
+        private readonly int _auswahllistenversion;
+        private readonly Guid _session;
 
         /// <summary>
         /// Empfängt API-Level-unabhängige Nachrichten und routet Sie in fachliche Nachrichten an die verschiedenen API Versionen
         /// </summary>
-        public API_Router(DM7_PPLUS_API backend_level_1/*, DM_PPLUS_API_2 backend_level_2, ...*/)
+        public API_Router(Guid session, int auswahllisten_version, Level_0_Test_API backend_level_0,  DM7_PPLUS_API backend_level_1/*, DM_PPLUS_API_2 backend_level_2, ...*/)
         {
+            _session = session;
+            _auswahllistenversion = auswahllisten_version;
+
+            _maxApiLevel = 0;
+            if (backend_level_1 != null) _maxApiLevel = 1;
+
+            _minApiLevel = 0;
+            if (backend_level_0 == null) _minApiLevel = 1;
+
             _backendLevel1 = backend_level_1;
+
             var subject = new Subject<Notification>();
-            _subscription = backend_level_1.Stand_Mitarbeiterdaten.Subscribe(
-                new Observer<Stand>(
-                    s => subject.Next(Map(s, Datenquellen.Mitarbeiter)),
-                    ex => subject.Error(ex)));
+
+            if (backend_level_1 != null)
+            {
+                _subscription = backend_level_1.Stand_Mitarbeiterdaten.Subscribe(
+                    new Observer<Stand>(
+                        s => subject.Next(Map(s, Datenquellen.Mitarbeiter)),
+                        ex => subject.Error(ex)));
+            }
+
             Notifications = subject;
         }
 
 
         public Task<ConnectionResult> Connect(string login, int maxApiLevel, int minApiLevel)
         {
-            throw new NotImplementedException();
+            var task = new Task<ConnectionResult>(() =>
+            {
+                var max = Math.Min(maxApiLevel, _maxApiLevel);
+                var min = Math.Max(minApiLevel, _minApiLevel);
+                if (max >= min) return new ConnectionSucceeded(max, _auswahllistenversion, _session);
+                var range = (_maxApiLevel == _minApiLevel) ? $"des Levels {_maxApiLevel}" : $"von Level {_minApiLevel} bis {_maxApiLevel}";
+                return new ConnectionFailed(ConnectionFailure.Unable_to_provide_API_level, $"Dieser P-PLUS-Server kann nur APIs {range} bereitstellen.");
+            });
+            task.RunSynchronously();
+            return task;
         }
 
 
