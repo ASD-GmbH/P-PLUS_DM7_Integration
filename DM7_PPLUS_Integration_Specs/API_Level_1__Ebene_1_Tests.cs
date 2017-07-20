@@ -139,12 +139,12 @@ namespace DM7_PPLUS_Integration_Specs
     {
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
-            var session = Guid.NewGuid();
-
             var server = new Test_PPLUS_Backend(auswahllistenversion);
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, new TestLog("[server] "));
+            var log = new TestLog("[server] ");
 
-            Setup_Testframework(adapter, server);
+            var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
+
+            Setup_Testframework(host.Ebene_1_API_Level_1, server);
         }
     }
 
@@ -153,14 +153,13 @@ namespace DM7_PPLUS_Integration_Specs
     {
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
-            var session = Guid.NewGuid();
-
             var server = new Test_PPLUS_Backend(auswahllistenversion);
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, new TestLog("[server] "));
-            var router = new API_Router(new TestLog("[server] "), session, auswahllistenversion, null, adapter);
-            var connector = (Ebene_2_Protokoll__Verbindungsaufbau) router;
-            var connection = (ConnectionSucceeded)connector.Connect_Ebene_1("test", 1, 1).Result;
-            var proxy = new API_Level_1_Proxy(router, session, connection.Auswahllistenversion, new TestLog("[client] "));
+            var log = new TestLog("[server] ");
+
+            var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
+
+            var connection = (ConnectionSucceeded)host.Ebene_2_Service.Connect_Ebene_1("test", 1, 1).Result;
+            var proxy = new API_Level_1_Proxy(host.Ebene_2_Data, connection.Session, connection.Auswahllistenversion, new TestLog("[client] "));
 
             Setup_Testframework(proxy, server);
         }
@@ -171,17 +170,15 @@ namespace DM7_PPLUS_Integration_Specs
     {
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
-            var session = Guid.NewGuid();
-
             var server = new Test_PPLUS_Backend(auswahllistenversion);
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, new TestLog("[server] "));
-            var router = new API_Router(new TestLog("[server] "), session, auswahllistenversion, null, adapter);
-            var connector = (Ebene_2_Protokoll__Verbindungsaufbau)router;
+            var log = new TestLog("[server] ");
 
-            var deserialisierung = new Data_Adapter(router);
+            var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
+
+            var deserialisierung = new Data_Adapter(host.Ebene_2_Data);
             var serialisierung = new Data_Proxy(deserialisierung);
 
-            var connection = (ConnectionSucceeded)connector.Connect_Ebene_1("test", 1, 1).Result;
+            var connection = (ConnectionSucceeded)host.Ebene_2_Service.Connect_Ebene_1("test", 1, 1).Result;
             var proxy = new API_Level_1_Proxy(serialisierung, connection.Session, connection.Auswahllistenversion, new TestLog("[client] "));
             Setup_Testframework(proxy, server);
         }
@@ -192,15 +189,13 @@ namespace DM7_PPLUS_Integration_Specs
     {
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
-            var session = Guid.NewGuid();
             var server = new Test_PPLUS_Backend(auswahllistenversion);
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, new TestLog("[server] "));
-            var router = new API_Router(new TestLog("[server] "), session, auswahllistenversion, null, adapter);
-            var deserialisierung = new Data_Adapter(router);
-            var c_adapter = new Service_Adapter(router);
+            var log = new TestLog("[server] ");
 
-            var connector = new Service_Proxy(c_adapter);
-            var serialisierung = new Data_Proxy(deserialisierung);
+            var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
+
+            var connector = new Service_Proxy(host.Ebene_3_Service);
+            var serialisierung = new Data_Proxy(host.Ebene_3_Data);
             var connection = (ConnectionSucceeded)connector.Connect_Ebene_1("test", 1, 1).Result;
             var proxy = new API_Level_1_Proxy(serialisierung, connection.Session, connection.Auswahllistenversion, new TestLog("[client] "));
             Setup_Testframework(proxy, server);
@@ -227,14 +222,10 @@ namespace DM7_PPLUS_Integration_Specs
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
             var port = r.Next(20000, 32000);
-            var session = Guid.NewGuid();
             var server = new Test_PPLUS_Backend(auswahllistenversion);
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, new TestLog("[server] "));
-            var router = new API_Router(new TestLog("[server] "), session, auswahllistenversion, null, adapter);
-            var dataAdapter = new Data_Adapter(router);
-            var serviceAdapter = new Service_Adapter(router);
+            var log = new TestLog("[server] ");
 
-            _host = new NetMQ_Server(serviceAdapter, dataAdapter, "tcp://127.0.0.1:" + port, new TestLog("[server] "));
+            _host = DM7_PPLUS_Host.Starten(server, "tcp://127.0.0.1", port, log, ex => Assert.Fail(ex.ToString()));
 
             _proxy = PPLUS.Connect("tcp://127.0.0.1:" + port, new TestLog("[client] ")).Result;
             Setup_Testframework(_proxy, server);
