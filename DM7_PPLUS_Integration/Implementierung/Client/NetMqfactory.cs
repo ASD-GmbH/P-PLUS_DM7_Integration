@@ -13,7 +13,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 new Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau,
                     Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>>(() =>
                 {
-                    var client = new NetMQ_Client(networkAddress);
+                    var client = new NetMQ_Client(networkAddress, log);
                     var serializer = new Data_Proxy(client);
                     var connector = new Service_Proxy(client);
 

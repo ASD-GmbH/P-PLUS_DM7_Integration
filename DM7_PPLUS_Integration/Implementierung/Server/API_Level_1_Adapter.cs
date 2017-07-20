@@ -15,15 +15,17 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     {
         private readonly PPLUS_Backend _backend;
         private readonly Guid _session;
+        private readonly Log _log;
         private long _stand;
 
         private readonly Dictionary<long, IEnumerable<Guid>> _Mitarbeiter_je_Stand =
             new Dictionary<long, IEnumerable<Guid>>();
 
 
-        public API_Level_1_Adapter(PPLUS_Backend backend, Action<Exception> onException, Guid session, int auswahllistenVersion)
+        public API_Level_1_Adapter(PPLUS_Backend backend, Action<Exception> onException, Guid session, int auswahllistenVersion, Log log)
         {
             _session = session;
+            _log = log;
             _backend = backend;
             Auswahllisten_Version = auswahllistenVersion;
             _Mitarbeiter_je_Stand.Add(_stand, _backend.Alle_Mitarbeiter());
@@ -69,14 +71,17 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                     .Where(_ => !teilmenge || _.Key > vvon.Version && _.Key <= vbis.Version)
                     .SelectMany(_ => _.Value)
                     .Distinct();
-
-            return Task.Factory.StartNew(() =>
-                new Mitarbeiterdatensaetze(
+            var task = new Task<Mitarbeiterdatensaetze>(() =>
+            {
+                return new Mitarbeiterdatensaetze(
                     teilmenge,
                     new VersionsStand(_session, _stand),
                     new ReadOnlyCollection<Mitarbeiterdatensatz>(_backend.Mitarbeiterdatensaetze_abrufen(mitarbeiter)
                         .ToList()),
-                    new ReadOnlyCollection<Mitarbeiterfoto>(new List<Mitarbeiterfoto>())));
+                    new ReadOnlyCollection<Mitarbeiterfoto>(new List<Mitarbeiterfoto>()));
+            });
+            task.RunSynchronously();
+            return task;
         }
 
         public Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen()

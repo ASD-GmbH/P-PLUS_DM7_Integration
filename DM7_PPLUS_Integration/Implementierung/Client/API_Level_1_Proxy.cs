@@ -17,22 +17,30 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _ebene_2_Proxy;
         private readonly Guid _session;
+        private readonly Log _log;
         private readonly IDisposable _subscription;
 
         /// <summary>
         /// Implementiert die API level 1 und übersetzt die Anfragen in API-Level-unabhängige Nachrichten
         /// </summary>
-        public API_Level_1_Proxy(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung ebene2Proxy, Guid session, int auswahllistenversion)
+        public API_Level_1_Proxy(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung ebene2Proxy, Guid session, int auswahllistenversion, Log log)
         {
             _ebene_2_Proxy = ebene2Proxy;
             _session = session;
+            _log = log;
             Auswahllisten_Version = auswahllistenversion;
             var subject = new Subject<Stand>();
             _subscription = ebene2Proxy.Notifications.Subscribe(new Observer<Notification>(
                 no =>
                 {
                     var data = no as NotificationData;
-                    if (data != null) { subject.Next(new VersionsStand(data.Session, data.Version)); }
+                    if (data != null)
+                    {
+                        // TODO: Datenquelle auswerten
+                        // TODO: Session auswerten
+                        _log.Debug($"Mitarbeiterdaten aktualisiert (@{data.Version}))");
+                        subject.Next(new VersionsStand(data.Session, data.Version));
+                    }
                     else if (no is NotificationsClosed) { subject.Completed(); }
                     else subject.Error(new ConnectionErrorException($"Interner Fehler im Notificationstream. Unbekannte Nachricht: {no.GetType().Name}"));
                 },
@@ -42,8 +50,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         public void Dispose()
         {
+            _log.Info("DM7 - P-PLUS Schnittstelle wird beendent...");
             _subscription.Dispose();
             _ebene_2_Proxy.Dispose();
+            _log.Info("DM7 - P-PLUS Schnittstelle geschlossen.");
         }
 
         public int Auswahllisten_Version { get; }
@@ -52,6 +62,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         public Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen(Stand von, Stand bis)
         {
+            _log.Debug($"Mitarbeiterdaten werden abgerufen ({von}..{bis})...");
             return
                 _ebene_2_Proxy
                     .Query(API_LEVEL, _session, Datenquellen.Mitarbeiter, ((VersionsStand)von).Version, ((VersionsStand)bis).Version)
@@ -61,7 +72,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                             var result = task.Result as QueryResult;
                             if (result != null)
                             {
-                                return Deserialisiere_Mitarbeiterdatensaetze(result.Data);
+                                var mitarbeiterdatensaetze = Deserialisiere_Mitarbeiterdatensaetze(result.Data);
+                                _log.Debug($"Mitarbeiterdaten empfangen ({mitarbeiterdatensaetze.Mitarbeiter.Count} Mitarbeiter, {mitarbeiterdatensaetze.Fotos.Count} Bilder, @{mitarbeiterdatensaetze.Stand}, {(mitarbeiterdatensaetze.Teilmenge?"teildaten":"vollständig")})");
+                                return mitarbeiterdatensaetze;
                             }
                             else
                             {

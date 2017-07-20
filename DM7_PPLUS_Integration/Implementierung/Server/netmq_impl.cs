@@ -22,12 +22,15 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
     public class NetMQ_Client : Ebene_3_Protokoll__Data, Ebene_3_Protokoll__Service
     {
+        private readonly Log _log;
         private RequestSocket _request_socket;
         private readonly Subject<byte[]> _notifications;
 
-        public NetMQ_Client(string networkaddress)
+        public NetMQ_Client(string networkaddress, Log log)
         {
+            _log = log;
             _notifications = new Subject<byte[]>();
+            _log.Debug($"NetMQ Request Socket ({networkaddress}) wird verbunden.");
             _request_socket = new RequestSocket(networkaddress);
         }
 
@@ -36,7 +39,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         {
             var disposable1 = _request_socket;
             _request_socket = null;
-            if (disposable1 != null) disposable1.Dispose();
+            if (disposable1 != null)
+            {
+                _log.Debug($"NetMQ Request Socket wird geschlossen...");
+                disposable1.Dispose();
+                _log.Debug($"NetMQ Request Socket geschlossen.");
+            }
         }
 
         Task<byte[]> Ebene_3_Protokoll__Service.ServiceRequest(byte[] request)
@@ -53,9 +61,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         {
             var task = new Task<byte[]>(() =>
             {
+                _log.Debug($"NetMQ sende Request (channel {channel}, {request.Length} bytes)...");
                 _request_socket.SendFrame(new byte[] {Constants.NETMQ_WIREPROTOCOL_1, channel}, true);
                 _request_socket.SendFrame(request);
-                return _request_socket.ReceiveFrameBytes();
+                var response = _request_socket.ReceiveFrameBytes();
+                _log.Debug($"NetMQ Response empfangen ({response.Length} bytes)...");
+                return response;
             });
             task.RunSynchronously();
             return task;
@@ -80,7 +91,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         /// </summary>
         public NetMQ_Server(Ebene_3_Protokoll__Service service, Ebene_3_Protokoll__Data backend, string connectionstring, Log log)
         {
-            log.Debug("NetMQ Server wird gestartet");
             _backend = backend;
             _service = service;
             _log = log;
@@ -88,22 +98,35 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             _poller = new NetMQPoller();
             _response_socket.ReceiveReady += _response_socket_ReceiveReady;
             _poller.Add(_response_socket);
+            log.Debug($"NetMQ response socket wird bereitgestellt ({connectionstring})...");
             _poller.RunAsync();
             log.Info("NetMQ Server wurde gestartet");
         }
 
         private void _response_socket_ReceiveReady(object sender, NetMQSocketEventArgs e)
         {
-            _log.Debug("NetMQ Serversocket empfangsbereit.");
+            _log.Debug("NetMQ Nachricht wird gelesen...");
             var data = e.Socket.ReceiveFrameBytes();
             Guard_unsopported_protocol(data[0]);
             switch (data[1])
             {
                 case Constants.CHANNEL_1_SERVICE:
-                    _service.ServiceRequest(e.Socket.ReceiveFrameBytes()).ContinueWith(task => e.Socket.SendFrame(task.Result));
+                    var servicerequest = e.Socket.ReceiveFrameBytes();
+                    _log.Debug($"NetMQ Service Request ({servicerequest.Length} bytes)...");
+                    _service.ServiceRequest(servicerequest).ContinueWith(task =>
+                    {
+                        _log.Debug($"NetMQ Response ({task.Result.Length} bytes)...");
+                        e.Socket.SendFrame(task.Result);
+                    });
                     break;
                 case Constants.CHANNEL_2_DATA:
-                    _backend.Request(e.Socket.ReceiveFrameBytes()).ContinueWith(task => e.Socket.SendFrame(task.Result));
+                    var datarequest = e.Socket.ReceiveFrameBytes();
+                    _log.Debug($"NetMQ Data Request ({datarequest.Length} bytes)...");
+                    _backend.Request(datarequest).ContinueWith(task =>
+                    {
+                        _log.Debug($"NetMQ Response ({task.Result.Length} bytes)...");
+                        e.Socket.SendFrame(task.Result);
+                    });
                     break;
                 default:
                     throw new ConnectionErrorException($"Unbekannter NetMQ Server Kanal: {data[0].ToString()}");
@@ -118,14 +141,38 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         public void Dispose()
         {
-            _log.Debug("NetMQ Server wird beendet.");
+            _log.Info("NetMQ Server wird beendet...");
+
             var disposable2 = _poller;
             _poller = null;
-            if (disposable2 != null) disposable2.Dispose();
+            if (disposable2 != null)
+            {
+                _log.Debug("NetMQ Poller wird angehalten...");
+                disposable2.Stop();
+                _log.Debug("NetMQ Poller wird geschlossen...");
+                disposable2.Dispose();
+            }
+            else
+            {
+                _log.Info("NetMQ Poller war bereits geschlossen!");
+            }
+
+
             var disposable1 = _response_socket;
             _response_socket = null;
-            if (disposable1 != null) disposable1.Dispose();
-            _log.Info("NetMQ Serverer wurde beendet.");
+
+            if (disposable1 != null)
+            {
+                _log.Debug("NetMQ Request socket wird geschlossen...");
+                disposable1.Dispose();
+            }
+            else
+            {
+                _log.Info("NetMQ Request socket war bereits geschlossen!");
+            }
+
+
+            _log.Info("NetMQ Server wurde beendet.");
         }
     }
 

@@ -29,7 +29,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     .ContinueWith(task =>
                         task.Result.Item2 != 1
                         ? (DM7_PPLUS_API)new Level_1_upgrade_Test_Proxy(task.Result.Item1)
-                        : (DM7_PPLUS_API)new API_Level_1_Proxy(task.Result.Item1, task.Result.Item3, task.Result.Item4));
+                        : (DM7_PPLUS_API)new API_Level_1_Proxy(task.Result.Item1, task.Result.Item3, task.Result.Item4, log));
         }
 
 
@@ -44,16 +44,31 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
             if (factory==null) throw new ConnectionErrorException("Unbekanntes Protokoll im Connection string gefunden. Erwartet wird tcp://...");
 
+            var info = "";
+
+            if (networkaddress.StartsWith("tcp://"))
+            {
+                info="DM7/P-PLUS Verbindung über NetMQ";
+            }
+            else
+            {
+                info="Test/Demo Verbindung";
+            }
+
+            log.Info(info + " wird aufgebaut...");
             var verbindung_tuple = factory.Connect_Ebene_2(networkaddress, log);
 
             return verbindung_tuple.ContinueWith(task =>
             {
+                log.Info("DM7 wird angemeldet...");
                 var result = task.Result.Item1.Connect_Ebene_1(login, client_max_api_level_request, client_min_api_level_request).Result;
 
                 if (result is ConnectionSucceeded)
                 {
                     var success = (ConnectionSucceeded)result;
                     var agreed_API_level = success.Api_Level;
+
+                    log.Info($"DM7 - P-PLUS Verbindung (API {agreed_API_level}, IDs {success.Auswahllistenversion}).");
 
                     Guard_Api_Level(agreed_API_level, client_min_api_level_request, client_max_api_level_request);
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Daten;
@@ -35,7 +36,7 @@ namespace DM7_PPLUS_Integration_Specs
 
 
             var level0 = new TestBackend_Level_0();
-            var level1 = new API_Level_1_Adapter(_server, ex => throw new Exception("Unexpected exception", ex), session, 0);
+            var level1 = new API_Level_1_Adapter(_server, ex => throw new Exception("Unexpected exception", ex), session, 0, new TestLog("server "));
 
             if (server_min_api_level > 0) level0 = null;
             if (server_max_api_level < 1) level1 = null;
@@ -141,7 +142,7 @@ namespace DM7_PPLUS_Integration_Specs
             var session = Guid.NewGuid();
 
             var server = new Test_PPLUS_Backend();
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
 
             Setup_Testframework(adapter, server);
         }
@@ -155,11 +156,11 @@ namespace DM7_PPLUS_Integration_Specs
             var session = Guid.NewGuid();
 
             var server = new Test_PPLUS_Backend();
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
             var router = new API_Router(session, auswahllistenversion, null, adapter);
             var connector = (Ebene_2_Protokoll__Verbindungsaufbau) router;
             var connection = (ConnectionSucceeded)connector.Connect_Ebene_1("test", 1, 1).Result;
-            var proxy = new API_Level_1_Proxy(router, session, connection.Auswahllistenversion);
+            var proxy = new API_Level_1_Proxy(router, session, connection.Auswahllistenversion, new TestLog("[client] "));
 
             Setup_Testframework(proxy, server);
         }
@@ -173,7 +174,7 @@ namespace DM7_PPLUS_Integration_Specs
             var session = Guid.NewGuid();
 
             var server = new Test_PPLUS_Backend();
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
             var router = new API_Router(session, auswahllistenversion, null, adapter);
             var connector = (Ebene_2_Protokoll__Verbindungsaufbau)router;
 
@@ -181,7 +182,7 @@ namespace DM7_PPLUS_Integration_Specs
             var serialisierung = new Data_Proxy(deserialisierung);
 
             var connection = (ConnectionSucceeded)connector.Connect_Ebene_1("test", 1, 1).Result;
-            var proxy = new API_Level_1_Proxy(serialisierung, connection.Session, connection.Auswahllistenversion);
+            var proxy = new API_Level_1_Proxy(serialisierung, connection.Session, connection.Auswahllistenversion, new TestLog("[client] "));
             Setup_Testframework(proxy, server);
         }
     }
@@ -193,7 +194,7 @@ namespace DM7_PPLUS_Integration_Specs
         {
             var session = Guid.NewGuid();
             var server = new Test_PPLUS_Backend();
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
             var router = new API_Router(session, auswahllistenversion, null, adapter);
             var deserialisierung = new Data_Adapter(router);
             var c_adapter = new Service_Adapter(router);
@@ -201,7 +202,7 @@ namespace DM7_PPLUS_Integration_Specs
             var connector = new Service_Proxy(c_adapter);
             var serialisierung = new Data_Proxy(deserialisierung);
             var connection = (ConnectionSucceeded)connector.Connect_Ebene_1("test", 1, 1).Result;
-            var proxy = new API_Level_1_Proxy(serialisierung, connection.Session, connection.Auswahllistenversion);
+            var proxy = new API_Level_1_Proxy(serialisierung, connection.Session, connection.Auswahllistenversion, new TestLog("[client] "));
             Setup_Testframework(proxy, server);
         }
     }
@@ -228,24 +229,22 @@ namespace DM7_PPLUS_Integration_Specs
             var port = r.Next(20000, 32000);
             var session = Guid.NewGuid();
             var server = new Test_PPLUS_Backend();
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
             var router = new API_Router(session, auswahllistenversion, null, adapter);
             var dataAdapter = new Data_Adapter(router);
             var serviceAdapter = new Service_Adapter(router);
 
-            _host = new NetMQ_Server(serviceAdapter, dataAdapter, "tcp://127.0.0.1:" + port, new TestLog());
+            _host = new NetMQ_Server(serviceAdapter, dataAdapter, "tcp://127.0.0.1:" + port, new TestLog("[server] "));
 
-            _proxy = PPLUS.Connect("tcp://127.0.0.1:" + port, new TestLog()).Result;
+            _proxy = PPLUS.Connect("tcp://127.0.0.1:" + port, new TestLog("[client] ")).Result;
             Setup_Testframework(_proxy, server);
         }
 
-        [TearDown]
-        public void Cleanup()
+        protected override void Beende_Infrastruktur()
         {
             _proxy.Dispose();
             _host.Dispose();
         }
-
 
 
         [Test]
@@ -257,14 +256,25 @@ namespace DM7_PPLUS_Integration_Specs
 
     public class TestLog : Log
     {
+        private readonly string _prefix;
+
+        public TestLog(string prefix)
+        {
+            _prefix = prefix;
+        }
+
+        private string Meta => $"[{Thread.CurrentThread.ManagedThreadId}] ";
+
         public void Info(string text)
         {
-            Console.WriteLine(text);
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(Meta+_prefix+text);
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         public void Debug(string text)
         {
-            Console.WriteLine(text);
+            Console.WriteLine(Meta + _prefix + text);
         }
     }
 
@@ -285,7 +295,14 @@ namespace DM7_PPLUS_Integration_Specs
             Erzeuge_Infrastruktur(0);
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            Beende_Infrastruktur();
+        }
+
         protected abstract void Erzeuge_Infrastruktur(int auswahllistenversion);
+        protected virtual void Beende_Infrastruktur() { }
 
         [Test]
         public void Leere_Mitarbeiterliste_wird_zurueckgeliefert()
@@ -345,6 +362,29 @@ namespace DM7_PPLUS_Integration_Specs
             Anzahl(data).Should().Be(1);
         }
 
+        [Test]
+        public void Teilweise_Daten_werden_als_Teilmenge_gekennzeichnet()
+        {
+            Mitarbeiter_anlegen("Martha", "Musterfrau");
+            Mitarbeiter_anlegen("Marco", "Mustermann");
+            Mitarbeiter_anlegen("Martin", "Mustermaus");
+            var mitabeiterdatensaetze = API.Mitarbeiterdaten_abrufen();
+            var bekannter_Stand = Stand(mitabeiterdatensaetze);
+            var verfuegbarerStand = bekannter_Stand;
+            API.Stand_Mitarbeiterdaten.Subscribe(stand => { verfuegbarerStand = stand; });
+
+            Mitarbeiter_anlegen("Tester", "Testerino");
+            Warte_auf_Konsistenz();
+
+            var data = API.Mitarbeiterdaten_abrufen(bekannter_Stand, verfuegbarerStand).Result;
+            Teilnemge(data).Should().Be(true);
+        }
+
+        private bool Teilnemge(Mitarbeiterdatensaetze data)
+        {
+            return data.Teilmenge;
+        }
+
 
         private Stand Stand(Task<Mitarbeiterdatensaetze> data) => data.Result.Stand;
 
@@ -354,6 +394,7 @@ namespace DM7_PPLUS_Integration_Specs
 
         private void Auswahllisten_Version(int auswahllistenversion)
         {
+            Beende_Infrastruktur();
             Erzeuge_Infrastruktur(auswahllistenversion);
         }
 
