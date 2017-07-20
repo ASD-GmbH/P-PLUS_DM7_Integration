@@ -109,9 +109,9 @@ namespace DM7_PPLUS_Integration_Specs
     internal class Test_ProxyFactory : ProxyFactory
     {
         private readonly Ebene_2_Protokoll__Verbindungsaufbau _verbindung;
-        private readonly API_Router _api;
+        private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _api;
 
-        public Test_ProxyFactory(Ebene_2_Protokoll__Verbindungsaufbau verbindung, API_Router api)
+        public Test_ProxyFactory(Ebene_2_Protokoll__Verbindungsaufbau verbindung, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung api)
         {
             _verbindung = verbindung;
             _api = api;
@@ -119,10 +119,13 @@ namespace DM7_PPLUS_Integration_Specs
 
         public Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>> Connect(string networkAddress, Log log)
         {
+            var adapter = new ServiceAdapter(_verbindung);
+            var client = new ServiceClient(adapter);
+
             var task =
                 new Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>>(
                     () => new Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>(
-                        _verbindung,
+                        client,
                         _api));
             task.RunSynchronously();
             return task;
@@ -203,9 +206,13 @@ namespace DM7_PPLUS_Integration_Specs
         }
     }
 
-    // TODO Test: Connect without Server present can be aborted
+    // TODO Test: Connect without Server present can be aborted (Test in voller NetMQ Infrastruktur)
 
     // TODO Test: Neue Session führt zu Neuübertragung aller Daten
+
+    // TODO: Authentifizierung
+
+    // TODO: Verschlüsselung
 
     [TestFixture, Ignore]
     public class API_Level_1__Ebene_5 : API_Test_Base
