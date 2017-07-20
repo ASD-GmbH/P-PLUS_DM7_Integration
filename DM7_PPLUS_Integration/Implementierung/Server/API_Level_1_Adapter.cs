@@ -22,12 +22,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             new Dictionary<long, IEnumerable<Guid>>();
 
 
-        public API_Level_1_Adapter(PPLUS_Backend backend, Action<Exception> onException, Guid session, int auswahllistenVersion, Log log)
+        public API_Level_1_Adapter(PPLUS_Backend backend, Action<Exception> onException, Guid session, Log log)
         {
             _session = session;
             _log = log;
             _backend = backend;
-            Auswahllisten_Version = auswahllistenVersion;
             _Mitarbeiter_je_Stand.Add(_stand, _backend.Alle_Mitarbeiter());
 
             Stand_Mitarbeiterdaten = new Subject<Stand>();
@@ -46,7 +45,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         {
         }
 
-        public int Auswahllisten_Version { get; }
+        public int Auswahllisten_Version => _backend.AuswahllistenVersion;
 
         public IObservable<Stand> Stand_Mitarbeiterdaten { get; }
 

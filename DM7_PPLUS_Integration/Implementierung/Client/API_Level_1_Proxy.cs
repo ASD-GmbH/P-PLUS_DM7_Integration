@@ -108,6 +108,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             position += 16;
             var version = BitConverter.ToInt64(resultData, position);
             position += 8;
+
+            var teildaten = resultData[position] == 1;
+            position += 1;
+
+
             var anzahl_Mitarbeiterdatensaetze = BitConverter.ToInt32(resultData, position);
             position += 4;
 
@@ -149,7 +154,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
             return
                 new Mitarbeiterdatensaetze(
-                    false,
+                    teildaten,
                     new VersionsStand(
                         session,
                         version),
