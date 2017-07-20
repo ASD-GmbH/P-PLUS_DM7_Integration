@@ -6,11 +6,11 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Server
 {
-    public class ServiceAdapter : Ebene_3_Protokoll__Netzwerkuebertragung_Service
+    public class Service_Adapter : Ebene_3_Protokoll__Service
     {
         private readonly Ebene_2_Protokoll__Verbindungsaufbau _backend;
 
-        public ServiceAdapter(Ebene_2_Protokoll__Verbindungsaufbau backend)
+        public Service_Adapter(Ebene_2_Protokoll__Verbindungsaufbau backend)
         {
             _backend = backend;
         }
@@ -42,7 +42,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             var minApiLevel = BitConverter.ToInt32(request, offset + 4);
             var loginlength = BitConverter.ToInt32(request, offset + 4 + 4);
             var login = System.Text.Encoding.UTF8.GetString(request, offset + 4 + 4 + 4, loginlength);
-            return _backend.Connect(login, maxApiLevel, minApiLevel).ContinueWith(task => EncodeConnectionResult(task.Result));
+            return _backend.Connect_Ebene_1(login, maxApiLevel, minApiLevel).ContinueWith(task => EncodeConnectionResult(task.Result));
         }
 
         private byte[] EncodeConnectionResult(ConnectionResult result)

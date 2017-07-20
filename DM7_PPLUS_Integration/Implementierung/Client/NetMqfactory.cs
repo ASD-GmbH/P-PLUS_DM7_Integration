@@ -5,17 +5,17 @@ using DM7_PPLUS_Integration.Implementierung.Server;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    public class NetMqfactory : ProxyFactory
+    public class NetMqfactory : Ebene_2_Proxy_Factory
     {
-        public Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>> Connect(string networkAddress, Log log)
+        public Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>> Connect_Ebene_2(string networkAddress, Log log)
         {
             var task =
                 new Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau,
                     Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>>(() =>
                 {
                     var client = new NetMQ_Client(networkAddress);
-                    var serializer = new Serialization_Proxy(client);
-                    var connector = new ServiceClient(client);
+                    var serializer = new Data_Proxy(client);
+                    var connector = new Service_Proxy(client);
 
                     return new Tuple<Ebene_2_Protokoll__Verbindungsaufbau,
                         Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>(

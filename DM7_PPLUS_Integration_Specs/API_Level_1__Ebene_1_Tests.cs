@@ -106,7 +106,7 @@ namespace DM7_PPLUS_Integration_Specs
         }
     }
 
-    internal class Test_ProxyFactory : ProxyFactory
+    internal class Test_ProxyFactory : Ebene_2_Proxy_Factory
     {
         private readonly Ebene_2_Protokoll__Verbindungsaufbau _verbindung;
         private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _api;
@@ -117,10 +117,10 @@ namespace DM7_PPLUS_Integration_Specs
             _api = api;
         }
 
-        public Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>> Connect(string networkAddress, Log log)
+        public Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>> Connect_Ebene_2(string networkAddress, Log log)
         {
-            var adapter = new ServiceAdapter(_verbindung);
-            var client = new ServiceClient(adapter);
+            var adapter = new Service_Adapter(_verbindung);
+            var client = new Service_Proxy(adapter);
 
             var task =
                 new Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>>(
@@ -158,7 +158,7 @@ namespace DM7_PPLUS_Integration_Specs
             var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
             var router = new API_Router(session, auswahllistenversion, null, adapter);
             var connector = (Ebene_2_Protokoll__Verbindungsaufbau) router;
-            var connection = (ConnectionSucceeded)connector.Connect("test", 1, 1).Result;
+            var connection = (ConnectionSucceeded)connector.Connect_Ebene_1("test", 1, 1).Result;
             var proxy = new API_Level_1_Proxy(router, session, connection.Auswahllistenversion);
 
             Setup_Testframework(proxy, server);
@@ -166,7 +166,7 @@ namespace DM7_PPLUS_Integration_Specs
     }
 
     [TestFixture]
-    public class API_Level_1__Ebene_3 : API_Test_Base
+    public class API_Level_1__Ebene_3__mit_Connect_nur_auf_Ebene_2 : API_Test_Base
     {
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
@@ -177,17 +177,17 @@ namespace DM7_PPLUS_Integration_Specs
             var router = new API_Router(session, auswahllistenversion, null, adapter);
             var connector = (Ebene_2_Protokoll__Verbindungsaufbau)router;
 
-            var deserialisierung = new Serialization_Adapter(router);
-            var serialisierung = new Serialization_Proxy(deserialisierung);
+            var deserialisierung = new Data_Adapter(router);
+            var serialisierung = new Data_Proxy(deserialisierung);
 
-            var connection = (ConnectionSucceeded)connector.Connect("test", 1, 1).Result;
+            var connection = (ConnectionSucceeded)connector.Connect_Ebene_1("test", 1, 1).Result;
             var proxy = new API_Level_1_Proxy(serialisierung, connection.Session, connection.Auswahllistenversion);
             Setup_Testframework(proxy, server);
         }
     }
 
     [TestFixture]
-    public class API_Level_1__Ebene_3_service : API_Test_Base
+    public class API_Level_1__Ebene_3__mit_Connect_auf_Ebene_3 : API_Test_Base
     {
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
@@ -195,12 +195,12 @@ namespace DM7_PPLUS_Integration_Specs
             var server = new Test_PPLUS_Backend();
             var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
             var router = new API_Router(session, auswahllistenversion, null, adapter);
-            var deserialisierung = new Serialization_Adapter(router);
-            var c_adapter = new ServiceAdapter(router);
+            var deserialisierung = new Data_Adapter(router);
+            var c_adapter = new Service_Adapter(router);
 
-            var connector = new ServiceClient(c_adapter);
-            var serialisierung = new Serialization_Proxy(deserialisierung);
-            var connection = (ConnectionSucceeded)connector.Connect("test", 1, 1).Result;
+            var connector = new Service_Proxy(c_adapter);
+            var serialisierung = new Data_Proxy(deserialisierung);
+            var connection = (ConnectionSucceeded)connector.Connect_Ebene_1("test", 1, 1).Result;
             var proxy = new API_Level_1_Proxy(serialisierung, connection.Session, connection.Auswahllistenversion);
             Setup_Testframework(proxy, server);
         }
@@ -221,11 +221,6 @@ namespace DM7_PPLUS_Integration_Specs
 
         private static readonly Random r = new Random();
 
-        [Test]
-        public void TerminationTest()
-        {
-            Assert.Pass();
-        }
 
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
@@ -233,9 +228,10 @@ namespace DM7_PPLUS_Integration_Specs
             var session = Guid.NewGuid();
             var server = new Test_PPLUS_Backend();
             var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
-            var router = new API_Router(Guid.NewGuid(), auswahllistenversion, null, adapter);
-            var deserialisierung = new Serialization_Adapter(router);
-            _host = new NetMQ_Server(deserialisierung, "tcp://127.0.0.1:" + port);
+            var router = new API_Router(session, auswahllistenversion, null, adapter);
+            var dataAdapter = new Data_Adapter(router);
+            _host = new NetMQ_Server(dataAdapter, "tcp://127.0.0.1:" + port);
+
             var proxy = PPLUS.Connect("tcp://127.0.0.1:" + port, new TestLog()).Result;
             Setup_Testframework(proxy, server);
         }
@@ -244,6 +240,14 @@ namespace DM7_PPLUS_Integration_Specs
         public void Cleanup()
         {
             _host.Dispose();
+        }
+
+
+
+        [Test]
+        public void TerminationTest()
+        {
+            Assert.Pass();
         }
     }
 

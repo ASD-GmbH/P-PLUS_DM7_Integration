@@ -7,11 +7,11 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    public class ServiceClient : Ebene_2_Protokoll__Verbindungsaufbau
+    public class Service_Proxy : Ebene_2_Protokoll__Verbindungsaufbau
     {
-        private readonly Ebene_3_Protokoll__Netzwerkuebertragung_Service _client;
+        private readonly Ebene_3_Protokoll__Service _client;
 
-        public ServiceClient(Ebene_3_Protokoll__Netzwerkuebertragung_Service client)
+        public Service_Proxy(Ebene_3_Protokoll__Service client)
         {
             _client = client;
         }
@@ -21,7 +21,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             _client.Dispose();
         }
 
-        public Task<ConnectionResult> Connect(string login, int maxApiLevel, int minApiLevel)
+        public Task<ConnectionResult> Connect_Ebene_1(string login, int maxApiLevel, int minApiLevel)
         {
             var loginbuffer = System.Text.Encoding.UTF8.GetBytes(login);
             return

@@ -6,12 +6,12 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    public class Serialization_Proxy : Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung
+    public class Data_Proxy : Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung
     {
-        private readonly Ebene_3_Protokoll__Netzwerkuebertragung _proxy;
+        private readonly Ebene_3_Protokoll__Data _proxy;
         private readonly IDisposable _subscription;
 
-        public Serialization_Proxy(Ebene_3_Protokoll__Netzwerkuebertragung proxy)
+        public Data_Proxy(Ebene_3_Protokoll__Data proxy)
         {
             _proxy = proxy;
             var subject = new Subject<Notification>();

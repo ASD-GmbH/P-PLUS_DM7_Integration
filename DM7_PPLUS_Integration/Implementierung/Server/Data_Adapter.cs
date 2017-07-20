@@ -6,12 +6,12 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Server
 {
-    public class Serialization_Adapter : Ebene_3_Protokoll__Netzwerkuebertragung
+    public class Data_Adapter : Ebene_3_Protokoll__Data
     {
         private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _backend;
         private readonly IDisposable _subscription;
 
-        public Serialization_Adapter(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung backend)
+        public Data_Adapter(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung backend)
         {
             _backend = backend;
             var subject = new Subject<byte[]>();

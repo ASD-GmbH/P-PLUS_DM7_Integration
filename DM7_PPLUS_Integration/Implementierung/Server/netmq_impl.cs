@@ -23,7 +23,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         public const int SERVICE_CONNECT = 1;
     }
 
-    public class NetMQ_Client : Ebene_3_Protokoll__Netzwerkuebertragung, Ebene_3_Protokoll__Netzwerkuebertragung_Service, IDisposable
+    public class NetMQ_Client : Ebene_3_Protokoll__Data, Ebene_3_Protokoll__Service, IDisposable
     {
         private RequestSocket _request_socket;
         private readonly Subject<byte[]> _notifications;
@@ -42,12 +42,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             if (disposable1 != null) disposable1.Dispose();
         }
 
-        Task<byte[]> Ebene_3_Protokoll__Netzwerkuebertragung_Service.ServiceRequest(byte[] request)
+        Task<byte[]> Ebene_3_Protokoll__Service.ServiceRequest(byte[] request)
         {
             return Task(Constants.CHANNEL_1_SERVICE, request);
         }
 
-        Task<byte[]> Ebene_3_Protokoll__Netzwerkuebertragung.Request(byte[] request)
+        Task<byte[]> Ebene_3_Protokoll__Data.Request(byte[] request)
         {
             return Task(Constants.CHANNEL_2_DATA, request);
         }
@@ -64,7 +64,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             return task;
         }
 
-        IObservable<byte[]> Ebene_3_Protokoll__Netzwerkuebertragung.Notifications => _notifications;
+        IObservable<byte[]> Ebene_3_Protokoll__Data.Notifications => _notifications;
     }
 
     /// <summary>
@@ -72,13 +72,13 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     /// </summary>
     public class NetMQ_Server : IDisposable
     {
-        private readonly Ebene_3_Protokoll__Netzwerkuebertragung _backend;
+        private readonly Ebene_3_Protokoll__Data _backend;
         private ResponseSocket _response_socket;
 
         /// <summary>
         /// Empfängt serialisierte Nachrichten über ZeroMQ und gibt sie weiter an das Backend
         /// </summary>
-        public NetMQ_Server(Ebene_3_Protokoll__Netzwerkuebertragung backend, string connectionstring)
+        public NetMQ_Server(Ebene_3_Protokoll__Data backend, string connectionstring)
         {
             _backend = backend;
             _response_socket = new NetMQ.Sockets.ResponseSocket(connectionstring);
@@ -90,6 +90,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         private void _response_socket_ReceiveReady(object sender, NetMQSocketEventArgs e)
         {
+            // WIP: PROTOCOL und CHANNEL auswerten
             _backend.Request(e.Socket.ReceiveFrameBytes()).ContinueWith(task => e.Socket.SendFrame(task.Result));
         }
 

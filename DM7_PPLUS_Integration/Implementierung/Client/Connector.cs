@@ -1,19 +1,13 @@
 using System;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
-using DM7_PPLUS_Integration.Implementierung.Shared;
 using DM7_PPLUS_Integration.Implementierung.Testing;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    public interface ProxyFactory
-    {
-        Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>> Connect(string networkAddress, Log log);
-    }
-
     public static class Connector
     {
-        public static Task<Level_0_Test_API> Instance_API_level_0_nur_fuer_Testzwecke(string networkAddress, Log log, ProxyFactory factory = null)
+        public static Task<Level_0_Test_API> Instance_API_level_0_nur_fuer_Testzwecke(string networkAddress, Log log, Ebene_2_Proxy_Factory factory = null)
         {
 
             var client_min_api_level_request = 0;
@@ -24,7 +18,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     .ContinueWith(task => (Level_0_Test_API)new Level_0_Test_Proxy(task.Result.Item1));
         }
 
-        public static Task<DM7_PPLUS_API> Instance_API_Level_1(string networkAddress, Log log, ProxyFactory factory = null)
+        public static Task<DM7_PPLUS_API> Instance_API_Level_1(string networkAddress, Log log, Ebene_2_Proxy_Factory factory = null)
         {
 
             var client_min_api_level_request = networkAddress == "test://0" ? 0 : 1;
@@ -39,7 +33,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         }
 
 
-        private static Task<Tuple<Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung, int, Guid, int>> Verbindungsaufbau(string networkaddress, int client_min_api_level_request, int client_max_api_level_request, ProxyFactory factory, Log log)
+        private static Task<Tuple<Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung, int, Guid, int>> Verbindungsaufbau(string networkaddress, int client_min_api_level_request, int client_max_api_level_request, Ebene_2_Proxy_Factory factory, Log log)
         {
             var login = "test";
 
@@ -48,12 +42,14 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 factory = new NetMqfactory();
             }
 
-            var verbindung_tuple = factory.Connect(networkaddress, log);
+            if (factory==null) throw new ConnectionErrorException("Unbekanntes Protokoll im Connection string gefunden. Erwartet wird tcp://...");
+
+            var verbindung_tuple = factory.Connect_Ebene_2(networkaddress, log);
 
             return verbindung_tuple.ContinueWith(task =>
             {
-                var result = task.Result.Item1
-                    .Connect(login, client_max_api_level_request, client_min_api_level_request).Result;
+                var result = task.Result.Item1.Connect_Ebene_1(login, client_max_api_level_request, client_min_api_level_request).Result;
+
                 if (result is ConnectionSucceeded)
                 {
                     var success = (ConnectionSucceeded)result;
