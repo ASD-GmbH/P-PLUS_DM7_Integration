@@ -15,7 +15,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
         private readonly Random random = new Random();
         private readonly List<Mitarbeiterdatensatz> mitarbeiter;
         private readonly Subject<IEnumerable<Guid>> _subject = new Subject<IEnumerable<Guid>>();
-        private Timer _timer;
+        private readonly Timer _timer;
         private int changeCounter = 0;
 
         public Demo_Datenserver()
@@ -105,6 +105,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
             return namen[random.Next(0, namen.Length)];
         }
 
+        public int AuswahllistenVersion => 0;
         public IObservable<IEnumerable<Guid>> Aenderungen_an_Mitarbeiterstammdaten { get; }
 
         public IEnumerable<Guid> Alle_Mitarbeiter()

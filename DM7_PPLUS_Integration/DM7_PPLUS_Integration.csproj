@@ -49,8 +49,8 @@
   <ItemGroup>
     <Compile Include="Auswahllisten\Auswahllisten_0.cs" />
     <Compile Include="Implementierung\Client\API_Level_1_Proxy.cs" />
-    <Compile Include="Implementierung\Client\API_Level_2_Proxy.cs" />
     <Compile Include="Implementierung\Client\Ebene_2_Proxy_Factory.cs" />
+    <Compile Include="Implementierung\Server\DM7_PPLUS_Host.cs" />
     <Compile Include="Implementierung\Server\Service_Adapter.cs" />
     <Compile Include="Implementierung\Client\Service_Proxy.cs" />
     <Compile Include="Implementierung\Protokoll\Ebene_3_Protokoll__Service.cs" />

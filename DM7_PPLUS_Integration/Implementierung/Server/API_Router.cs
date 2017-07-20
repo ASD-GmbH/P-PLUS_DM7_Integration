@@ -94,6 +94,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
                     result.Add(session.ToByteArray());
                     result.Add(BitConverter.GetBytes(((VersionsStand) task.Result.Stand).Version));
+
+                    result.Add(new[] {mitarbeiter.Result.Teilmenge ? (byte)1 : (byte)0 });
+
                     result.Add(BitConverter.GetBytes(mitarbeiter.Result.Mitarbeiter.Count));
 
                     foreach (var ma in mitarbeiter.Result.Mitarbeiter)

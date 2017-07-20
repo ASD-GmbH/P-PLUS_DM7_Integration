@@ -4,15 +4,21 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using DM7_PPLUS_Integration.Auswahllisten;
 using DM7_PPLUS_Integration.Daten;
-using DM7_PPLUS_Integration.Implementierung;
 using DM7_PPLUS_Integration.Implementierung.Server;
 
 namespace DM7_PPLUS_Integration_Specs
 {
     public class Test_PPLUS_Backend : PPLUS_Backend
     {
+        public Test_PPLUS_Backend(int auswahllistenVersion)
+        {
+            AuswahllistenVersion = auswahllistenVersion;
+        }
+
         private readonly List<Mitarbeiterdatensatz> _mitarbeiter = new List<Mitarbeiterdatensatz>();
         private readonly Subject<IEnumerable<Guid>> _staende_stream = new Subject<IEnumerable<Guid>>();
+
+        public int AuswahllistenVersion { get; }
 
         public IObservable<IEnumerable<Guid>> Aenderungen_an_Mitarbeiterstammdaten => _staende_stream;
 

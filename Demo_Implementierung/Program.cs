@@ -12,7 +12,7 @@ namespace Demo_Implementierung
     /// </summary>
     class Program
     {
-        private const string URL = "demo://level-1";
+        private const string URL = "demo://loopback";
 
         /// <summary>
         /// Repräsentiert die lokale Persistenz, z.B. die HVP Datenbank

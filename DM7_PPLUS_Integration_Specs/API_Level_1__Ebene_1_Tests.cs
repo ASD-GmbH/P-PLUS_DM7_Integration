@@ -32,11 +32,11 @@ namespace DM7_PPLUS_Integration_Specs
         private void Server_kompatibel_mit_API_level(int server_min_api_level, int server_max_api_level)
         {
             var session = Guid.NewGuid();
-            _server = new Test_PPLUS_Backend();
+            _server = new Test_PPLUS_Backend(0);
 
 
             var level0 = new TestBackend_Level_0();
-            var level1 = new API_Level_1_Adapter(_server, ex => throw new Exception("Unexpected exception", ex), session, 0, new TestLog("server "));
+            var level1 = new API_Level_1_Adapter(_server, ex => throw new Exception("Unexpected exception", ex), session, new TestLog("server "));
 
             if (server_min_api_level > 0) level0 = null;
             if (server_max_api_level < 1) level1 = null;
@@ -141,8 +141,8 @@ namespace DM7_PPLUS_Integration_Specs
         {
             var session = Guid.NewGuid();
 
-            var server = new Test_PPLUS_Backend();
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
+            var server = new Test_PPLUS_Backend(auswahllistenversion);
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, new TestLog("[server] "));
 
             Setup_Testframework(adapter, server);
         }
@@ -155,8 +155,8 @@ namespace DM7_PPLUS_Integration_Specs
         {
             var session = Guid.NewGuid();
 
-            var server = new Test_PPLUS_Backend();
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
+            var server = new Test_PPLUS_Backend(auswahllistenversion);
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, new TestLog("[server] "));
             var router = new API_Router(new TestLog("[server] "), session, auswahllistenversion, null, adapter);
             var connector = (Ebene_2_Protokoll__Verbindungsaufbau) router;
             var connection = (ConnectionSucceeded)connector.Connect_Ebene_1("test", 1, 1).Result;
@@ -173,8 +173,8 @@ namespace DM7_PPLUS_Integration_Specs
         {
             var session = Guid.NewGuid();
 
-            var server = new Test_PPLUS_Backend();
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
+            var server = new Test_PPLUS_Backend(auswahllistenversion);
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, new TestLog("[server] "));
             var router = new API_Router(new TestLog("[server] "), session, auswahllistenversion, null, adapter);
             var connector = (Ebene_2_Protokoll__Verbindungsaufbau)router;
 
@@ -193,8 +193,8 @@ namespace DM7_PPLUS_Integration_Specs
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
             var session = Guid.NewGuid();
-            var server = new Test_PPLUS_Backend();
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
+            var server = new Test_PPLUS_Backend(auswahllistenversion);
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, new TestLog("[server] "));
             var router = new API_Router(new TestLog("[server] "), session, auswahllistenversion, null, adapter);
             var deserialisierung = new Data_Adapter(router);
             var c_adapter = new Service_Adapter(router);
@@ -228,8 +228,8 @@ namespace DM7_PPLUS_Integration_Specs
         {
             var port = r.Next(20000, 32000);
             var session = Guid.NewGuid();
-            var server = new Test_PPLUS_Backend();
-            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
+            var server = new Test_PPLUS_Backend(auswahllistenversion);
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, new TestLog("[server] "));
             var router = new API_Router(new TestLog("[server] "), session, auswahllistenversion, null, adapter);
             var dataAdapter = new Data_Adapter(router);
             var serviceAdapter = new Service_Adapter(router);
