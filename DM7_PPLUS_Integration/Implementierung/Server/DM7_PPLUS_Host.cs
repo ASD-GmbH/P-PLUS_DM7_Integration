@@ -29,7 +29,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             Ebene_2_Data = router;
 
             Ebene_3_Service = new Service_Adapter(Ebene_2_Service);
-            Ebene_3_Data = new Data_Adapter(Ebene_2_Data);
+            Ebene_3_Data = new Data_Adapter(Ebene_2_Data, log);
 
             if (hostaddress.StartsWith("tcp://"))
             {

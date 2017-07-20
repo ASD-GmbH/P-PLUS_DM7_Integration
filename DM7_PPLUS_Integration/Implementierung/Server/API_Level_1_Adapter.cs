@@ -35,6 +35,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                     mitarbeiter =>
                     {
                         _stand++;
+                        log.Debug("-- LVL1 Adapter Mitarbeiterdaten verändert");
                         _Mitarbeiter_je_Stand.Add(_stand, mitarbeiter);
                         ((Subject<Stand>) Stand_Mitarbeiterdaten).Next(new VersionsStand(_session, _stand));
                     },

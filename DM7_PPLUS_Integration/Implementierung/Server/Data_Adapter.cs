@@ -11,7 +11,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _backend;
         private readonly IDisposable _subscription;
 
-        public Data_Adapter(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung backend)
+        public Data_Adapter(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung backend, Log log)
         {
             _backend = backend;
             var subject = new Subject<byte[]>();
@@ -19,6 +19,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 notification =>
                 {
                     var datagram = Serialize_Notification(notification);
+                    log.Debug("-- datagram");
                     subject.Next(datagram);
                 },
                 ex => { throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex); }));

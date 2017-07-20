@@ -175,8 +175,12 @@ namespace DM7_PPLUS_Integration_Specs
 
             var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
 
-
-            var serialisierung = new Data_Proxy(host.Ebene_3_Data);
+<<<<<<< HEAD
+            var deserialisierung = new Data_Adapter(host.Ebene_2_Data);
+=======
+            var deserialisierung = new Data_Adapter(router, new TestLog("[server] "));
+>>>>>>> 7cfc0b4... PubSub via NetMQ
+            var serialisierung = new Data_Proxy(deserialisierung);
 
             var connection = (ConnectionSucceeded)host.Ebene_2_Service.Connect_Ebene_1("test", 1, 1).Result;
             var proxy = new API_Level_1_Proxy(serialisierung, connection.Session, connection.Auswahllistenversion, new TestLog("[client] "));
@@ -189,8 +193,17 @@ namespace DM7_PPLUS_Integration_Specs
     {
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
+<<<<<<< HEAD
             var server = new Test_PPLUS_Backend(auswahllistenversion);
             var log = new TestLog("[server] ");
+=======
+            var session = Guid.NewGuid();
+            var server = new Test_PPLUS_Backend();
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
+            var router = new API_Router(new TestLog("[server] "), session, auswahllistenversion, null, adapter);
+            var deserialisierung = new Data_Adapter(router, new TestLog("[server] "));
+            var c_adapter = new Service_Adapter(router);
+>>>>>>> 7cfc0b4... PubSub via NetMQ
 
             var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
 
@@ -222,8 +235,17 @@ namespace DM7_PPLUS_Integration_Specs
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
             var port = r.Next(20000, 32000);
+<<<<<<< HEAD
             var server = new Test_PPLUS_Backend(auswahllistenversion);
             var log = new TestLog("[server] ");
+=======
+            var session = Guid.NewGuid();
+            var server = new Test_PPLUS_Backend();
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
+            var router = new API_Router(new TestLog("[server] "), session, auswahllistenversion, null, adapter);
+            var dataAdapter = new Data_Adapter(router, new TestLog("[server] "));
+            var serviceAdapter = new Service_Adapter(router);
+>>>>>>> 7cfc0b4... PubSub via NetMQ
 
             _host = DM7_PPLUS_Host.Starten(server, "tcp://127.0.0.1", port, log, ex => Assert.Fail(ex.ToString()));
 

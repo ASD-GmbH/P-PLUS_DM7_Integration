@@ -45,7 +45,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             {
                 _subscription = backend_level_1.Stand_Mitarbeiterdaten.Subscribe(
                     new Observer<Stand>(
-                        s => subject.Next(Map(s, Datenquellen.Mitarbeiter)),
+                        s =>
+                        {
+                            log.Debug("-- notification ");
+                            subject.Next(Map(s, Datenquellen.Mitarbeiter));
+                        },
                         ex => subject.Error(ex)));
             }
 
