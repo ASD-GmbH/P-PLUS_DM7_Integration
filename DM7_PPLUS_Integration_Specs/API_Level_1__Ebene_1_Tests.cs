@@ -153,7 +153,7 @@ namespace DM7_PPLUS_Integration_Specs
 
             var server = new Test_PPLUS_Backend();
             var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
-            var router = new API_Router(Guid.NewGuid(), auswahllistenversion, null, adapter);
+            var router = new API_Router(session, auswahllistenversion, null, adapter);
             var connector = (Ebene_2_Protokoll__Verbindungsaufbau) router;
             var connection = (ConnectionSucceeded)connector.Connect("test", 1, 1).Result;
             var proxy = new API_Level_1_Proxy(router, session, connection.Auswahllistenversion);
@@ -168,36 +168,68 @@ namespace DM7_PPLUS_Integration_Specs
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
             var session = Guid.NewGuid();
+
             var server = new Test_PPLUS_Backend();
             var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
-            var router = new API_Router(Guid.NewGuid(), auswahllistenversion, null, adapter);
-            var connector = (Ebene_2_Protokoll__Verbindungsaufbau) router;
+            var router = new API_Router(session, auswahllistenversion, null, adapter);
+            var connector = (Ebene_2_Protokoll__Verbindungsaufbau)router;
 
             var deserialisierung = new Serialization_Adapter(router);
             var serialisierung = new Serialization_Proxy(deserialisierung);
 
-
             var connection = (ConnectionSucceeded)connector.Connect("test", 1, 1).Result;
-            var proxy = new API_Level_1_Proxy(serialisierung, session, connection.Auswahllistenversion);
+            var proxy = new API_Level_1_Proxy(serialisierung, connection.Session, connection.Auswahllistenversion);
             Setup_Testframework(proxy, server);
         }
     }
 
     [TestFixture]
+    public class API_Level_1__Ebene_3_service : API_Test_Base
+    {
+        protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
+        {
+            var session = Guid.NewGuid();
+            var server = new Test_PPLUS_Backend();
+            var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
+            var router = new API_Router(session, auswahllistenversion, null, adapter);
+            var deserialisierung = new Serialization_Adapter(router);
+            var c_adapter = new ServiceAdapter(router);
+
+            var connector = new ServiceClient(c_adapter);
+            var serialisierung = new Serialization_Proxy(deserialisierung);
+            var connection = (ConnectionSucceeded)connector.Connect("test", 1, 1).Result;
+            var proxy = new API_Level_1_Proxy(serialisierung, connection.Session, connection.Auswahllistenversion);
+            Setup_Testframework(proxy, server);
+        }
+    }
+
+    // TODO Test: Connect without Server present can be aborted
+
+    // TODO Test: Neue Session führt zu Neuübertragung aller Daten
+
+    [TestFixture, Ignore]
     public class API_Level_1__Ebene_5 : API_Test_Base
     {
         private IDisposable _host;
 
+        private static readonly Random r = new Random();
+
+        [Test]
+        public void TerminationTest()
+        {
+            Assert.Pass();
+        }
+
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
-            var port = "34711";
+            var port = r.Next(20000, 32000);
             var session = Guid.NewGuid();
             var server = new Test_PPLUS_Backend();
             var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
             var router = new API_Router(Guid.NewGuid(), auswahllistenversion, null, adapter);
             var deserialisierung = new Serialization_Adapter(router);
-            _host = new NetMQ_Server(deserialisierung, "tcp://127.0.0.1:"+port);
-            var proxy = PPLUS.Connect("tcp://127.0.0.1:"+port, null).Result;
+            _host = new NetMQ_Server(deserialisierung, "tcp://127.0.0.1:" + port);
+            var proxy = PPLUS.Connect("tcp://127.0.0.1:" + port, new TestLog()).Result;
             Setup_Testframework(proxy, server);
         }
 
@@ -205,6 +237,19 @@ namespace DM7_PPLUS_Integration_Specs
         public void Cleanup()
         {
             _host.Dispose();
+        }
+    }
+
+    public class TestLog : Log
+    {
+        public void Info(string text)
+        {
+            Console.WriteLine(text);
+        }
+
+        public void Debug(string text)
+        {
+            Console.WriteLine(text);
         }
     }
 

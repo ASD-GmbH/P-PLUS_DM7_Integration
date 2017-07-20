@@ -50,6 +50,9 @@
     <Compile Include="Auswahllisten\Auswahllisten_0.cs" />
     <Compile Include="Implementierung\Client\API_Level_1_Proxy.cs" />
     <Compile Include="Implementierung\Client\API_Level_2_Proxy.cs" />
+    <Compile Include="Implementierung\Server\ServiceAdapter.cs" />
+    <Compile Include="Implementierung\Client\ServiceClient.cs" />
+    <Compile Include="Implementierung\Protokoll\Ebene_3_Protokoll__Netzwerkuebertragung_Service.cs" />
     <Compile Include="Implementierung\Protokoll\Nachrichten\ConnectionFailed.cs" />
     <Compile Include="Implementierung\Protokoll\Nachrichten\ConnectionFailure.cs" />
     <Compile Include="Implementierung\Protokoll\Nachrichten\ConnectionResult.cs" />
