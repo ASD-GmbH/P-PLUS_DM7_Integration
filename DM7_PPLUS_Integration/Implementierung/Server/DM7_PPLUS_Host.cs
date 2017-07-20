@@ -7,7 +7,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     public class DM7_PPLUS_Host : IDisposable
     {
         private readonly Action<Exception> _onError;
-        private NetMQ_Server netMQ_Server;
 
         public DM7_PPLUS_API Ebene_1_API_Level_1 { get; }
         public Ebene_2_Protokoll__Verbindungsaufbau Ebene_2_Service { get; }
@@ -64,8 +63,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         {
             try
             {
-                netMQ_Server?.Dispose();
-                netMQ_Server = null;
+                NetMQServer?.Dispose();
             }
             catch (Exception ex)
             {
