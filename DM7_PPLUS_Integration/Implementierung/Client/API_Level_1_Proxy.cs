@@ -43,6 +43,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         public void Dispose()
         {
             _subscription.Dispose();
+            _ebene_2_Proxy.Dispose();
         }
 
         public int Auswahllisten_Version { get; }

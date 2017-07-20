@@ -45,6 +45,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         public void Dispose()
         {
             _subscription.Dispose();
+            _proxy.Dispose();
         }
 
         public Task<QueryResponse> Query(int api_level, Guid session, int datenquelle, long von, long bis)

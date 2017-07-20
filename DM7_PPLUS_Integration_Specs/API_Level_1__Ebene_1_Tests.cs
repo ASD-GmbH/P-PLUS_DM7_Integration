@@ -214,12 +214,13 @@ namespace DM7_PPLUS_Integration_Specs
 
     // TODO: Verschlüsselung
 
-    [TestFixture, Ignore]
+    [TestFixture]
     public class API_Level_1__Ebene_5 : API_Test_Base
     {
         private IDisposable _host;
 
         private static readonly Random r = new Random();
+        private DM7_PPLUS_API _proxy;
 
 
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
@@ -230,15 +231,18 @@ namespace DM7_PPLUS_Integration_Specs
             var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion);
             var router = new API_Router(session, auswahllistenversion, null, adapter);
             var dataAdapter = new Data_Adapter(router);
-            _host = new NetMQ_Server(dataAdapter, "tcp://127.0.0.1:" + port);
+            var serviceAdapter = new Service_Adapter(router);
 
-            var proxy = PPLUS.Connect("tcp://127.0.0.1:" + port, new TestLog()).Result;
-            Setup_Testframework(proxy, server);
+            _host = new NetMQ_Server(serviceAdapter, dataAdapter, "tcp://127.0.0.1:" + port, new TestLog());
+
+            _proxy = PPLUS.Connect("tcp://127.0.0.1:" + port, new TestLog()).Result;
+            Setup_Testframework(_proxy, server);
         }
 
         [TearDown]
         public void Cleanup()
         {
+            _proxy.Dispose();
             _host.Dispose();
         }
 
