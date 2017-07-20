@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace DM7_PPLUS_Integration.Implementierung.Shared
 {
@@ -18,4 +19,5 @@ namespace DM7_PPLUS_Integration.Implementierung.Shared
             return resultarray;
         }
     }
+
 }

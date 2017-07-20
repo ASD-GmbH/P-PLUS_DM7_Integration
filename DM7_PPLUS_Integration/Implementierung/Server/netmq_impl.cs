@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
 using DM7_PPLUS_Integration.Implementierung.Shared;
@@ -107,33 +108,33 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         {
             _log.Debug("NetMQ Nachricht wird gelesen...");
             var data = e.Socket.ReceiveFrameBytes();
-            Guard_unsopported_protocol(data[0]);
+            Guard_unsupported_protocol(data[0]);
             switch (data[1])
             {
                 case Constants.CHANNEL_1_SERVICE:
-                    var servicerequest = e.Socket.ReceiveFrameBytes();
-                    _log.Debug($"NetMQ Service Request ({servicerequest.Length} bytes)...");
-                    _service.ServiceRequest(servicerequest).ContinueWith(task =>
-                    {
-                        _log.Debug($"NetMQ Response ({task.Result.Length} bytes)...");
-                        e.Socket.SendFrame(task.Result);
-                    });
+                {
+                    var request = e.Socket.ReceiveFrameBytes();
+                    _log.Debug($"NetMQ Service Request ({request.Length} bytes)...");
+                    var response = _service.ServiceRequest(request).Result;
+                    _log.Debug($"NetMQ Response ({response.Length} bytes)...");
+                    e.Socket.SendFrame(response);
+                }
                     break;
                 case Constants.CHANNEL_2_DATA:
-                    var datarequest = e.Socket.ReceiveFrameBytes();
-                    _log.Debug($"NetMQ Data Request ({datarequest.Length} bytes)...");
-                    _backend.Request(datarequest).ContinueWith(task =>
-                    {
-                        _log.Debug($"NetMQ Response ({task.Result.Length} bytes)...");
-                        e.Socket.SendFrame(task.Result);
-                    });
+                {
+                    var request = e.Socket.ReceiveFrameBytes();
+                    _log.Debug($"NetMQ Data Request ({request.Length} bytes)...");
+                    var response = _backend.Request(request).Result;
+                    _log.Debug($"NetMQ Response ({response.Length} bytes)...");
+                    e.Socket.SendFrame(response);
+                }
                     break;
                 default:
                     throw new ConnectionErrorException($"Unbekannter NetMQ Server Kanal: {data[0].ToString()}");
             }
         }
 
-        private void Guard_unsopported_protocol(int protocol)
+        private void Guard_unsupported_protocol(int protocol)
         {
             if (protocol != Constants.NETMQ_WIREPROTOCOL_1) throw new UnsupportedVersionException($"NetMQ Protokoll Version {protocol.ToString()} wird von dieser P-PLUS Version nicht unterstützt.");
 

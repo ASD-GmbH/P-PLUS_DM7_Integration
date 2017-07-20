@@ -19,13 +19,15 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         private readonly int _maxApiLevel = 1;
         private readonly int _minApiLevel = 1;
         private readonly int _auswahllistenversion;
+        private readonly Log _log;
         private readonly Guid _session;
 
         /// <summary>
         /// Empfängt API-Level-unabhängige Nachrichten und routet Sie in fachliche Nachrichten an die verschiedenen API Versionen
         /// </summary>
-        public API_Router(Guid session, int auswahllisten_version, Level_0_Test_API backend_level_0,  DM7_PPLUS_API backend_level_1/*, DM_PPLUS_API_2 backend_level_2, ...*/)
+        public API_Router(Log log, Guid session, int auswahllisten_version, Level_0_Test_API backend_level_0,  DM7_PPLUS_API backend_level_1/*, DM_PPLUS_API_2 backend_level_2, ...*/)
         {
+            _log = log;
             _session = session;
             _auswahllistenversion = auswahllisten_version;
 
@@ -84,9 +86,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 var mitarbeiter =
                     _backendLevel1.Mitarbeiterdaten_abrufen(new VersionsStand(session, von),
                         new VersionsStand(session, bis));
-
+                _log.Debug("1");
                 return mitarbeiter.ContinueWith(task =>
                 {
+                    _log.Debug("2");
                     var result = new List<byte[]>();
 
                     result.Add(session.ToByteArray());

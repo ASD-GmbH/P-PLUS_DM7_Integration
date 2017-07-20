@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
+using DM7_PPLUS_Integration.Implementierung.Shared;
 using DM7_PPLUS_Integration.Implementierung.Testing;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client

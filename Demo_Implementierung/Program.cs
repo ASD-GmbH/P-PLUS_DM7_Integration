@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Daten;
+using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace Demo_Implementierung
 {

@@ -21,12 +21,12 @@ namespace DM7_PPLUS_Integration_Specs
 
         private Level_0_Test_API Verbindungsaufbau_0(string netzwerkadresse)
         {
-            return Connector.Instance_API_level_0_nur_fuer_Testzwecke(netzwerkadresse, null, _factory).Result;
+            return Connector.Instance_API_level_0_nur_fuer_Testzwecke(netzwerkadresse, new TestLog("[client] "), _factory).Result;
         }
 
         private DM7_PPLUS_API Verbindungsaufbau_1(string netzwerkadresse)
         {
-            return Connector.Instance_API_Level_1(netzwerkadresse, null, _factory).Result;
+            return Connector.Instance_API_Level_1(netzwerkadresse, new TestLog("[client] "), _factory).Result;
         }
 
         private void Server_kompatibel_mit_API_level(int server_min_api_level, int server_max_api_level)
@@ -41,7 +41,7 @@ namespace DM7_PPLUS_Integration_Specs
             if (server_min_api_level > 0) level0 = null;
             if (server_max_api_level < 1) level1 = null;
 
-            var router = new API_Router(session, 0, level0, level1);
+            var router = new API_Router(new TestLog("[server] "), session, 0, level0, level1);
             _factory = new Test_ProxyFactory(router, router);
         }
 
@@ -157,7 +157,7 @@ namespace DM7_PPLUS_Integration_Specs
 
             var server = new Test_PPLUS_Backend();
             var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
-            var router = new API_Router(session, auswahllistenversion, null, adapter);
+            var router = new API_Router(new TestLog("[server] "), session, auswahllistenversion, null, adapter);
             var connector = (Ebene_2_Protokoll__Verbindungsaufbau) router;
             var connection = (ConnectionSucceeded)connector.Connect_Ebene_1("test", 1, 1).Result;
             var proxy = new API_Level_1_Proxy(router, session, connection.Auswahllistenversion, new TestLog("[client] "));
@@ -175,7 +175,7 @@ namespace DM7_PPLUS_Integration_Specs
 
             var server = new Test_PPLUS_Backend();
             var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
-            var router = new API_Router(session, auswahllistenversion, null, adapter);
+            var router = new API_Router(new TestLog("[server] "), session, auswahllistenversion, null, adapter);
             var connector = (Ebene_2_Protokoll__Verbindungsaufbau)router;
 
             var deserialisierung = new Data_Adapter(router);
@@ -195,7 +195,7 @@ namespace DM7_PPLUS_Integration_Specs
             var session = Guid.NewGuid();
             var server = new Test_PPLUS_Backend();
             var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
-            var router = new API_Router(session, auswahllistenversion, null, adapter);
+            var router = new API_Router(new TestLog("[server] "), session, auswahllistenversion, null, adapter);
             var deserialisierung = new Data_Adapter(router);
             var c_adapter = new Service_Adapter(router);
 
@@ -230,7 +230,7 @@ namespace DM7_PPLUS_Integration_Specs
             var session = Guid.NewGuid();
             var server = new Test_PPLUS_Backend();
             var adapter = new API_Level_1_Adapter(server, ex => throw new Exception("Unexpected exception", ex), session, auswahllistenversion, new TestLog("[server] "));
-            var router = new API_Router(session, auswahllistenversion, null, adapter);
+            var router = new API_Router(new TestLog("[server] "), session, auswahllistenversion, null, adapter);
             var dataAdapter = new Data_Adapter(router);
             var serviceAdapter = new Service_Adapter(router);
 
@@ -244,6 +244,11 @@ namespace DM7_PPLUS_Integration_Specs
         {
             _proxy.Dispose();
             _host.Dispose();
+        }
+
+        protected override void Warte_auf_Konsistenz()
+        {
+            Thread.Sleep(100);
         }
 
 
@@ -388,7 +393,7 @@ namespace DM7_PPLUS_Integration_Specs
 
         private Stand Stand(Task<Mitarbeiterdatensaetze> data) => data.Result.Stand;
 
-        private void Warte_auf_Konsistenz()
+        protected virtual void Warte_auf_Konsistenz()
         {
         }
 
