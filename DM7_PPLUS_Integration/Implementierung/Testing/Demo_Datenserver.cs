@@ -10,7 +10,7 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Testing
 {
-    public class Demo_Datenserver : PPLUS_Backend
+    public class Demo_Datenserver : PPLUS_Backend, IDisposable
     {
         private readonly Log _log;
         private readonly Random random = new Random();
@@ -36,24 +36,29 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
                 if (changeCounter++ <= 3)
                 {
                     var selected = random.Next(0, mitarbeiter.Count - 1);
-                    var ma = mitarbeiter[selected];
-                    mitarbeiter[selected] = new Mitarbeiterdatensatz(
-                        ma.Id,
-                        ma.Titel,
-                        ma.Vorname,
+                    var ma_alt = mitarbeiter[selected];
+
+                    var ma_neu = new Mitarbeiterdatensatz(
+                        ma_alt.Id,
+                        ma_alt.Titel,
+                        ma_alt.Vorname,
                         Nachname(),
-                        ma.Postanschrift,
-                        ma.Geburtstag,
-                        ma.Familienstand,
-                        ma.Konfession,
-                        ma.Eintritt,
-                        ma.Austritt,
-                        ma.Qualifikation,
-                        ma.Handzeichen,
-                        ma.Personalnummer,
-                        ma.Geschlecht,
-                        ma.Kontakte);
-                    _subject.Next(new List<Guid> {ma.Id});
+                        ma_alt.Postanschrift,
+                        ma_alt.Geburtstag,
+                        ma_alt.Familienstand,
+                        ma_alt.Konfession,
+                        ma_alt.Eintritt,
+                        ma_alt.Austritt,
+                        ma_alt.Qualifikation,
+                        ma_alt.Handzeichen,
+                        ma_alt.Personalnummer,
+                        ma_alt.Geschlecht,
+                        ma_alt.Kontakte);
+
+                    _log.Debug($" - Geänderter Mitarbeiter im DemoServer: {ma_neu.Nachname}, {ma_neu.Vorname} (vormals: {ma_alt.Nachname}, {ma_neu.Vorname}) ({ma_neu.Personalnummer})");
+
+                    mitarbeiter[selected] = ma_neu;
+                    _subject.Next(new List<Guid> {ma_alt.Id});
                 }
                 else
                 {
@@ -118,5 +123,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
 
         public IEnumerable<Mitarbeiterdatensatz> Mitarbeiterdatensaetze_abrufen(IEnumerable<Guid> mitarbeiter_ids) =>
             mitarbeiter.Where(_ => mitarbeiter_ids.Contains(_.Id));
+
+        public void Dispose()
+        {
+            _timer?.Dispose();
+        }
     }
 }

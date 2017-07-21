@@ -53,7 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API_Level_1__Ebene_1_Tests.cs" />
-    <Compile Include="DemoBackend.cs" />
+    <Compile Include="Test_PPLUS_Backend.cs" />
     <Compile Include="Observer.cs" />
     <Compile Include="ObserverExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

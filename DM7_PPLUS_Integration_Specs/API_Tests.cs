@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung.Client;
-using DM7_PPLUS_Integration.Implementierung.Protokoll;
 using DM7_PPLUS_Integration.Implementierung.Server;
 using DM7_PPLUS_Integration.Implementierung.Testing;
 using FluentAssertions;
@@ -13,94 +11,6 @@ using NUnit.Framework;
 
 namespace DM7_PPLUS_Integration_Specs
 {
-
-    [TestFixture]
-    public class Verbindungsaufbau_Tests
-    {
-        private Test_PPLUS_Backend _server;
-        private Ebene_2_Proxy_Factory _factory;
-        private DM7_PPLUS_Host _host;
-
-        private Level_0_Test_API Verbindungsaufbau_0(string netzwerkadresse)
-        {
-            return TestConnector.Instance_API_level_0_nur_fuer_Testzwecke(netzwerkadresse, new TestLog("[client] "), _factory).Result;
-        }
-
-        private DM7_PPLUS_API Verbindungsaufbau_1(string netzwerkadresse)
-        {
-            return TestConnector.Instance_API_Level_1(netzwerkadresse, new TestLog("[client] "), _factory).Result;
-        }
-
-        private void Server_kompatibel_mit_API_level(int server_min_api_level, int server_max_api_level)
-        {
-            _server = new Test_PPLUS_Backend(0);
-            var levels = new[] {0, 1}.Where(_ => _ >= server_min_api_level && _ <= server_max_api_level);
-            _host = DM7_PPLUS_Host.Starten(_server, new TestLog("[server] "), ex => { throw new Exception("Unexpected exception", ex); }, levels);
-            _factory = new LoopbackFactory(_host, 3);
-        }
-
-        [Test]
-        public void Verbindungsaufbau__Proxy_fuer_API_Level_1__Host_unterstuetzt_API_Level_1__liefert_API_Level_1()
-        {
-            Server_kompatibel_mit_API_level(1, 1);
-            var api = Verbindungsaufbau_1("test://test");
-            api.Should().NotBeNull("Kein gemeinsames API Level gefunden!");
-        }
-
-        [Test]
-        public void Verbindungsaufbau__Proxy_fuer_API_Level_0__Host_unterstuetzt_nur_API_Level_1__schlaegt_fehl()
-        {
-            Server_kompatibel_mit_API_level(1, 1);
-            Action connect = () => Verbindungsaufbau_0("test://test");
-            connect.ShouldThrow<UnsupportedVersionException>();
-        }
-
-        [Test]
-        public void Verbindungsaufbau__Proxy_fuer_API_Level_1__Host_unterstuetzt_nur_API_Level_0__schlaegt_fehl()
-        {
-            Server_kompatibel_mit_API_level(0, 0);
-            Action connect = () => Verbindungsaufbau_1("test://test");
-            connect.ShouldThrow<UnsupportedVersionException>();
-        }
-
-        [Test]
-        public void
-            Verbindungsaufbau__Proxy_fuer_API_Level_0__Host_unterstuetzt_API_Level_0_und_1__liefert_API_Level_0()
-        {
-            Server_kompatibel_mit_API_level(0, 1);
-            var api = Verbindungsaufbau_0("test://test");
-            api.Should().NotBeNull("Kein gemeinsames API Level gefunden!");
-        }
-
-        [Test]
-        public void
-            Verbindungsaufbau__Proxy_fuer_API_Level_1__Host_unterstuetzt_API_Level_0_und_1__liefert_API_Level_1()
-        {
-            Server_kompatibel_mit_API_level(0, 1);
-            var api = Verbindungsaufbau_1("test://test");
-            api.Should().NotBeNull("Kein gemeinsames API Level gefunden!");
-        }
-
-        [Test]
-        public void
-            Verbindungsaufbau__Proxy_fuer_API_Level_0_und_1_angefragt_level_0__Host_unterstuetzt_API_Level_0__liefert_API_Level_0()
-        {
-            Server_kompatibel_mit_API_level(0, 0);
-            var api = Verbindungsaufbau_0("test://test");
-            api.Should().NotBeNull("Kein gemeinsames API Level gefunden!");
-        }
-
-        [Test]
-        public void
-            Verbindungsaufbau__Proxy_fuer_API_Level_0_und_1_angefragt_level_1__Host_unterstuetzt_API_Level_0__liefert_API_Level_1_downgrade()
-        {
-            Server_kompatibel_mit_API_level(0, 0);
-            var api = Verbindungsaufbau_1("test://0");
-            api.Should().NotBeNull("Kein gemeinsames API Level gefunden!");
-            api.Auswahllisten_Version.Should().Be(4711);
-        }
-    }
-
     [TestFixture]
     public sealed class API_Level_1__Ebene_1 : API_Test_Base
     {
@@ -143,17 +53,26 @@ namespace DM7_PPLUS_Integration_Specs
         }
     }
 
+    // TODO: PubSub Port via Connect übergeben (und bei neuer Session reconnecten!!)
+
+    // TODO: freien Port statt zufälligen bzw. +1 verwenden
+
     // TODO Test: Connect without Server present can be aborted (Test in voller NetMQ Infrastruktur)
 
     // TODO: Server nimmt freien Port für Publisher Socket (und wird an Client im Connect übertragen)
 
     // TODO Test: Neue Session führt zu Neuübertragung aller Daten
 
+    // TODO: DemoServer -> DemoClient bei Neustart Server liefert nicht "vollständig"
+
+    // TODO: Client muss bei neuer Session ID die Session ID übernehmen (damit nicht immer alles neu übertragen wird)
+
     // TODO Test: Fehlerfälle abdecken, Exceptions auslösen und prüfen, dass diese am richtigen Ort registriert werden (und der Server eine Exception überlebt)
 
     // TODO: Authentifizierung
 
     // TODO: Verschlüsselung
+
 
     [TestFixture]
     public class API_Level_1__Ebene_4 : API_Test_Base

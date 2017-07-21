@@ -10,14 +10,14 @@ namespace PPLUS_Demo_Server
     class Program
     {
 
-        static void Main()
+        static void Main(string[] args)
         {
             var log = new Logger("");
 
             log.Info("Demoserver wird gestartet...");
 
-            var hostaddress = "tcp://127.0.0.1";
-            var port = 20000;
+            var hostaddress = args.Length < 2 ? "tcp://127.0.0.1" : args[0];
+            var port = args.Length < 2 ? 20000 : Int32.Parse(args[1]);
 
             var backend = new Demo_Datenserver(log);
             var host = DM7_PPLUS_Host.Starten(backend, hostaddress, port, log, log.OnError);
@@ -36,6 +36,7 @@ namespace PPLUS_Demo_Server
             sub.Dispose();
             log.Info("Demoserver wird beendet...");
             host.Dispose();
+            backend.Dispose();
             log.Info("Demoserver wurde beendet.");
             Thread.Sleep(2000);
         }

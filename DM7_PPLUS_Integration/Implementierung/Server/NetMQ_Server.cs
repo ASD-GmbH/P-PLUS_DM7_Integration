@@ -13,9 +13,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         private readonly Ebene_3_Protokoll__Data _backend;
         private readonly Ebene_3_Protokoll__Service _service;
         private readonly Log _log;
-        private readonly ResponseSocket _response_socket;
-        private readonly PublisherSocket _publisherSocket;
-        private readonly NetMQPoller _poller;
 
         /// <summary>
         /// Empfängt serialisierte Nachrichten über ZeroMQ und gibt sie weiter an das Backend
@@ -33,44 +30,60 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             _backend = backend;
             _service = service;
 
-            log.Debug($"NetMQ Request socket wird bereitgestellt ({connectionstring})...");
-            _response_socket = new ResponseSocket(connectionstring);
-            _response_socket.ReceiveReady += _response_socket_ReceiveReady;
+            var responseSocket = Init_response_socket(connectionstring, disposegroup);
+
+            Init_publisher_socket(backend, connectionstring, disposegroup);
+
+            Init_poller(disposegroup, responseSocket);
+
+            _log.Info("NetMQ Server wurde gestartet");
+            disposegroup.With(() => _log.Info("NetMQ Server wird beendet..."));
+        }
+
+        private void Init_poller(DisposeGroup disposegroup, ResponseSocket responseSocket)
+        {
+            var poller = new NetMQPoller();
             disposegroup.With(() =>
             {
-                _log.Debug("NetMQ Request socket wird geschlossen...");
-                _response_socket.Dispose();
+                _log.Debug("NetMQ Poller wird geschlossen...");
+                poller.Dispose();
             });
+            poller.Add(responseSocket);
+            poller.RunAsync();
+        }
 
+        private void Init_publisher_socket(Ebene_3_Protokoll__Data backend, string connectionstring, DisposeGroup disposegroup)
+        {
             var publisher_port = Next_available_port(connectionstring);
-            log.Debug($"NetMQ publisher socket wird bereitgestellt ({publisher_port})...");
-            _publisherSocket = new PublisherSocket(publisher_port);
+            _log.Debug($"NetMQ publisher socket wird bereitgestellt ({publisher_port})...");
+            var publisherSocket = new PublisherSocket(publisher_port);
             disposegroup.With(() =>
             {
                 _log.Debug("NetMQ Publisher socket wird geschlossen...");
-                _publisherSocket.Dispose();
+                publisherSocket.Dispose();
             });
 
             var subscription = backend.Notifications.Subscribe(new Observer<byte[]>(
                 notification =>
                 {
-                    _publisherSocket.SendFrame(new byte[] { Constants.NETMQ_WIREPROTOCOL_1 }, true);
-                    _publisherSocket.SendFrame(notification);
+                    publisherSocket.SendFrame(new byte[] {Constants.NETMQ_WIREPROTOCOL_1}, true);
+                    publisherSocket.SendFrame(notification);
                 },
                 ex => { throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex); }));
             disposegroup.With(subscription);
+        }
 
-            _poller = new NetMQPoller();
+        private ResponseSocket Init_response_socket(string connectionstring, DisposeGroup disposegroup)
+        {
+            _log.Debug($"NetMQ Request socket wird bereitgestellt ({connectionstring})...");
+            var responseSocket = new ResponseSocket(connectionstring);
+            responseSocket.ReceiveReady += _response_socket_ReceiveReady;
             disposegroup.With(() =>
             {
-                _log.Debug("NetMQ Poller wird geschlossen...");
-                _poller.Dispose();
+                _log.Debug("NetMQ Request socket wird geschlossen...");
+                responseSocket.Dispose();
             });
-            _poller.Add(_response_socket);
-            _poller.RunAsync();
-
-            log.Info("NetMQ Server wurde gestartet");
-            disposegroup.With(() => _log.Info("NetMQ Server wird beendet..."));
+            return responseSocket;
         }
 
         public static string Next_available_port(string connectionstring)
