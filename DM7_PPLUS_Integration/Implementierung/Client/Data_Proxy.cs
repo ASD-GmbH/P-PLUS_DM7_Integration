@@ -6,23 +6,25 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    internal class Data_Proxy : Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung
+    internal class Data_Proxy : DisposeGroupMember, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung
     {
         private readonly Ebene_3_Protokoll__Data _proxy;
-        private readonly IDisposable _subscription;
 
-        public Data_Proxy(Ebene_3_Protokoll__Data proxy)
+        public Data_Proxy(Ebene_3_Protokoll__Data proxy, DisposeGroup disposegroup) : base(disposegroup)
         {
             _proxy = proxy;
+            disposegroup.With(() => _proxy.Dispose());
+
             var subject = new Subject<Notification>();
-            _subscription = proxy.Notifications.Subscribe(new Observer<byte[]>(
+            var subscription = proxy.Notifications.Subscribe(new Observer<byte[]>(
                 datagram =>
                 {
                     var notification = Deserialize(datagram);
                     subject.Next(notification);
                 },
-                ex => { throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex); }));
-
+                ex => throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex)));
+            disposegroup.With(() => subscription.Dispose());
+            
             Notifications = subject;
         }
 
@@ -39,13 +41,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var version = BitConverter.ToInt64(datagram, position);
 
             return new NotificationData(session,datenquelle,version);
-        }
-
-        // übersetzt API-Level-unabhängige Nachrichten in serialisierte Nachrichten und sendet diese über den Proxy
-        public void Dispose()
-        {
-            _subscription.Dispose();
-            _proxy.Dispose();
         }
 
         public Task<QueryResponse> Query(int api_level, Guid session, int datenquelle, long von, long bis)

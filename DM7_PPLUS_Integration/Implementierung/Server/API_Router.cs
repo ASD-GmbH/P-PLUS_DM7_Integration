@@ -45,6 +45,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
             log.Info(string.Format("DM7 Schittstelle mit API {0} bereitgestellt.", versionen));
 
+            disposegroup.With(() => log.Debug("API Router beendet."));
+
             var subject = new Subject<Notification>();
 
             if (backend_level_1 != null)

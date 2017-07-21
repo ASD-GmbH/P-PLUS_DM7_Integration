@@ -11,26 +11,33 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
     /// <summary>
     /// Implementiert die API level 1 und übersetzt die Anfragen in API-Level-unabhängige Nachrichten
     /// </summary>
-    internal class API_Level_1_Proxy : DM7_PPLUS_API
+    internal class API_Level_1_Proxy : DisposeGroupMember, DM7_PPLUS_API
     {
         private const int API_LEVEL = 1;
 
         private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _ebene_2_Proxy;
         private readonly Guid _session;
         private readonly Log _log;
-        private readonly IDisposable _subscription;
 
         /// <summary>
         /// Implementiert die API level 1 und übersetzt die Anfragen in API-Level-unabhängige Nachrichten
         /// </summary>
-        public API_Level_1_Proxy(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung ebene2Proxy, Guid session, int auswahllistenversion, Log log)
+        public API_Level_1_Proxy(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung ebene2Proxy, Guid session, int auswahllistenversion, Log log, DisposeGroup disposegroup) : base(disposegroup)
         {
             _ebene_2_Proxy = ebene2Proxy;
+            disposegroup.With(() =>
+            {
+                _log.Info("DM7 - P-PLUS Schnittstelle wird beendent...");
+                _ebene_2_Proxy.Dispose();
+                _log.Info("DM7 - P-PLUS Schnittstelle geschlossen.");
+            });
+
             _session = session;
             _log = log;
             Auswahllisten_Version = auswahllistenversion;
+
             var subject = new Subject<Stand>();
-            _subscription = ebene2Proxy.Notifications.Subscribe(new Observer<Notification>(
+            var subscription = ebene2Proxy.Notifications.Subscribe(new Observer<Notification>(
                 no =>
                 {
                     var data = no as NotificationData;
@@ -46,14 +53,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 },
                 ex => { throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex); } ));
             Stand_Mitarbeiterdaten = subject;
-        }
-
-        public void Dispose()
-        {
-            _log.Info("DM7 - P-PLUS Schnittstelle wird beendent...");
-            _subscription.Dispose();
-            _ebene_2_Proxy.Dispose();
-            _log.Info("DM7 - P-PLUS Schnittstelle geschlossen.");
+            disposegroup.With(() =>
+            {
+                log.Info("DM7 - P-PLUS Subscription wird geschlossen...");
+                subscription.Dispose();
+            });
         }
 
         public int Auswahllisten_Version { get; }

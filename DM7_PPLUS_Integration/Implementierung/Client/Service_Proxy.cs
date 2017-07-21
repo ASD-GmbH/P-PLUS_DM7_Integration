@@ -7,18 +7,14 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    internal class Service_Proxy : Ebene_2_Protokoll__Verbindungsaufbau
+    internal class Service_Proxy : DisposeGroupMember, Ebene_2_Protokoll__Verbindungsaufbau
     {
         private readonly Ebene_3_Protokoll__Service _client;
 
-        public Service_Proxy(Ebene_3_Protokoll__Service client)
+        public Service_Proxy(Ebene_3_Protokoll__Service client, DisposeGroup disposegroup) : base(disposegroup)
         {
             _client = client;
-        }
-
-        public void Dispose()
-        {
-            _client.Dispose();
+            disposegroup.With(() => _client.Dispose());
         }
 
         public Task<ConnectionResult> Connect_Ebene_1(string login, int maxApiLevel, int minApiLevel)

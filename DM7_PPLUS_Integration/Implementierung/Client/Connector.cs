@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
 using DM7_PPLUS_Integration.Implementierung.Server;
+using DM7_PPLUS_Integration.Implementierung.Shared;
 using DM7_PPLUS_Integration.Implementierung.Testing;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
@@ -14,8 +15,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var client_min_api_level_request = 0;
             var client_max_api_level_request = 0;
 
+            var disposegroup = new DisposeGroup();
             return
-                Verbindungsaufbau(networkAddress, client_min_api_level_request, client_max_api_level_request, factory, log)
+                Verbindungsaufbau(networkAddress, client_min_api_level_request, client_max_api_level_request, factory, log, disposegroup)
                     .ContinueWith(task => (Level_0_Test_API)new Level_0_Test_Proxy(task.Result.Item1));
         }
 
@@ -25,28 +27,29 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var client_min_api_level_request = networkAddress == "test://0" ? 0 : 1;
             var client_max_api_level_request = 1;
 
+            var disposegroup = new DisposeGroup();
             return
-                Verbindungsaufbau(networkAddress, client_min_api_level_request, client_max_api_level_request, factory, log)
+                Verbindungsaufbau(networkAddress, client_min_api_level_request, client_max_api_level_request, factory, log, disposegroup)
                     .ContinueWith(task =>
                         task.Result.Item2 != 1
                         ? (DM7_PPLUS_API)new Level_1_upgrade_Test_Proxy(task.Result.Item1)
-                        : (DM7_PPLUS_API)new API_Level_1_Proxy(task.Result.Item1, task.Result.Item3, task.Result.Item4, log));
+                        : (DM7_PPLUS_API)new API_Level_1_Proxy(task.Result.Item1, task.Result.Item3, task.Result.Item4, log, disposegroup));
         }
 
 
-        private static Task<Tuple<Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung, int, Guid, int>> Verbindungsaufbau(string networkaddress, int client_min_api_level_request, int client_max_api_level_request, Ebene_2_Proxy_Factory factory, Log log)
+        private static Task<Tuple<Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung, int, Guid, int>> Verbindungsaufbau(string networkaddress, int client_min_api_level_request, int client_max_api_level_request, Ebene_2_Proxy_Factory factory, Log log, DisposeGroup disposegroup)
         {
             var login = "test";
 
             if (networkaddress.StartsWith("tcp://"))
             {
-                factory = new NetMQ_Factory();
+                factory = new NetMQ_Factory(disposegroup);
             }
 
             if (networkaddress.StartsWith("demo://"))
             {
-                var host = DM7_PPLUS_Host.Starten(new Demo_Datenserver(log), log, ex => { throw new Exception("Unerwarteter Fehler", ex); });
-                factory = new LoopbackFactory(host, networkaddress.EndsWith("2") ? 2 : 3);
+                var host = DM7_PPLUS_Host.Starten(new Demo_Datenserver(log).WithDisposeGroup(disposegroup), log, ex => { throw new Exception("Unerwarteter Fehler", ex); }).WithDisposeGroup(disposegroup);
+                factory = new LoopbackFactory(host, networkaddress.EndsWith("2") ? 2 : 3, disposegroup);
             }
 
             if (factory==null) throw new ConnectionErrorException("Unbekanntes Protokoll im Connection string gefunden. Erwartet wird tcp://...");

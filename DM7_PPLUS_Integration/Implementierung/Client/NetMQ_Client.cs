@@ -8,7 +8,7 @@ using NetMQ.Sockets;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    internal class NetMQ_Client : Ebene_3_Protokoll__Data, Ebene_3_Protokoll__Service
+    internal class NetMQ_Client : DisposeGroupMember, Ebene_3_Protokoll__Data, Ebene_3_Protokoll__Service
     {
         private readonly Log _log;
         private RequestSocket _request_socket;
@@ -19,23 +19,41 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         /// <summary>
         ///  Sendet serialisierte Nachrichten über ZeroMQ an NetMQ_Server
         /// </summary>
-        public NetMQ_Client(string networkaddress, Log log)
+        public NetMQ_Client(string networkaddress, Log log, DisposeGroup disposegroup) : base(disposegroup)
         {
             _log = log;
             _notifications = new Subject<byte[]>();
 
             _log.Debug($"NetMQ Request Socket ({networkaddress}) wird verbunden.");
             _request_socket = new RequestSocket(networkaddress);
+            disposegroup.With(() =>
+            {
+                _log.Debug("NetMQ Request Socket wird geschlossen...");
+                _request_socket.Dispose();
+                _log.Debug("NetMQ Request Socket geschlossen.");
+            });
 
             var next_available_port = NetMQ_Server.Next_available_port(networkaddress);
             _log.Debug($"NetMQ Subscriber Socket ({next_available_port}) wird verbunden.");
             _subscriber_socket = new SubscriberSocket(next_available_port);
             _subscriber_socket.Subscribe("");
-
-            _poller = new NetMQPoller();
             _subscriber_socket.ReceiveReady += _subscriber_socket_receive_ready;
-            _poller.Add(_subscriber_socket);
+            disposegroup.With(() =>
+            {
+                _log.Debug("NetMQ Subscriber Socket wird geschlossen...");
+                _subscriber_socket.Dispose();
+                _log.Debug("NetMQ Subscriber Socket geschlossen.");
+            });
+
+            _poller = new NetMQPoller {_subscriber_socket};
             _poller.RunAsync();
+            disposegroup.With(() =>
+            {
+                _log.Debug("NetMQ Poller wird angehalten...");
+                _poller.Stop();
+                _log.Debug("NetMQ Poller wird geschlossen...");
+                _poller.Dispose();
+            });
         }
 
         private void _subscriber_socket_receive_ready(object sender, NetMQSocketEventArgs e)
@@ -53,40 +71,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             if (protocol != Constants.NETMQ_WIREPROTOCOL_1) throw new UnsupportedVersionException($"NetMQ Protokoll Version {protocol.ToString()} wird von dieser P-PLUS Version nicht unterstützt.");
         }
 
-        public void Dispose()
-        {
-            var disposable0 = _poller;
-            _poller = null;
-            if (disposable0 != null)
-            {
-                _log.Debug("NetMQ Poller wird angehalten...");
-                disposable0.Stop();
-                _log.Debug("NetMQ Poller wird geschlossen...");
-                disposable0.Dispose();
-            }
-            else
-            {
-                _log.Info("NetMQ Poller war bereits geschlossen!");
-            }
-
-            var disposable1 = _request_socket;
-            _request_socket = null;
-            if (disposable1 != null)
-            {
-                _log.Debug("NetMQ Request Socket wird geschlossen...");
-                disposable1.Dispose();
-                _log.Debug("NetMQ Request Socket geschlossen.");
-            }
-
-            var disposable2 = _subscriber_socket;
-            _subscriber_socket = null;
-            if (disposable2 != null)
-            {
-                _log.Debug("NetMQ Subscriber Socket wird geschlossen...");
-                disposable2.Dispose();
-                _log.Debug("NetMQ Subscriber Socket geschlossen.");
-            }
-        }
 
         Task<byte[]> Ebene_3_Protokoll__Service.ServiceRequest(byte[] request)
         {
