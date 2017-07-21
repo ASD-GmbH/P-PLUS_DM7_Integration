@@ -38,11 +38,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             if (hostaddress.StartsWith("tcp://"))
             {
                 NetMQ_Server.Start(Ebene_3_Service, Ebene_3_Data, $"{hostaddress}:{port}", log, _disposegroup);
-                Url = $"{hostaddress}:{port}";
-            }
-            else
-            {
-                Url = "demo://Internes Loopback";
             }
         }
 
@@ -55,8 +50,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         {
             return new DM7_PPLUS_Host(backend, onError, log, "", 0, (levels ?? API_LEVELS).ToList());
         }
-
-        public string Url { get; }
 
         public void Dispose()
         {

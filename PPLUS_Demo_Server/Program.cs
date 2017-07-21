@@ -22,7 +22,7 @@ namespace PPLUS_Demo_Server
             var backend = new Demo_Datenserver(log);
             var host = DM7_PPLUS_Host.Starten(backend, hostaddress, port, log, log.OnError);
 
-            log.Info($"Demoserver wurde gestartet ({host.Url}).");
+            log.Info($"Demoserver wurde gestartet ({hostaddress}).");
 
             var sub =
                 host.Ebene_1_API_Level_1.Stand_Mitarbeiterdaten.Subscribe(new Observer<Stand>(stand =>
