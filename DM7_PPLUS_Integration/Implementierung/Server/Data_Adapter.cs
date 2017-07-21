@@ -6,16 +6,15 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Server
 {
-    public class Data_Adapter : Ebene_3_Protokoll__Data
+    internal class Data_Adapter : DisposeGroupMember, Ebene_3_Protokoll__Data
     {
         private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _backend;
-        private readonly IDisposable _subscription;
 
-        public Data_Adapter(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung backend, Log log)
+        public Data_Adapter(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung backend, Log log, DisposeGroup disposegroup) : base(disposegroup)
         {
             _backend = backend;
             var subject = new Subject<byte[]>();
-            _subscription = backend.Notifications.Subscribe(new Observer<Notification>(
+            var subscription = backend.Notifications.Subscribe(new Observer<Notification>(
                 notification =>
                 {
                     var datagram = Serialize_Notification(notification);
@@ -23,6 +22,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                     subject.Next(datagram);
                 },
                 ex => { throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex); }));
+            disposegroup.With(subscription);
             Notifications = subject;
         }
 
@@ -42,10 +42,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         }
 
         // empfängt serialisierte Nachrichten und gibt sie als API-Level-unabhängige Nachrichten an das Backend weiter
-        public void Dispose()
-        {
-            _subscription.Dispose();
-        }
 
         public Task<byte[]> Request(byte[] request)
         {

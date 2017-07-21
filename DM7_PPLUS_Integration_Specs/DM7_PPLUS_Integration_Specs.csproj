@@ -58,7 +58,6 @@
     <Compile Include="ObserverExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Subject.cs" />
-    <Compile Include="TestBackend_Level_0.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -11,21 +11,19 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     /// <summary>
     /// Stellt die Version 1 der API zur Verfügung und erfüllt Anfragen nach Daten und Notifications
     /// </summary>
-    public class API_Level_1_Adapter : DM7_PPLUS_API
+    internal sealed class API_Level_1_Adapter : DisposeGroupMember, DM7_PPLUS_API
     {
         private readonly PPLUS_Backend _backend;
         private readonly Guid _session;
-        private readonly Log _log;
         private long _stand;
 
         private readonly Dictionary<long, IEnumerable<Guid>> _Mitarbeiter_je_Stand =
             new Dictionary<long, IEnumerable<Guid>>();
 
 
-        public API_Level_1_Adapter(PPLUS_Backend backend, Action<Exception> onException, Guid session, Log log)
+        public API_Level_1_Adapter(PPLUS_Backend backend, Action<Exception> onException, Guid session, Log log, IDisposable disposegroup) : base(disposegroup)
         {
             _session = session;
-            _log = log;
             _backend = backend;
             _Mitarbeiter_je_Stand.Add(_stand, _backend.Alle_Mitarbeiter());
 
@@ -40,10 +38,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                         ((Subject<Stand>) Stand_Mitarbeiterdaten).Next(new VersionsStand(_session, _stand));
                     },
                     onException));
-        }
-
-        public void Dispose()
-        {
         }
 
         public int Auswahllisten_Version => _backend.AuswahllistenVersion;
@@ -71,15 +65,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                     .Where(_ => !teilmenge || _.Key > vvon.Version && _.Key <= vbis.Version)
                     .SelectMany(_ => _.Value)
                     .Distinct();
-            var task = new Task<Mitarbeiterdatensaetze>(() =>
-            {
-                return new Mitarbeiterdatensaetze(
-                    teilmenge,
-                    new VersionsStand(_session, _stand),
-                    new ReadOnlyCollection<Mitarbeiterdatensatz>(_backend.Mitarbeiterdatensaetze_abrufen(mitarbeiter)
-                        .ToList()),
-                    new ReadOnlyCollection<Mitarbeiterfoto>(new List<Mitarbeiterfoto>()));
-            });
+            var task = new Task<Mitarbeiterdatensaetze>(() => new Mitarbeiterdatensaetze(
+                teilmenge,
+                new VersionsStand(_session, _stand),
+                new ReadOnlyCollection<Mitarbeiterdatensatz>(_backend.Mitarbeiterdatensaetze_abrufen(mitarbeiter)
+                    .ToList()),
+                new ReadOnlyCollection<Mitarbeiterfoto>(new List<Mitarbeiterfoto>())));
             task.RunSynchronously();
             return task;
         }

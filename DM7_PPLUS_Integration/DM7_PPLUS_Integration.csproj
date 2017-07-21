@@ -50,7 +50,9 @@
     <Compile Include="Auswahllisten\Auswahllisten_0.cs" />
     <Compile Include="Implementierung\Client\API_Level_1_Proxy.cs" />
     <Compile Include="Implementierung\Client\Ebene_2_Proxy_Factory.cs" />
+    <Compile Include="Implementierung\Server\Constants.cs" />
     <Compile Include="Implementierung\Server\DM7_PPLUS_Host.cs" />
+    <Compile Include="Implementierung\Client\NetMQ_Client.cs" />
     <Compile Include="Implementierung\Server\Service_Adapter.cs" />
     <Compile Include="Implementierung\Client\Service_Proxy.cs" />
     <Compile Include="Implementierung\Protokoll\Ebene_3_Protokoll__Service.cs" />
@@ -59,6 +61,8 @@
     <Compile Include="Implementierung\Protokoll\Nachrichten\ConnectionResult.cs" />
     <Compile Include="Implementierung\Protokoll\Nachrichten\ConnectionSucceeded.cs" />
     <Compile Include="Implementierung\Client\Connector.cs" />
+    <Compile Include="Implementierung\Shared\DisposeGroup.cs" />
+    <Compile Include="Implementierung\Testing\TestBackend_Level_0.cs" />
     <Compile Include="Public\Daten\Postanschrift.cs" />
     <Compile Include="Public\Daten\Bildformat.cs" />
     <Compile Include="Public\Daten\Datum.cs" />
@@ -98,7 +102,7 @@
     <Compile Include="Public\Exceptions.cs" />
     <Compile Include="Implementierung\Testing\Demo_Datenserver.cs" />
     <Compile Include="Implementierung\Server\API_Level_1_Adapter.cs" />
-    <Compile Include="Implementierung\Server\netmq_impl.cs" />
+    <Compile Include="Implementierung\Server\NetMQ_Server.cs" />
     <Compile Include="Implementierung\Server\PPLUS_Backend.cs" />
     <Compile Include="Public\Stand.cs" />
   </ItemGroup>

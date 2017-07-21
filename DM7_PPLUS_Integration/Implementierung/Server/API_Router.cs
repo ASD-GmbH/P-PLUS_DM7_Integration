@@ -12,12 +12,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     /// <summary>
     /// Empfängt API-Level-unabhängige Nachrichten und routet Sie in fachliche Nachrichten an die verschiedenen API Versionen
     /// </summary>
-    public class API_Router : Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung
+    internal class API_Router : DisposeGroupMember, Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung
     {
         private readonly DM7_PPLUS_API _backendLevel1;
-        private readonly IDisposable _subscription;
-        private readonly int _maxApiLevel = 1;
-        private readonly int _minApiLevel = 1;
+        private readonly int _maxApiLevel;
+        private readonly int _minApiLevel;
         private readonly int _auswahllistenversion;
         private readonly Log _log;
         private readonly Guid _session;
@@ -25,7 +24,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         /// <summary>
         /// Empfängt API-Level-unabhängige Nachrichten und routet Sie in fachliche Nachrichten an die verschiedenen API Versionen
         /// </summary>
-        public API_Router(Log log, Guid session, int auswahllisten_version, Level_0_Test_API backend_level_0,  DM7_PPLUS_API backend_level_1/*, DM_PPLUS_API_2 backend_level_2, ...*/)
+        public API_Router(Log log, Guid session, int auswahllisten_version, Level_0_Test_API backend_level_0,  DM7_PPLUS_API backend_level_1/*, DM_PPLUS_API_2 backend_level_2, ...*/, DisposeGroup disposegroup) : base(disposegroup)
         {
             _log = log;
             _session = session;
@@ -39,11 +38,18 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
             _backendLevel1 = backend_level_1;
 
+            var versionen =
+                _minApiLevel == _maxApiLevel
+                    ? "Version " + _maxApiLevel
+                    : "Versionen " + _maxApiLevel + ".." + _minApiLevel;
+
+            log.Info(string.Format("DM7 Schittstelle mit API {0} bereitgestellt.", versionen));
+
             var subject = new Subject<Notification>();
 
             if (backend_level_1 != null)
             {
-                _subscription = backend_level_1.Stand_Mitarbeiterdaten.Subscribe(
+                var subscription = backend_level_1.Stand_Mitarbeiterdaten.Subscribe(
                     new Observer<Stand>(
                         s =>
                         {
@@ -51,6 +57,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                             subject.Next(Map(s, Datenquellen.Mitarbeiter));
                         },
                         ex => subject.Error(ex)));
+                disposegroup.With(subscription);
             }
 
             Notifications = subject;
@@ -63,9 +70,25 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             {
                 var max = Math.Min(maxApiLevel, _maxApiLevel);
                 var min = Math.Max(minApiLevel, _minApiLevel);
-                if (max >= min) return new ConnectionSucceeded(max, _auswahllistenversion, _session);
-                var range = (_maxApiLevel == _minApiLevel) ? $"des Levels {_maxApiLevel}" : $"von Level {_minApiLevel} bis {_maxApiLevel}";
-                return new ConnectionFailed(ConnectionFailure.Unable_to_provide_API_level, $"Dieser P-PLUS-Server kann nur APIs {range} bereitstellen.");
+
+                var level = max >= min ? (int?) max : null;
+
+                var versionen =
+                    minApiLevel == maxApiLevel
+                        ? "Version " + maxApiLevel
+                        : "Versionen " + maxApiLevel + ".." + minApiLevel;
+
+                if (level.HasValue)
+                {
+                    _log.Info($"Verbindungsanfrage für API {versionen} erhalten, Verbindung aufgebaut mit API {level.Value}.");
+                    return new ConnectionSucceeded(max, _auswahllistenversion, _session);
+                }
+                else
+                {
+                    _log.Info($"Verbindungsanfrage für API {versionen} konnte nicht erfüllt werden.");
+                    var range = (_maxApiLevel == _minApiLevel) ? $"des Levels {_maxApiLevel}" : $"von Level {_minApiLevel} bis {_maxApiLevel}";
+                    return new ConnectionFailed(ConnectionFailure.Unable_to_provide_API_level, $"Dieser P-PLUS-Server kann nur APIs {range} bereitstellen.");
+                }
             });
             task.RunSynchronously();
             return task;
@@ -76,11 +99,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         {
             var s = (VersionsStand)stand;
             return new NotificationData(s.Session, datenquelle, s.Version);
-        }
-
-        public void Dispose()
-        {
-            _subscription.Dispose();
         }
 
         public Task<QueryResponse> Query(int api_level, Guid session, int datenquelle, long von, long bis)

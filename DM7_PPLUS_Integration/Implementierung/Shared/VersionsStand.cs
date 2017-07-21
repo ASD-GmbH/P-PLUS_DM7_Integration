@@ -2,7 +2,7 @@ using System;
 
 namespace DM7_PPLUS_Integration.Implementierung.Shared
 {
-    public struct VersionsStand : Stand
+    internal struct VersionsStand : Stand
     {
         public readonly Guid Session;
         public readonly long Version;

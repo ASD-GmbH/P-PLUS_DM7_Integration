@@ -6,17 +6,13 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Server
 {
-    public class Service_Adapter : Ebene_3_Protokoll__Service
+    internal class Service_Adapter : DisposeGroupMember, Ebene_3_Protokoll__Service
     {
         private readonly Ebene_2_Protokoll__Verbindungsaufbau _backend;
 
-        public Service_Adapter(Ebene_2_Protokoll__Verbindungsaufbau backend)
+        public Service_Adapter(Ebene_2_Protokoll__Verbindungsaufbau backend, DisposeGroup disposegroup) : base(disposegroup)
         {
             _backend = backend;
-        }
-
-        public void Dispose()
-        {
         }
 
         public Task<byte[]> ServiceRequest(byte[] request)

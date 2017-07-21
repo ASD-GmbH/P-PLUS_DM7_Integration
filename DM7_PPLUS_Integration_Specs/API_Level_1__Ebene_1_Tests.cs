@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration;
@@ -18,6 +19,7 @@ namespace DM7_PPLUS_Integration_Specs
     {
         private Test_PPLUS_Backend _server;
         private Test_ProxyFactory _factory;
+        private DM7_PPLUS_Host _host;
 
         private Level_0_Test_API Verbindungsaufbau_0(string netzwerkadresse)
         {
@@ -31,18 +33,10 @@ namespace DM7_PPLUS_Integration_Specs
 
         private void Server_kompatibel_mit_API_level(int server_min_api_level, int server_max_api_level)
         {
-            var session = Guid.NewGuid();
             _server = new Test_PPLUS_Backend(0);
-
-
-            var level0 = new TestBackend_Level_0();
-            var level1 = new API_Level_1_Adapter(_server, ex => { throw new Exception("Unexpected exception", ex); }, session, new TestLog("server "));
-
-            if (server_min_api_level > 0) level0 = null;
-            if (server_max_api_level < 1) level1 = null;
-
-            var router = new API_Router(new TestLog("[server] "), session, 0, level0, level1);
-            _factory = new Test_ProxyFactory(router, router);
+            var levels = new[] {0, 1}.Where(_ => _ >= server_min_api_level && _ <= server_max_api_level);
+            _host = DM7_PPLUS_Host.Starten(_server, new TestLog("[server] "), ex => { throw new Exception("Unexpected exception", ex); }, levels);
+            _factory = new Test_ProxyFactory(_host.Ebene_3_Service, _host.Ebene_2_Data);
         }
 
         [Test]
@@ -109,19 +103,18 @@ namespace DM7_PPLUS_Integration_Specs
 
     internal class Test_ProxyFactory : Ebene_2_Proxy_Factory
     {
-        private readonly Ebene_2_Protokoll__Verbindungsaufbau _verbindung;
         private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _api;
+        private readonly Ebene_3_Protokoll__Service _service;
 
-        public Test_ProxyFactory(Ebene_2_Protokoll__Verbindungsaufbau verbindung, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung api)
+        public Test_ProxyFactory(Ebene_3_Protokoll__Service service, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung api)
         {
-            _verbindung = verbindung;
+            _service = service;
             _api = api;
         }
 
         public Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>> Connect_Ebene_2(string networkAddress, Log log)
         {
-            var adapter = new Service_Adapter(_verbindung);
-            var client = new Service_Proxy(adapter);
+            var client = new Service_Proxy(_service);
 
             var task =
                 new Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>>(
@@ -175,9 +168,7 @@ namespace DM7_PPLUS_Integration_Specs
 
             var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
 
-
             var serialisierung = new Data_Proxy(host.Ebene_3_Data);
-
             var connection = (ConnectionSucceeded)host.Ebene_2_Service.Connect_Ebene_1("test", 1, 1).Result;
             var proxy = new API_Level_1_Proxy(serialisierung, connection.Session, connection.Auswahllistenversion, new TestLog("[client] "));
             Setup_Testframework(proxy, server);
