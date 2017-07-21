@@ -33,9 +33,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 var a_01 = data.Session.ToByteArray();
                 var a_02 = BitConverter.GetBytes(data.Datenquelle);
                 var a_03 = BitConverter.GetBytes(data.Version);
-
                 return new List<byte[]> {a_01, a_02, a_03}.Concat();
-
             }
             throw new NotImplementedException();
         }

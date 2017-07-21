@@ -16,13 +16,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         private const int API_LEVEL = 1;
 
         private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _ebene_2_Proxy;
-        private readonly Guid _session;
         private readonly Log _log;
 
         /// <summary>
         /// Implementiert die API level 1 und übersetzt die Anfragen in API-Level-unabhängige Nachrichten
         /// </summary>
-        public API_Level_1_Proxy(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung ebene2Proxy, Guid session, int auswahllistenversion, Log log, DisposeGroup disposegroup) : base(disposegroup)
+        public API_Level_1_Proxy(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung ebene2Proxy, int auswahllistenversion, Log log, DisposeGroup disposegroup) : base(disposegroup)
         {
             _ebene_2_Proxy = ebene2Proxy;
             disposegroup.With(() =>
@@ -32,7 +31,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 _log.Info("DM7 - P-PLUS Schnittstelle geschlossen.");
             });
 
-            _session = session;
             _log = log;
             Auswahllisten_Version = auswahllistenversion;
 
@@ -69,7 +67,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             _log.Debug($"Mitarbeiterdaten werden abgerufen ({von}..{bis})...");
             return
                 _ebene_2_Proxy
-                    .Query(API_LEVEL, _session, Datenquellen.Mitarbeiter, ((VersionsStand)von).Version, ((VersionsStand)bis).Version)
+                    .Query(API_LEVEL, ((VersionsStand)von).Session, Datenquellen.Mitarbeiter, ((VersionsStand)von).Version, ((VersionsStand)bis).Version)
                     .ContinueWith(
                         task =>
                         {
@@ -115,7 +113,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
             var teildaten = resultData[position] == 1;
             position += 1;
-
 
             var anzahl_Mitarbeiterdatensaetze = BitConverter.ToInt32(resultData, position);
             position += 4;
@@ -168,7 +165,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         public Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen()
         {
-            var stand = VersionsStand.AbInitio(_session);
+            var stand = VersionsStand.AbInitio();
             return Mitarbeiterdaten_abrufen(stand, stand);
         }
     }

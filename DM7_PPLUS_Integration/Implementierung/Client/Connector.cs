@@ -33,7 +33,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     .ContinueWith(task =>
                         task.Result.Item2 != 1
                         ? (DM7_PPLUS_API)new Level_1_upgrade_Test_Proxy(task.Result.Item1)
-                        : (DM7_PPLUS_API)new API_Level_1_Proxy(task.Result.Item1, task.Result.Item3, task.Result.Item4, log, disposegroup));
+                        : (DM7_PPLUS_API)new API_Level_1_Proxy(task.Result.Item1, task.Result.Item4, log, disposegroup));
         }
 
 

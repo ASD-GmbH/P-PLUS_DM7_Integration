@@ -12,6 +12,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Shared
             return new VersionsStand(session, -1);
         }
 
+        public static Stand AbInitio()
+        {
+            return new VersionsStand(Guid.Empty, -1);
+        }
+
         public VersionsStand(Guid session, long version)
         {
             Session = session;
@@ -21,7 +26,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Shared
 
         public override string ToString()
         {
-            return Version.ToString();
+            return $"{Version}";
         }
     }
 }

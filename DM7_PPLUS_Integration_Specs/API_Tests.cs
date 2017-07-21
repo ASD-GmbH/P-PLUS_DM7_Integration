@@ -61,8 +61,6 @@ namespace DM7_PPLUS_Integration_Specs
 
     // TODO: Server nimmt freien Port für Publisher Socket (und wird an Client im Connect übertragen)
 
-    // TODO: Client muss bei neuer Session ID die Session ID übernehmen (damit nicht immer alles neu übertragen wird)
-
     // TODO Test: Fehlerfälle abdecken, Exceptions auslösen und prüfen, dass diese am richtigen Ort registriert werden (und der Server eine Exception überlebt)
 
     // TODO: Authentifizierung
@@ -75,18 +73,17 @@ namespace DM7_PPLUS_Integration_Specs
     {
 
         [Test]
-        public void Nach_Serverneustart_wird_die_vollstaendige_Mitarbeiterliste_uebertragen()
+        public void Nach_Serverneustart_wird_die_vollstaendige_Mitarbeiterliste_uebertragen_1()
         {
             Mitarbeiter_anlegen("Martha", "Musterfrau");
             Mitarbeiter_anlegen("Marco", "Mustermann");
             Mitarbeiter_anlegen("Martin", "Mustermaus");
             var mitabeiterdatensaetze = API.Mitarbeiterdaten_abrufen();
-            var bekannter_Stand = Stand(mitabeiterdatensaetze);
+            var bekannter_Stand = Stand(mitabeiterdatensaetze.Result);
             var verfuegbarerStand = bekannter_Stand;
             API.Stand_Mitarbeiterdaten.Subscribe(stand =>
             {
                 verfuegbarerStand = stand;
-                Console.Out.WriteLine($"vs 1 {verfuegbarerStand}");
             });
 
             Serverneustart();
@@ -95,10 +92,42 @@ namespace DM7_PPLUS_Integration_Specs
             Mitarbeiter_anlegen("Tester", "Testerino");
             Warte_auf_Konsistenz();
 
-            Console.Out.WriteLine($"vs 2 {verfuegbarerStand}");
             var data = API.Mitarbeiterdaten_abrufen(bekannter_Stand, verfuegbarerStand).Result;
             Anzahl(data).Should().Be(4);
             Teilnemge(data).Should().BeFalse();
+        }
+
+        [Test]
+        public void Nach_Serverneustart_wird_die_vollstaendige_Mitarbeiterliste_uebertragen_2()
+        {
+            Mitarbeiter_anlegen("Martha", "Musterfrau");
+            Mitarbeiter_anlegen("Marco", "Mustermann");
+            Mitarbeiter_anlegen("Martin", "Mustermaus");
+            var mitabeiterdatensaetze = API.Mitarbeiterdaten_abrufen();
+            var bekannter_Stand = Stand(mitabeiterdatensaetze.Result);
+            var verfuegbarerStand = bekannter_Stand;
+            API.Stand_Mitarbeiterdaten.Subscribe(stand =>
+            {
+                verfuegbarerStand = stand;
+            });
+
+            Serverneustart();
+            Warte_auf_Konsistenz();
+
+            Mitarbeiter_anlegen("Tester", "Testerino");
+            Warte_auf_Konsistenz();
+
+            var data1 = API.Mitarbeiterdaten_abrufen(bekannter_Stand, verfuegbarerStand).Result;
+            bekannter_Stand = Stand(data1);
+
+            Mitarbeiter_anlegen("Tester", "Testerina");
+            Warte_auf_Konsistenz();
+
+            var data = API.Mitarbeiterdaten_abrufen(bekannter_Stand, verfuegbarerStand).Result;
+
+
+            Anzahl(data).Should().Be(1);
+            Teilnemge(data).Should().BeTrue();
         }
 
         private IDisposable _host;
@@ -249,7 +278,7 @@ namespace DM7_PPLUS_Integration_Specs
             Mitarbeiter_anlegen("Marco", "Mustermann");
             Mitarbeiter_anlegen("Martin", "Mustermaus");
             var mitabeiterdatensaetze = API.Mitarbeiterdaten_abrufen();
-            var bekannter_Stand = Stand(mitabeiterdatensaetze);
+            var bekannter_Stand = Stand(mitabeiterdatensaetze.Result);
             var verfuegbarerStand = bekannter_Stand;
             API.Stand_Mitarbeiterdaten.Subscribe(stand => { verfuegbarerStand = stand; });
 
@@ -257,6 +286,7 @@ namespace DM7_PPLUS_Integration_Specs
             Warte_auf_Konsistenz();
 
             var data = API.Mitarbeiterdaten_abrufen(bekannter_Stand, verfuegbarerStand).Result;
+
             Anzahl(data).Should().Be(1);
         }
 
@@ -267,7 +297,7 @@ namespace DM7_PPLUS_Integration_Specs
             Mitarbeiter_anlegen("Marco", "Mustermann");
             Mitarbeiter_anlegen("Martin", "Mustermaus");
             var mitabeiterdatensaetze = API.Mitarbeiterdaten_abrufen();
-            var bekannter_Stand = Stand(mitabeiterdatensaetze);
+            var bekannter_Stand = Stand(mitabeiterdatensaetze.Result);
             var verfuegbarerStand = bekannter_Stand;
             API.Stand_Mitarbeiterdaten.Subscribe(stand => { verfuegbarerStand = stand; });
 
@@ -284,7 +314,7 @@ namespace DM7_PPLUS_Integration_Specs
         }
 
 
-        protected Stand Stand(Task<Mitarbeiterdatensaetze> data) => data.Result.Stand;
+        protected Stand Stand(Mitarbeiterdatensaetze data) => data.Stand;
 
         protected virtual void Warte_auf_Konsistenz()
         {

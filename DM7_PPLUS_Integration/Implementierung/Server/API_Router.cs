@@ -30,6 +30,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             _session = session;
             _auswahllistenversion = auswahllisten_version;
 
+
             _maxApiLevel = 0;
             if (backend_level_1 != null) _maxApiLevel = 1;
 
@@ -113,7 +114,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 {
                     var result = new List<byte[]>
                     {
-                        session.ToByteArray(),
+                        ((VersionsStand) task.Result.Stand).Session.ToByteArray(),
                         BitConverter.GetBytes(((VersionsStand) task.Result.Stand).Version),
                         new[] {mitarbeiter.Result.Teilmenge ? (byte) 1 : (byte) 0},
                         BitConverter.GetBytes(mitarbeiter.Result.Mitarbeiter.Count)
