@@ -53,7 +53,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                     new Observer<Stand>(
                         s =>
                         {
-                            log.Debug("-- notification ");
                             subject.Next(Map(s, Datenquellen.Mitarbeiter));
                         },
                         ex => subject.Error(ex)));
@@ -108,18 +107,15 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 var mitarbeiter =
                     _backendLevel1.Mitarbeiterdaten_abrufen(new VersionsStand(session, von),
                         new VersionsStand(session, bis));
-                _log.Debug("1");
                 return mitarbeiter.ContinueWith(task =>
                 {
-                    _log.Debug("2");
-                    var result = new List<byte[]>();
-
-                    result.Add(session.ToByteArray());
-                    result.Add(BitConverter.GetBytes(((VersionsStand) task.Result.Stand).Version));
-
-                    result.Add(new[] {mitarbeiter.Result.Teilmenge ? (byte)1 : (byte)0 });
-
-                    result.Add(BitConverter.GetBytes(mitarbeiter.Result.Mitarbeiter.Count));
+                    var result = new List<byte[]>
+                    {
+                        session.ToByteArray(),
+                        BitConverter.GetBytes(((VersionsStand) task.Result.Stand).Version),
+                        new[] {mitarbeiter.Result.Teilmenge ? (byte) 1 : (byte) 0},
+                        BitConverter.GetBytes(mitarbeiter.Result.Mitarbeiter.Count)
+                    };
 
                     foreach (var ma in mitarbeiter.Result.Mitarbeiter)
                     {

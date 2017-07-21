@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
-using DM7_PPLUS_Integration.Implementierung.Shared;
+using DM7_PPLUS_Integration.Implementierung.Server;
 using DM7_PPLUS_Integration.Implementierung.Testing;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
@@ -40,21 +40,18 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
             if (networkaddress.StartsWith("tcp://"))
             {
-                factory = new NetMqfactory();
+                factory = new NetMQ_Factory();
+            }
+
+            if (networkaddress.StartsWith("demo://"))
+            {
+                var host = DM7_PPLUS_Host.Starten(new Demo_Datenserver(log), log, ex => { throw new Exception("Unerwarteter Fehler", ex); });
+                factory = new LoopbackFactory(host, networkaddress.EndsWith("2") ? 2 : 3);
             }
 
             if (factory==null) throw new ConnectionErrorException("Unbekanntes Protokoll im Connection string gefunden. Erwartet wird tcp://...");
 
-            var info = "";
-
-            if (networkaddress.StartsWith("tcp://"))
-            {
-                info="DM7/P-PLUS Verbindung über NetMQ";
-            }
-            else
-            {
-                info="Test/Demo Verbindung";
-            }
+            var info = networkaddress.StartsWith("tcp://") ? "DM7/P-PLUS Verbindung über NetMQ" : "Test/Demo Verbindung";
 
             log.Info(info + " wird aufgebaut...");
             var verbindung_tuple = factory.Connect_Ebene_2(networkaddress, log);

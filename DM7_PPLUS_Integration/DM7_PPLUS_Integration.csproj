@@ -50,6 +50,7 @@
     <Compile Include="Auswahllisten\Auswahllisten_0.cs" />
     <Compile Include="Implementierung\Client\API_Level_1_Proxy.cs" />
     <Compile Include="Implementierung\Client\Ebene_2_Proxy_Factory.cs" />
+    <Compile Include="Implementierung\Client\LoopbackFactory.cs" />
     <Compile Include="Implementierung\Server\Constants.cs" />
     <Compile Include="Implementierung\Server\DM7_PPLUS_Host.cs" />
     <Compile Include="Implementierung\Client\NetMQ_Client.cs" />
@@ -78,7 +79,7 @@
     <Compile Include="Implementierung\Testing\Level_0_Test_API.cs" />
     <Compile Include="Implementierung\Testing\Level_0_Test_Proxy.cs" />
     <Compile Include="Implementierung\Testing\Level_1_upgrade_Test_Proxy.cs" />
-    <Compile Include="Implementierung\Client\NetMqfactory.cs" />
+    <Compile Include="Implementierung\Client\NetMQ_Factory.cs" />
     <Compile Include="Implementierung\Protokoll\Nachrichten\Notification.cs" />
     <Compile Include="Implementierung\Protokoll\Nachrichten\NotificationClosedReason.cs" />
     <Compile Include="Implementierung\Protokoll\Nachrichten\NotificationData.cs" />

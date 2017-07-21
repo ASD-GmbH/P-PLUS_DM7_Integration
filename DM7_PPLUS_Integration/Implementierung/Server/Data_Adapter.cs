@@ -18,7 +18,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 notification =>
                 {
                     var datagram = Serialize_Notification(notification);
-                    log.Debug("-- datagram");
                     subject.Next(datagram);
                 },
                 ex => { throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex); }));

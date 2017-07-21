@@ -10,13 +10,13 @@ namespace Demo_Implementierung
     {
         public void Info(string text)
         {
-            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.ForegroundColor = ConsoleColor.White;
             Console.Out.WriteLine(text);
         }
 
         public void Debug(string text)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
+            Console.ForegroundColor = ConsoleColor.Gray;
             Console.Out.WriteLine(text);
         }
     }

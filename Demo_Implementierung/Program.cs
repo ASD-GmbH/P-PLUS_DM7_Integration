@@ -12,7 +12,7 @@ namespace Demo_Implementierung
     /// </summary>
     class Program
     {
-        private const string URL = "demo://loopback";
+        private const string DEMO_URL = "demo://loopback";
 
         /// <summary>
         /// Repräsentiert die lokale Persistenz, z.B. die HVP Datenbank
@@ -43,12 +43,14 @@ namespace Demo_Implementierung
         private static Stand _angeforderter_Stand;
 
 
-        static void Main()
+        static void Main(string [] args)
         {
             var log = new ConsoleLogger();
 
+            var url = (args.Length > 0) ? args[0] : DEMO_URL;
+
             // Rückgabe von Connect muss Disposed werden, um alle Verbindungen zu schließen
-            using (var api = PPLUS.Connect(URL, log).Result)
+            using (var api = PPLUS.Connect(url, log).Result)
             {
                 if (api==null) throw new ApplicationException("P-PLUS API war unterwarteterweise <null>.");
 

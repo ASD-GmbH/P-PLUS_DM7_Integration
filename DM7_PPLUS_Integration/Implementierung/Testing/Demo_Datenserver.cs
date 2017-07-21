@@ -12,14 +12,16 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
 {
     public class Demo_Datenserver : PPLUS_Backend
     {
+        private readonly Log _log;
         private readonly Random random = new Random();
         private readonly List<Mitarbeiterdatensatz> mitarbeiter;
         private readonly Subject<IEnumerable<Guid>> _subject = new Subject<IEnumerable<Guid>>();
         private readonly Timer _timer;
         private int changeCounter = 0;
 
-        public Demo_Datenserver()
+        public Demo_Datenserver(Log log)
         {
+            _log = log;
             mitarbeiter =
                 Enumerable.Range(0, 10)
                     .Select(_ =>
@@ -70,24 +72,25 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
 
         private Mitarbeiterdatensatz Neuer_Mitarbeiter()
         {
+            var neuerMitarbeiter = new Mitarbeiterdatensatz(
+                Guid.NewGuid(),
+                Auswahllisten_0.Titel.Kein,
+                Vorname(),
+                Nachname(),
+                null,
+                null,
+                Auswahllisten_0.Familienstand.Unbekannt,
+                Auswahllisten_0.Konfession.Keine,
+                Zufaelliges_Datum(2000, 2015),
+                null,
+                new ReadOnlyCollection<Qualifikation>(new List<Qualifikation>()),
+                "",
+                Personalnummer(),
+                Auswahllisten_0.Geschlecht.Maennlich,
+                new ReadOnlyCollection<Kontakt>(new List<Kontakt>()));
+            _log.Debug($" - Neuer Mitarbeiter im DemoServer: {neuerMitarbeiter.Nachname}, {neuerMitarbeiter.Vorname} ({neuerMitarbeiter.Personalnummer})");
             return
-                new Mitarbeiterdatensatz(
-                    Guid.NewGuid(),
-                    Auswahllisten_0.Titel.Kein,
-                    Vorname(),
-                    Nachname(),
-                    null,
-                    null,
-                    Auswahllisten_0.Familienstand.Unbekannt,
-                    Auswahllisten_0.Konfession.Keine,
-                    Zufaelliges_Datum(2000, 2015),
-                    null,
-                    new ReadOnlyCollection<Qualifikation>(new List<Qualifikation>()),
-                    "",
-                    Personalnummer(),
-                    Auswahllisten_0.Geschlecht.Maennlich,
-                    new ReadOnlyCollection<Kontakt>(new List<Kontakt>()));
-
+                neuerMitarbeiter;
         }
 
         private string Personalnummer() => random.Next(1000, 9999).ToString();

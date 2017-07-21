@@ -54,7 +54,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             var subscription = backend.Notifications.Subscribe(new Observer<byte[]>(
                 notification =>
                 {
-                    log.Debug("-- zmq");
                     _publisherSocket.SendFrame(new byte[] { Constants.NETMQ_WIREPROTOCOL_1 }, true);
                     _publisherSocket.SendFrame(notification);
                 },

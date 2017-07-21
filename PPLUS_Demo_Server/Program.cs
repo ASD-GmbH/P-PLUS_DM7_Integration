@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Policy;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Implementierung.Server;
 using DM7_PPLUS_Integration.Implementierung.Testing;
@@ -15,25 +10,34 @@ namespace PPLUS_Demo_Server
     class Program
     {
 
-        static void Main(string[] args)
+        static void Main()
         {
             var log = new Logger("");
 
             log.Info("Demoserver wird gestartet...");
 
-
             var hostaddress = "tcp://127.0.0.1";
             var port = 20000;
 
-            var backend = new Demo_Datenserver();
+            var backend = new Demo_Datenserver(log);
             var host = DM7_PPLUS_Host.Starten(backend, hostaddress, port, log, log.OnError);
 
             log.Info($"Demoserver wurde gestartet ({host.Url}).");
+
+            var sub =
+                host.Ebene_1_API_Level_1.Stand_Mitarbeiterdaten.Subscribe(new Observer<Stand>(stand =>
+                {
+                    log.Debug(
+                        // ReSharper disable once AccessToDisposedClosure
+                        $" - Mitarbeiterliste jetzt auf Stand {stand}, {host.Ebene_1_API_Level_1.Mitarbeiterdaten_abrufen().Result.Mitarbeiter.Count} Mitarbeiter.");
+                }, log.OnError));
+
             Console.ReadKey();
+            sub.Dispose();
             log.Info("Demoserver wird beendet...");
             host.Dispose();
             log.Info("Demoserver wurde beendet.");
-            Thread.Sleep(500);
+            Thread.Sleep(2000);
         }
     }
 
