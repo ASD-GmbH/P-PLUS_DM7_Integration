@@ -52,12 +52,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="API_Level_1__Ebene_1_Tests.cs" />
-    <Compile Include="Test_PPLUS_Backend.cs" />
-    <Compile Include="Observer.cs" />
-    <Compile Include="ObserverExtensions.cs" />
+    <Compile Include="API_Tests.cs" />
+    <Compile Include="Hilfsdateien\Test_PPLUS_Backend.cs" />
+    <Compile Include="Hilfsdateien\Observer.cs" />
+    <Compile Include="Hilfsdateien\ObserverExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Subject.cs" />
+    <Compile Include="Hilfsdateien\Subject.cs" />
+    <Compile Include="VerbindungsaufbauTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
