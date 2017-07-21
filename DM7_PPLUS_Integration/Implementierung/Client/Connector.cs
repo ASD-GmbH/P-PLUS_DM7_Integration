@@ -33,11 +33,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     .ContinueWith(task =>
                         task.Result.Item2 != 1
                         ? (DM7_PPLUS_API)new Level_1_upgrade_Test_Proxy(task.Result.Item1)
-                        : (DM7_PPLUS_API)new API_Level_1_Proxy(task.Result.Item1, task.Result.Item4, log, disposegroup));
+                        : (DM7_PPLUS_API)new API_Level_1_Proxy(task.Result.Item1, task.Result.Item3, log, disposegroup));
         }
 
 
-        private static Task<Tuple<Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung, int, Guid, int>> Verbindungsaufbau(string networkaddress, int client_min_api_level_request, int client_max_api_level_request, Ebene_2_Proxy_Factory factory, Log log, DisposeGroup disposegroup)
+        private static Task<Tuple<Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung, int, int>> Verbindungsaufbau(string networkaddress, int client_min_api_level_request, int client_max_api_level_request, Ebene_2_Proxy_Factory factory, Log log, DisposeGroup disposegroup)
         {
             var login = "test";
 
@@ -74,10 +74,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
                     Guard_Api_Level(agreed_API_level, client_min_api_level_request, client_max_api_level_request);
 
-                    return new Tuple<Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung, int, Guid, int>(
+                    return new Tuple<Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung, int, int>(
                         verbindung_tuple.Result.Item2,
                         agreed_API_level,
-                        success.Session,
                         success.Auswahllistenversion);
                 }
 

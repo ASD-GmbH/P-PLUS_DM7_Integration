@@ -19,15 +19,13 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         private readonly int _minApiLevel;
         private readonly int _auswahllistenversion;
         private readonly Log _log;
-        private readonly Guid _session;
 
         /// <summary>
         /// Empfängt API-Level-unabhängige Nachrichten und routet Sie in fachliche Nachrichten an die verschiedenen API Versionen
         /// </summary>
-        public API_Router(Log log, Guid session, int auswahllisten_version, Level_0_Test_API backend_level_0,  DM7_PPLUS_API backend_level_1/*, DM_PPLUS_API_2 backend_level_2, ...*/, DisposeGroup disposegroup) : base(disposegroup)
+        public API_Router(Log log, int auswahllisten_version, Level_0_Test_API backend_level_0,  DM7_PPLUS_API backend_level_1/*, DM_PPLUS_API_2 backend_level_2, ...*/, DisposeGroup disposegroup) : base(disposegroup)
         {
             _log = log;
-            _session = session;
             _auswahllistenversion = auswahllisten_version;
 
 
@@ -83,7 +81,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 if (level.HasValue)
                 {
                     _log.Info($"Verbindungsanfrage für API {versionen} erhalten, Verbindung aufgebaut mit API {level.Value}.");
-                    return new ConnectionSucceeded(max, _auswahllistenversion, _session);
+                    return new ConnectionSucceeded(max, _auswahllistenversion);
                 }
                 else
                 {

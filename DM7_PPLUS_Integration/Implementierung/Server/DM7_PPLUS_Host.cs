@@ -23,14 +23,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         private DM7_PPLUS_Host(PPLUS_Backend backend, Action<Exception> onError, Log log, string hostaddress, int port, List<int> apiLevels)
         {
-            var session = Guid.NewGuid();
-
             _disposegroup = new DisposeGroup();
 
             if (apiLevels.Contains(0)) Ebene_1_API_Level_0 = new TestBackend_Level_0();
-            if (apiLevels.Contains(1)) Ebene_1_API_Level_1 = new API_Level_1_Adapter(backend, onError, session, log, _disposegroup);
+            if (apiLevels.Contains(1)) Ebene_1_API_Level_1 = new API_Level_1_Adapter(backend, onError, log, _disposegroup);
 
-            var router = new API_Router(log, session, backend.AuswahllistenVersion, Ebene_1_API_Level_0, Ebene_1_API_Level_1, _disposegroup);
+            var router = new API_Router(log, backend.AuswahllistenVersion, Ebene_1_API_Level_0, Ebene_1_API_Level_1, _disposegroup);
             Ebene_2_Service = router;
             Ebene_2_Data = router;
 

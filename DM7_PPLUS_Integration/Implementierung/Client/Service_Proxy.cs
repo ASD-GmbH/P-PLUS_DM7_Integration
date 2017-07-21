@@ -36,10 +36,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             {
                 var apilevel = BitConverter.ToInt32(response, 1);
                 var auswahllistenversion = BitConverter.ToInt32(response, 1 + 4);
-                var guidbuffer = new byte[16];
-                Array.Copy(response, 1 + 4 + 4, guidbuffer, 0, 16);
-                var session = new Guid(guidbuffer);
-                return new ConnectionSucceeded(apilevel, auswahllistenversion, session);
+                return new ConnectionSucceeded(apilevel, auswahllistenversion);
             }
             if (response[0] == Constants.CONNECTION_RESPONSE_FAILURE)
             {

@@ -21,10 +21,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             new Dictionary<long, IEnumerable<Guid>>();
 
 
-        public API_Level_1_Adapter(PPLUS_Backend backend, Action<Exception> onException, Guid session, Log log, IDisposable disposegroup) : base(disposegroup)
+        public API_Level_1_Adapter(PPLUS_Backend backend, Action<Exception> onException, Log log, IDisposable disposegroup) : base(disposegroup)
         {
-            log.Debug($"Server ID {session.ToString()} ");
-            _session = session;
+            _session = Guid.NewGuid();
+            log.Debug($"Server ID {_session.ToString()} ");
             _backend = backend;
             _Mitarbeiter_je_Stand.Add(_stand, _backend.Alle_Mitarbeiter());
 

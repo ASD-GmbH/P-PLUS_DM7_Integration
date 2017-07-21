@@ -50,8 +50,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 {
                     new byte[] {Constants.CONNECTION_RESPONSE_OK},
                     BitConverter.GetBytes(success.Api_Level),
-                    BitConverter.GetBytes(success.Auswahllistenversion),
-                    success.Session.ToByteArray()
+                    BitConverter.GetBytes(success.Auswahllistenversion)
                 }.Concat();
             }
             else
