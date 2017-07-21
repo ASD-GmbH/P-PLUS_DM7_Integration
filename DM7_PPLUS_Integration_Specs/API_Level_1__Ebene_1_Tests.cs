@@ -36,7 +36,7 @@ namespace DM7_PPLUS_Integration_Specs
 
 
             var level0 = new TestBackend_Level_0();
-            var level1 = new API_Level_1_Adapter(_server, ex => throw new Exception("Unexpected exception", ex), session, new TestLog("server "));
+            var level1 = new API_Level_1_Adapter(_server, ex => { throw new Exception("Unexpected exception", ex); }, session, new TestLog("server "));
 
             if (server_min_api_level > 0) level0 = null;
             if (server_max_api_level < 1) level1 = null;
@@ -331,7 +331,7 @@ namespace DM7_PPLUS_Integration_Specs
 
             API.Stand_Mitarbeiterdaten.Subscribe(new Observer<Stand>(
                 stand => { benachrichtigt++; },
-                ex => throw new Exception("Unexpected exception", ex)));
+                ex => { throw new Exception("Unexpected exception", ex); }));
 
             Mitarbeiter_anlegen("Martha", "Musterfrau");
 
