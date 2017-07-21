@@ -53,6 +53,8 @@ namespace DM7_PPLUS_Integration_Specs
         }
     }
 
+    // TODO: ClientStack auf DisposeGroup umstellen
+
     // TODO: PubSub Port via Connect übergeben (und bei neuer Session reconnecten!!)
 
     // TODO: freien Port statt zufälligen bzw. +1 verwenden
