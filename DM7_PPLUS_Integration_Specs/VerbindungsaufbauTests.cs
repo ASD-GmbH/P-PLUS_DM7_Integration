@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Implementierung.Client;
 using DM7_PPLUS_Integration.Implementierung.Server;
@@ -9,6 +10,28 @@ using NUnit.Framework;
 
 namespace DM7_PPLUS_Integration_Specs
 {
+
+    [TestFixture]
+    public class VerbindungsaufbauTests_async
+    {
+        private Task<DM7_PPLUS_API> Verbindungsaufbau_1_async(string netzwerkadresse, TimeSpan connection_timeout)
+        {
+            return TestConnector.Instance_API_Level_1(netzwerkadresse, new TestLog("[client] "));
+        }
+
+        [Test]
+        public void Verbindungsaufbau_kann_abgebrochen_werden()
+        {
+            Action action = () =>
+            {
+                var task = Verbindungsaufbau_1_async("tcp://127.0.0.1:4711", TimeSpan.FromMilliseconds(50));
+                task.Wait(TimeSpan.FromMilliseconds(100));
+            };
+
+            action.ShouldThrow<ConnectionErrorException>();
+        }
+    }
+
     [TestFixture]
     public class VerbindungsaufbauTests
     {

@@ -53,14 +53,6 @@ namespace DM7_PPLUS_Integration_Specs
         }
     }
 
-    // TODO: PubSub Port via Connect übergeben (und bei neuer Session reconnecten!!)
-
-    // TODO: freien Port statt zufälligen bzw. +1 verwenden
-
-    // TODO Test: Connect without Server present can be aborted (Test in voller NetMQ Infrastruktur)
-
-    // TODO: Server nimmt freien Port für Publisher Socket (und wird an Client im Connect übertragen)
-
     // TODO Test: Fehlerfälle abdecken, Exceptions auslösen und prüfen, dass diese am richtigen Ort registriert werden (und der Server eine Exception überlebt)
 
     // TODO: Authentifizierung
