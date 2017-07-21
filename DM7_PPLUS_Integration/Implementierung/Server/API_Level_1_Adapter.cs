@@ -23,6 +23,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         public API_Level_1_Adapter(PPLUS_Backend backend, Action<Exception> onException, Guid session, Log log, IDisposable disposegroup) : base(disposegroup)
         {
+            log.Debug($"Server ID {session.ToString()} ");
             _session = session;
             _backend = backend;
             _Mitarbeiter_je_Stand.Add(_stand, _backend.Alle_Mitarbeiter());
@@ -57,7 +58,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 vbis = Aktueller_Stand;
             }
 
-            bool teilmenge = !von.Equals(Ab_Initio);
+            bool teilmenge = !vvon.Equals(Ab_Initio);
 
             var mitarbeiter =
                 _Mitarbeiter_je_Stand

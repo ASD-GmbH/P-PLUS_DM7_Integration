@@ -61,10 +61,6 @@ namespace DM7_PPLUS_Integration_Specs
 
     // TODO: Server nimmt freien Port für Publisher Socket (und wird an Client im Connect übertragen)
 
-    // TODO Test: Neue Session führt zu Neuübertragung aller Daten
-
-    // TODO: DemoServer -> DemoClient bei Neustart Server liefert nicht "vollständig"
-
     // TODO: Client muss bei neuer Session ID die Session ID übernehmen (damit nicht immer alles neu übertragen wird)
 
     // TODO Test: Fehlerfälle abdecken, Exceptions auslösen und prüfen, dass diese am richtigen Ort registriert werden (und der Server eine Exception überlebt)
@@ -77,6 +73,34 @@ namespace DM7_PPLUS_Integration_Specs
     [TestFixture]
     public class API_Level_1__Ebene_4 : API_Test_Base
     {
+
+        [Test]
+        public void Nach_Serverneustart_wird_die_vollstaendige_Mitarbeiterliste_uebertragen()
+        {
+            Mitarbeiter_anlegen("Martha", "Musterfrau");
+            Mitarbeiter_anlegen("Marco", "Mustermann");
+            Mitarbeiter_anlegen("Martin", "Mustermaus");
+            var mitabeiterdatensaetze = API.Mitarbeiterdaten_abrufen();
+            var bekannter_Stand = Stand(mitabeiterdatensaetze);
+            var verfuegbarerStand = bekannter_Stand;
+            API.Stand_Mitarbeiterdaten.Subscribe(stand =>
+            {
+                verfuegbarerStand = stand;
+                Console.Out.WriteLine($"vs 1 {verfuegbarerStand}");
+            });
+
+            Serverneustart();
+            Warte_auf_Konsistenz();
+
+            Mitarbeiter_anlegen("Tester", "Testerino");
+            Warte_auf_Konsistenz();
+
+            Console.Out.WriteLine($"vs 2 {verfuegbarerStand}");
+            var data = API.Mitarbeiterdaten_abrufen(bekannter_Stand, verfuegbarerStand).Result;
+            Anzahl(data).Should().Be(4);
+            Teilnemge(data).Should().BeFalse();
+        }
+
         private IDisposable _host;
 
         private static readonly Random r = new Random();
@@ -89,9 +113,24 @@ namespace DM7_PPLUS_Integration_Specs
             var server = new Test_PPLUS_Backend(auswahllistenversion);
             var log = new TestLog("[server] ");
 
-            _host = DM7_PPLUS_Host.Starten(server, "tcp://127.0.0.1", port, log, ex => Assert.Fail(ex.ToString()));
+            Action start = () => { _host = DM7_PPLUS_Host.Starten(server, "tcp://127.0.0.1", port, log, ex => Assert.Fail(ex.ToString())); };
+            start();
+            _reset = () =>
+            {
+                _host.Dispose();
+                Thread.Sleep(100);
+                start();
+            };
+
             _proxy = PPLUS.Connect("tcp://127.0.0.1:" + port, new TestLog("[client] ")).Result;
             Setup_Testframework(_proxy, server);
+        }
+
+        private Action _reset;
+
+        protected void Serverneustart()
+        {
+            _reset();
         }
 
         protected override void Beende_Infrastruktur()
@@ -139,7 +178,7 @@ namespace DM7_PPLUS_Integration_Specs
 
     public abstract class API_Test_Base
     {
-        private DM7_PPLUS_API API;
+        protected DM7_PPLUS_API API;
         private Test_PPLUS_Backend _server;
 
         protected void Setup_Testframework(DM7_PPLUS_API level_1_API, Test_PPLUS_Backend server)
@@ -239,13 +278,13 @@ namespace DM7_PPLUS_Integration_Specs
             Teilnemge(data).Should().Be(true);
         }
 
-        private bool Teilnemge(Mitarbeiterdatensaetze data)
+        protected bool Teilnemge(Mitarbeiterdatensaetze data)
         {
             return data.Teilmenge;
         }
 
 
-        private Stand Stand(Task<Mitarbeiterdatensaetze> data) => data.Result.Stand;
+        protected Stand Stand(Task<Mitarbeiterdatensaetze> data) => data.Result.Stand;
 
         protected virtual void Warte_auf_Konsistenz()
         {

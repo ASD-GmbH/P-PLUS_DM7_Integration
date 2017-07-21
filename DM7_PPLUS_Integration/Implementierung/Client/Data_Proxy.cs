@@ -22,9 +22,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     var notification = Deserialize(datagram);
                     subject.Next(notification);
                 },
-                ex => throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex)));
+                ex =>
+                {
+                    throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex);
+                }));
             disposegroup.With(() => subscription.Dispose());
-            
+
             Notifications = subject;
         }
 
