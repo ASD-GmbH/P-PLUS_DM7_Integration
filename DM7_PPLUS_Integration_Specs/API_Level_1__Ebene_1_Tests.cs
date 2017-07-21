@@ -18,17 +18,17 @@ namespace DM7_PPLUS_Integration_Specs
     public class Verbindungsaufbau_Tests
     {
         private Test_PPLUS_Backend _server;
-        private Test_ProxyFactory _factory;
+        private Ebene_2_Proxy_Factory _factory;
         private DM7_PPLUS_Host _host;
 
         private Level_0_Test_API Verbindungsaufbau_0(string netzwerkadresse)
         {
-            return Connector.Instance_API_level_0_nur_fuer_Testzwecke(netzwerkadresse, new TestLog("[client] "), _factory).Result;
+            return TestConnector.Instance_API_level_0_nur_fuer_Testzwecke(netzwerkadresse, new TestLog("[client] "), _factory).Result;
         }
 
         private DM7_PPLUS_API Verbindungsaufbau_1(string netzwerkadresse)
         {
-            return Connector.Instance_API_Level_1(netzwerkadresse, new TestLog("[client] "), _factory).Result;
+            return TestConnector.Instance_API_Level_1(netzwerkadresse, new TestLog("[client] "), _factory).Result;
         }
 
         private void Server_kompatibel_mit_API_level(int server_min_api_level, int server_max_api_level)
@@ -36,7 +36,7 @@ namespace DM7_PPLUS_Integration_Specs
             _server = new Test_PPLUS_Backend(0);
             var levels = new[] {0, 1}.Where(_ => _ >= server_min_api_level && _ <= server_max_api_level);
             _host = DM7_PPLUS_Host.Starten(_server, new TestLog("[server] "), ex => { throw new Exception("Unexpected exception", ex); }, levels);
-            _factory = new Test_ProxyFactory(_host.Ebene_3_Service, _host.Ebene_2_Data);
+            _factory = new LoopbackFactory(_host, 3);
         }
 
         [Test]
@@ -101,32 +101,6 @@ namespace DM7_PPLUS_Integration_Specs
         }
     }
 
-    internal class Test_ProxyFactory : Ebene_2_Proxy_Factory
-    {
-        private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _api;
-        private readonly Ebene_3_Protokoll__Service _service;
-
-        public Test_ProxyFactory(Ebene_3_Protokoll__Service service, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung api)
-        {
-            _service = service;
-            _api = api;
-        }
-
-        public Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>> Connect_Ebene_2(string networkAddress, Log log)
-        {
-            var client = new Service_Proxy(_service);
-
-            var task =
-                new Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>>(
-                    () => new Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>(
-                        client,
-                        _api));
-            task.RunSynchronously();
-            return task;
-        }
-    }
-
-
     [TestFixture]
     public sealed class API_Level_1__Ebene_1 : API_Test_Base
     {
@@ -134,9 +108,7 @@ namespace DM7_PPLUS_Integration_Specs
         {
             var server = new Test_PPLUS_Backend(auswahllistenversion);
             var log = new TestLog("[server] ");
-
             var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
-
             Setup_Testframework(host.Ebene_1_API_Level_1, server);
         }
     }
@@ -150,16 +122,14 @@ namespace DM7_PPLUS_Integration_Specs
             var log = new TestLog("[server] ");
 
             var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
-
-            var connection = (ConnectionSucceeded)host.Ebene_2_Service.Connect_Ebene_1("test", 1, 1).Result;
-            var proxy = new API_Level_1_Proxy(host.Ebene_2_Data, connection.Session, connection.Auswahllistenversion, new TestLog("[client] "));
+            var proxy = TestConnector.Instance_API_Level_1("test://test", new TestLog("[client] "), new LoopbackFactory(host, 2)).Result;
 
             Setup_Testframework(proxy, server);
         }
     }
 
     [TestFixture]
-    public class API_Level_1__Ebene_3__mit_Connect_nur_auf_Ebene_2 : API_Test_Base
+    public class API_Level_1__Ebene_3 : API_Test_Base
     {
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
@@ -167,42 +137,26 @@ namespace DM7_PPLUS_Integration_Specs
             var log = new TestLog("[server] ");
 
             var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
+            var proxy = TestConnector.Instance_API_Level_1("test://test", new TestLog("[client] "), new LoopbackFactory(host, 3)).Result;
 
-            var serialisierung = new Data_Proxy(host.Ebene_3_Data);
-            var connection = (ConnectionSucceeded)host.Ebene_2_Service.Connect_Ebene_1("test", 1, 1).Result;
-            var proxy = new API_Level_1_Proxy(serialisierung, connection.Session, connection.Auswahllistenversion, new TestLog("[client] "));
-            Setup_Testframework(proxy, server);
-        }
-    }
-
-    [TestFixture]
-    public class API_Level_1__Ebene_3__mit_Connect_auf_Ebene_3 : API_Test_Base
-    {
-        protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
-        {
-            var server = new Test_PPLUS_Backend(auswahllistenversion);
-            var log = new TestLog("[server] ");
-
-            var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
-
-            var connector = new Service_Proxy(host.Ebene_3_Service);
-            var serialisierung = new Data_Proxy(host.Ebene_3_Data);
-            var connection = (ConnectionSucceeded)connector.Connect_Ebene_1("test", 1, 1).Result;
-            var proxy = new API_Level_1_Proxy(serialisierung, connection.Session, connection.Auswahllistenversion, new TestLog("[client] "));
             Setup_Testframework(proxy, server);
         }
     }
 
     // TODO Test: Connect without Server present can be aborted (Test in voller NetMQ Infrastruktur)
 
+    // TODO: Server nimmt freien Port für Publisher Socket (und wird an Client im Connect übertragen)
+
     // TODO Test: Neue Session führt zu Neuübertragung aller Daten
+
+    // TODO Test: Fehlerfälle abdecken, Exceptions auslösen und prüfen, dass diese am richtigen Ort registriert werden (und der Server eine Exception überlebt)
 
     // TODO: Authentifizierung
 
     // TODO: Verschlüsselung
 
     [TestFixture]
-    public class API_Level_1__Ebene_5 : API_Test_Base
+    public class API_Level_1__Ebene_4 : API_Test_Base
     {
         private IDisposable _host;
 
@@ -217,7 +171,6 @@ namespace DM7_PPLUS_Integration_Specs
             var log = new TestLog("[server] ");
 
             _host = DM7_PPLUS_Host.Starten(server, "tcp://127.0.0.1", port, log, ex => Assert.Fail(ex.ToString()));
-
             _proxy = PPLUS.Connect("tcp://127.0.0.1:" + port, new TestLog("[client] ")).Result;
             Setup_Testframework(_proxy, server);
         }

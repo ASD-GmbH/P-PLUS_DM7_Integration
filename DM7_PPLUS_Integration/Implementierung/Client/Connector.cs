@@ -6,7 +6,7 @@ using DM7_PPLUS_Integration.Implementierung.Testing;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    public static class Connector
+    internal static class Connector
     {
         public static Task<Level_0_Test_API> Instance_API_level_0_nur_fuer_Testzwecke(string networkAddress, Log log, Ebene_2_Proxy_Factory factory = null)
         {
@@ -61,9 +61,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 log.Info("DM7 wird angemeldet...");
                 var result = task.Result.Item1.Connect_Ebene_1(login, client_max_api_level_request, client_min_api_level_request).Result;
 
-                if (result is ConnectionSucceeded)
+                var succeeded = result as ConnectionSucceeded;
+                if (succeeded != null)
                 {
-                    var success = (ConnectionSucceeded)result;
+                    var success = succeeded;
                     var agreed_API_level = success.Api_Level;
 
                     log.Info($"DM7 - P-PLUS Verbindung (API {agreed_API_level}, IDs {success.Auswahllistenversion}).");
@@ -76,9 +77,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                         success.Session,
                         success.Auswahllistenversion);
                 }
-                else if (result is ConnectionFailed)
+
+                var failed = result as ConnectionFailed;
+                if (failed != null)
                 {
-                    var failure = (ConnectionFailed)result;
+                    var failure = failed;
                     switch (failure.Reason)
                     {
                         case ConnectionFailure.Internal_Server_Error:
@@ -92,6 +95,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                                 $"Der P-PLUS Server kann zu dieser Version der DM7 Software keine Verbindung aufbauen ({failure.Info}).");
                     }
                 }
+
                 throw new ConnectionErrorException(
                     $"Fehler beim Verbindungsaufbau mit P-PLUS (unbekannte Antwort: {result.GetType().Name})");
 
@@ -99,7 +103,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         }
 
 
+        // ReSharper disable UnusedParameter.Local
         private static void Guard_Api_Level(int api_level, int client_min_api_level_request, int client_max_api_level_request)
+        // ReSharper restore UnusedParameter.Local
         {
             if (!(client_min_api_level_request <= api_level && api_level <= client_max_api_level_request))
             {

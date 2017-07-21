@@ -7,7 +7,7 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    public class Service_Proxy : Ebene_2_Protokoll__Verbindungsaufbau
+    internal class Service_Proxy : Ebene_2_Protokoll__Verbindungsaufbau
     {
         private readonly Ebene_3_Protokoll__Service _client;
 

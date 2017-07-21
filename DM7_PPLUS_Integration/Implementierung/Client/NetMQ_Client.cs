@@ -8,7 +8,7 @@ using NetMQ.Sockets;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    public class NetMQ_Client : Ebene_3_Protokoll__Data, Ebene_3_Protokoll__Service
+    internal class NetMQ_Client : Ebene_3_Protokoll__Data, Ebene_3_Protokoll__Service
     {
         private readonly Log _log;
         private RequestSocket _request_socket;

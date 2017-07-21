@@ -5,7 +5,7 @@ using DM7_PPLUS_Integration.Implementierung.Server;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    internal class LoopbackFactory : Ebene_2_Proxy_Factory
+    public class LoopbackFactory : Ebene_2_Proxy_Factory
     {
         private readonly DM7_PPLUS_Host _host;
         private readonly int _ebene;

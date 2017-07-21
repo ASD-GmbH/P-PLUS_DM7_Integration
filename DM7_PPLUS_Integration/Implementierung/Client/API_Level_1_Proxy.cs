@@ -11,7 +11,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
     /// <summary>
     /// Implementiert die API level 1 und übersetzt die Anfragen in API-Level-unabhängige Nachrichten
     /// </summary>
-    public class API_Level_1_Proxy : DM7_PPLUS_API
+    internal class API_Level_1_Proxy : DM7_PPLUS_API
     {
         private const int API_LEVEL = 1;
 
