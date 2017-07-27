@@ -17,6 +17,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _ebene_2_Proxy;
         private readonly Log _log;
+        private Guid _session;
 
         /// <summary>
         /// Implementiert die API level 1 und übersetzt die Anfragen in API-Level-unabhängige Nachrichten
@@ -26,9 +27,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             _ebene_2_Proxy = ebene2Proxy;
             disposegroup.With(() =>
             {
-                _log.Info("DM7 - P-PLUS Schnittstelle wird beendent...");
-                _ebene_2_Proxy.Dispose();
-                _log.Info("DM7 - P-PLUS Schnittstelle geschlossen.");
+                _log.Info("DM7/P-PLUS Schnittstelle wird beendent...");
             });
 
             _log = log;
@@ -42,7 +41,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     if (data != null)
                     {
                         // TODO: Datenquelle auswerten
-                        // TODO: Session auswerten
+                        if (data.Session != _session)
+                        {
+                            _log.Info("P-PLUS Server wurde neu verbunden.");
+                            _session = data.Session;
+                        }
                         _log.Debug($"Mitarbeiterdaten aktualisiert (@{data.Version}))");
                         subject.Next(new VersionsStand(data.Session, data.Version));
                     }
@@ -53,7 +56,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             Stand_Mitarbeiterdaten = subject;
             disposegroup.With(() =>
             {
-                log.Info("DM7 - P-PLUS Subscription wird geschlossen...");
+                log.Debug("Subscription wird geschlossen...");
                 subscription.Dispose();
             });
         }
@@ -65,9 +68,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         public Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen(Stand von, Stand bis)
         {
             _log.Debug($"Mitarbeiterdaten werden abgerufen ({von}..{bis})...");
+            var vvon = ((VersionsStand)von);
+            var vbis = ((VersionsStand)bis);
+
             return
                 _ebene_2_Proxy
-                    .Query(API_LEVEL, ((VersionsStand)von).Session, Datenquellen.Mitarbeiter, ((VersionsStand)von).Version, ((VersionsStand)bis).Version)
+                    .Query(API_LEVEL, vvon.Session, Datenquellen.Mitarbeiter, vvon.Version, vbis.Version)
                     .ContinueWith(
                         task =>
                         {

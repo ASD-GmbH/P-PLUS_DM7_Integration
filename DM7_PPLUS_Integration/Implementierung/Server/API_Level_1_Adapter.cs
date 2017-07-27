@@ -35,7 +35,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                     {
                         _stand++;
                         _Mitarbeiter_je_Stand.Add(_stand, mitarbeiter);
-                        ((Subject<Stand>) Stand_Mitarbeiterdaten).Next(new VersionsStand(_session, _stand));
+                        Announce();
                     },
                     onException));
         }
@@ -78,6 +78,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         public Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen()
         {
             return Mitarbeiterdaten_abrufen(Ab_Initio, Aktueller_Stand);
+        }
+
+        public void Announce()
+        {
+            ((Subject<Stand>)Stand_Mitarbeiterdaten).Next(new VersionsStand(_session, _stand));
         }
     }
 }

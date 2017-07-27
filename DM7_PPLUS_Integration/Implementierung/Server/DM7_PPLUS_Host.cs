@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
 using DM7_PPLUS_Integration.Implementierung.Shared;
 using DM7_PPLUS_Integration.Implementierung.Testing;
@@ -39,6 +40,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             {
                 NetMQ_Server.Start(Ebene_3_Service, Ebene_3_Data, $"{hostaddress}:{port}", log, _disposegroup);
             }
+
+            new Thread(() =>
+            {
+                Thread.Sleep(500);
+                (Ebene_1_API_Level_1 as API_Level_1_Adapter)?.Announce();
+            }).Start();
         }
 
         public static DM7_PPLUS_Host Starten(PPLUS_Backend backend, string hostname, int port, Log log, Action<Exception> onError)

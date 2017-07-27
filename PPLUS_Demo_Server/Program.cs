@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Implementierung.Server;
@@ -16,10 +17,22 @@ namespace PPLUS_Demo_Server
 
             log.Info("Demoserver wird gestartet...");
 
-            var hostaddress = args.Length < 2 ? "tcp://127.0.0.1" : args[0];
-            var port = args.Length < 2 ? 20000 : Int32.Parse(args[1]);
+            if (args.Length == 0) Show_info_and_terminate(log);
 
-            var backend = new Demo_Datenserver(log);
+            var url = args[0];
+            var parts = url.Split(':');
+            if (parts.Length!=3) Show_info_and_terminate(log);
+
+            var hostaddress = parts[0] + ":" + parts[1];
+            int port;
+            if (!Int32.TryParse(parts[2], out port)) Show_info_and_terminate(log);
+
+
+            int intervall;
+            if (args.Length < 2 || !Int32.TryParse(args[1], out intervall)) intervall = 60;
+
+
+            var backend = new Demo_Datenserver(log, TimeSpan.FromSeconds(intervall));
             var host = DM7_PPLUS_Host.Starten(backend, hostaddress, port, log, log.OnError);
 
             log.Info($"Demoserver wurde gestartet ({hostaddress}).");
@@ -39,6 +52,15 @@ namespace PPLUS_Demo_Server
             backend.Dispose();
             log.Info("Demoserver wurde beendet.");
             Thread.Sleep(2000);
+        }
+
+        private static void Show_info_and_terminate(Logger log)
+        {
+            log.Info("PPLUS_Demo_Server <url> [<intervall>]");
+            log.Info("  <url>: bspw 'tcp://127.0.0.1:16000'");
+            log.Info("  <intervall>: in Sekunden, bspw '60' (Standardwert)");
+            Thread.Sleep(2000);
+            Process.GetCurrentProcess().Kill();
         }
     }
 

@@ -13,7 +13,7 @@ namespace Demo_Implementierung
     /// </summary>
     class Program
     {
-        private const string DEMO_URL = "demo://loopback";
+        private const string DEMO_URL = "demo://60";
 
         /// <summary>
         /// Repräsentiert die lokale Persistenz, z.B. die HVP Datenbank
@@ -55,9 +55,7 @@ namespace Demo_Implementierung
             {
                 if (api==null) throw new ApplicationException("P-PLUS API war unterwarteterweise <null>.");
 
-                Console.Out.WriteLine($"Auswahlliste: {api.Auswahllisten_Version}");
-                Console.Out.WriteLine("");
-                Console.Out.WriteLine("MitarbeiterdatenStand");
+                Console.Out.WriteLine($"- Auswahlliste: {api.Auswahllisten_Version}");
 
                 // Beim Neustart wird einmal der Stammdatenbestand abgerufen
                 UpdateCache(api.Mitarbeiterdaten_abrufen().Result); // <-- im Echteinsatz nicht blockierend...
@@ -72,11 +70,13 @@ namespace Demo_Implementierung
                             s => Neuen_Stand_vermerken(api, s),
                             ex => log.Debug(ex.Message))))
                 {
-                    Console.Out.WriteLine("Press any key to quit.");
+                    Console.Out.WriteLine("- Press any key to quit.");
                     Console.ReadKey();
                 }
 
             }
+
+            Thread.Sleep(2000);
         }
 
         /// <summary>
@@ -154,10 +154,10 @@ namespace Demo_Implementierung
                 _query_in_Progress = false;
             }
 
-            Console.Out.WriteLine($"Neu oder geändert in Stand {daten.Stand}:");
+            Console.Out.WriteLine($"- {(daten.Teilmenge ? "Neu oder geändert" : "Vollständige Liste")} in Stand {daten.Stand}:");
             foreach (var mitarbeiter in daten.Mitarbeiter)
             {
-                Console.Out.WriteLine($"Mitarbeiter {mitarbeiter.Personalnummer}: {mitarbeiter.Vorname}, {mitarbeiter.Nachname}");
+                Console.Out.WriteLine($"- Mitarbeiter {mitarbeiter.Personalnummer}: {mitarbeiter.Vorname}, {mitarbeiter.Nachname}");
             }
         }
     }

@@ -1,14 +1,24 @@
 # P-PLUS_DM7_Integration
-Entwurf der Integration von DM7 und P-PLUS via NetMQ Nachrichten.
-DM7 bekommt einen Adapter der die DM7_PPLUS_API implementiert. Darüber kann DM7 Abfragen stellen und wird über Änderungen informiert. 
-Ziel ist es, die Integration beidseitig Versionsflexibel zu entwickeln, damit mehrere Stände von P-PLUS und mehrere Stände von DM7 miteinander arbeiten können.
+Entwurf der Integration von DM7 und P-PLUS via ZeroMQ Nachrichten.
+DM7 bekommt einen Adapter, der die DM7_PPLUS_API implementiert. Darüber kann DM7 Abfragen stellen und wird über Änderungen informiert. 
+Ziel ist es, die Integration beidseitig versionsflexibel zu entwickeln, damit mehrere Stände von P-PLUS und mehrere Stände von DM7 miteinander arbeiten können.
   siehe [Offene Fragen]
 
 ## Benutzung
-Erstelle eine Instanz der DM7_PPLUS_API via DM7_PPLUS_API_Factory.Connect
-Zur Verbindung braucht die API eine Netzwerkadresse (IP & Port).
-Mit der Konfiguration können wir die Identifikation der DM7 Instanz und evtl. weitere Einstellungen vornehmen.
+Erstelle eine Instanz der DM7_PPLUS_API via "PPLUS.Connect(url,log).Result"
+
+Zur Verbindung braucht die API eine Netzwerkadresse (IP & Port). 
 Der Log Adapter dient als Rückkanal, um Support- und Betriebsnachrichten von P-PLUS zu DM7 zu senden.
+Die Netzwerkadresse kann zur Zeit zwei verschiedene Protokolle nutzen. 
+Für den Entwicklungsbetrieb kann die Adresse "demo://nnn" verwendet werden. Hierdurch wird in-Process ein simuliertes Backend gestartet, dass im nnn-Sekunden Takt Änderungen an Mitarbeitern generiert. Zur Zeit startet das Demosystem mit 10 Mitarbeitern mit zufälligen Namen und variert in 3 Takten jeweils einen Mitarbeiter und im 4. wird ein neuer Mitarbeiter hinzugefügt. Falls kein Wert für die Intervalllänge angegeben wird, beträgt sie 60 Sekunden.
+Für den Echtbetrieb kann die Adresse "tcp://host:port" angegeben werden, unter der ein P-PLUS Server (echt oder extern simuliert) verbunden werden kann. "host" kann dabei eine IPv4 Adresse oder ein über DNS auflösbarer Hostname sein.
+Die Reihenfolge des Startens ist nicht relevant. Die Verbindung bleibt auch über einen Neustart des P-PLUS Serversystems bestehen. Natürlich werden in der Zwischenzeit keine Daten aktualisiert. Es kann davon ausgegangen werden, dass nach einem P-PLUS Serverneustart, auf jeden Fall aber nach einem P-PLUS Update die DM7/P-PLUS Schnittstelle die abonnierten Daten als vollständigen Datensatz erneut übermittelt.
+
+Das Projekt "Demo_Implementierung" zeigt die Verwendung der DM7/P-PLUS Schnittstelle exemplarisch. Es kann mit beiden o.a. Adressen als Kommandozeilenparameter betrieben werden (im Falle von "demo://60" startet also ein interner Demo Server). Der Quellcode in Program.cs ist als Beispiel zu verstehen.
+
+Das Projekt "PPLUS_Demo_Server" kann verwendet werden, um Netzwerkkommunikation zu testen. Es enthält o.a. Demo Server und muss mit einem Kommandozeilenparameter der Form tcp://host:port gestartet werden. Natürlich kann auch die Demo_Implementierung mit diesem simulierten Server kommunizieren.
+
+Das Projekt "DM7_PPLUS_Integration" enthält die eigentliche DLL in der aktuellen Version und darf ignoriert werden. Statt dessen sollte das nuget Paket und die ZIP Dateien aus dem github Projekt direkt verwendet werden.
 
 ## DM7_PPLUS_API
 Die API ermöglicht ein asynchrones Abrufen aller Mitarbeiterdaten, und ein eingeschränktes Abrufen der Mitarbeiter, bei denen sich Änderungen ergeben haben:
@@ -26,12 +36,15 @@ In den Mitarbeiterdatensätzen finden sich Auswahllisten, deren Elemente als Gui
 int Auswahllisten_Version { get; } 
 ```
 
+CAVEAT: Zur Zeit sind die Mitarbeiter-Demodaten noch unvollständig! Vor- und Nachname und Personalnummer können erwartet werden.
+
 ## Auswahllisten
 Die konkrete Bedeutung der Guids wird über ein Wörterbuch in der Auswahllisten_{Auswahllisten_Version}.cs aufgelöst. Bei Veränderungen an diesen Listen wird immer eine neue Auswahllisten_{Auswahllisten_Version+1}.cs ausgeliefert. Diese Datei ist nebenläufig zur Integration gepflegt und ermöglicht eine dynamische Anpassung der Inhalte, ohne eine Neuauslieferung der Software zu erfordern.
+Wir empfehlen, diese Datei nicht statisch zu kompilieren sondern die darin enthaltenen Daten austauschbar zu verwenden.
 
 ## Offene Fragen
 Gesamtversionierung muss noch geklärt werden.
-Wie behandeln wir mehrere (P-PLUS)Mandanten in der Integration.
+Wie behandeln wir mehrere (P-PLUS) Mandanten in der Integration.
 
 ## Kollaboration
 1. Fork it!
@@ -39,6 +52,9 @@ Wie behandeln wir mehrere (P-PLUS)Mandanten in der Integration.
 3. Commit your changes: `git commit -am 'Add some feature'`
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request :D
+
+## Änderungen
+- 0.10 (27.07.2017): Änderung des Aufrufs zum Starten der Client-Seite der Schnittstelle, neu: PPLUS.Connect(network_address:string, log:Log):Task<DM7_PPLUS_API>. Die Konfiguration ist weggefallen. Im Task können nach wie vor zwei Exceptions auftreten, ConnectionErrorException sowie UnsupportedVersionException. Hierbei ist zu beachten, dass diese in einer AggregateException verpackt auftreten können. Außerdem ist der PPLUS_Demo_Server hinzugekommen.
 
 ## License
 MIT License

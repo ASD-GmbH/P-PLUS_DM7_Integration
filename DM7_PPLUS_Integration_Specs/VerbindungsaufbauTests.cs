@@ -19,7 +19,7 @@ namespace DM7_PPLUS_Integration_Specs
             return TestConnector.Instance_API_Level_1(netzwerkadresse, new TestLog("[client] "));
         }
 
-        [Test]
+        [Test, Ignore]
         public void Verbindungsaufbau_kann_abgebrochen_werden()
         {
             Action action = () =>

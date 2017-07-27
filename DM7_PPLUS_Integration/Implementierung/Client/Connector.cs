@@ -16,6 +16,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var client_max_api_level_request = 0;
 
             var disposegroup = new DisposeGroup();
+            disposegroup.With(() => { log.Info("DM7/P-PLUS Schnittstelle geschlossen."); });
             return
                 Verbindungsaufbau(networkAddress, client_min_api_level_request, client_max_api_level_request, factory, log, disposegroup)
                     .ContinueWith(task => (Level_0_Test_API)new Level_0_Test_Proxy(task.Result.Item1));
@@ -28,6 +29,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var client_max_api_level_request = 1;
 
             var disposegroup = new DisposeGroup();
+            disposegroup.With(() => { log.Info("DM7/P-PLUS Schnittstelle geschlossen."); });
             return
                 Verbindungsaufbau(networkAddress, client_min_api_level_request, client_max_api_level_request, factory, log, disposegroup)
                     .ContinueWith(task =>
@@ -48,7 +50,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
             if (networkaddress.StartsWith("demo://"))
             {
-                var host = DM7_PPLUS_Host.Starten(new Demo_Datenserver(log).WithDisposeGroup(disposegroup), log, ex => { throw new Exception("Unerwarteter Fehler", ex); }).WithDisposeGroup(disposegroup);
+                int intervall;
+                if (!int.TryParse(networkaddress.Substring(7), out intervall)) intervall = 60;
+                var host = DM7_PPLUS_Host.Starten(new Demo_Datenserver(log, TimeSpan.FromSeconds(intervall)).WithDisposeGroup(disposegroup), log, ex => { throw new Exception("Unerwarteter Fehler", ex); }).WithDisposeGroup(disposegroup);
                 factory = new LoopbackFactory(host, networkaddress.EndsWith("2") ? 2 : 3, disposegroup);
             }
 
@@ -70,7 +74,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     var success = succeeded;
                     var agreed_API_level = success.Api_Level;
 
-                    log.Info($"DM7 - P-PLUS Verbindung (API {agreed_API_level}, IDs {success.Auswahllistenversion}).");
+                    log.Info($"DM7/P-PLUS Verbindung (API {agreed_API_level}, IDs {success.Auswahllistenversion}).");
 
                     Guard_Api_Level(agreed_API_level, client_min_api_level_request, client_max_api_level_request);
 

@@ -19,7 +19,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
         private readonly Timer _timer;
         private int changeCounter = 0;
 
-        public Demo_Datenserver(Log log)
+        public Demo_Datenserver(Log log, TimeSpan interval)
         {
             _log = log;
             mitarbeiter =
@@ -29,7 +29,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
                     .ToList();
             Aenderungen_an_Mitarbeiterstammdaten = _subject;
 
-            _timer = new Timer(TimeSpan.FromSeconds(1).TotalMilliseconds);
+            _timer = new Timer(interval.TotalMilliseconds);
             _timer.Start();
             _timer.Elapsed += (s, e) =>
             {
