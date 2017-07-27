@@ -161,4 +161,74 @@ namespace Demo_Implementierung
             }
         }
     }
+
+
+
+
+    /// <summary>
+    /// Simple IObserver Implementierung für diese Demo. Im Echteinsatz bitte z.B. Reactive Extensions verwenden.
+    /// </summary>
+    internal class Observer<T> : IObserver<T>
+    {
+        private readonly Action<T> _onNext;
+        private readonly Action<Exception> _onError;
+
+        public Observer(Action<T> onNext, Action<Exception> onError)
+        {
+            _onNext = onNext;
+            _onError = onError;
+        }
+
+        public void OnNext(T value)
+        {
+            _onNext(value);
+        }
+
+        public void OnError(Exception error)
+        {
+            _onError(error);
+        }
+
+        public void OnCompleted()
+        {
+            throw new NotSupportedException("OnComplete ist für " + typeof(T).Name + " nicht vorgesehen.");
+        }
+    }
+
+
+
+
+    /// <summary>
+    /// Beispiel des durch DM zu implementierenden Log, das von P-PLUS genutzt wird, um betriebliche Meldungen auszugeben (z.B. Verbindungsstatus etc.).
+    /// </summary>
+    internal class ConsoleLogger : Log
+    {
+        private readonly object _console = new object();
+
+        public void Info(string text)
+        {
+            lock (_console)
+            {
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Out.Write(Prefix);
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Out.WriteLine(text);
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+        }
+
+        public void Debug(string text)
+        {
+            lock (_console)
+            {
+                Console.ForegroundColor = ConsoleColor.Gray;
+                Console.Out.Write(Prefix);
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.Out.WriteLine(text);
+                Console.ForegroundColor = ConsoleColor.White;
+            }
+        }
+
+        private string Prefix => $"[{DateTime.Now:d-HH:mm:ss.fff}|{Thread.CurrentThread.ManagedThreadId.ToString().PadLeft(3)}] ";
+    }
 }

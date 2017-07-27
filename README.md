@@ -1,5 +1,5 @@
 # P-PLUS_DM7_Integration
-Entwurf der Integration von DM7 und P-PLUS via ZeroMQ Nachrichten.
+Schnittstelle zur Integration von DM7 und P-PLUS.
 DM7 bekommt einen Adapter, der die DM7_PPLUS_API implementiert. Darüber kann DM7 Abfragen stellen und wird über Änderungen informiert. 
 Ziel ist es, die Integration beidseitig versionsflexibel zu entwickeln, damit mehrere Stände von P-PLUS und mehrere Stände von DM7 miteinander arbeiten können.
   siehe [Offene Fragen]
@@ -14,7 +14,7 @@ Für den Entwicklungsbetrieb kann die Adresse "demo://nnn" verwendet werden. Hie
 Für den Echtbetrieb kann die Adresse "tcp://host:port" angegeben werden, unter der ein P-PLUS Server (echt oder extern simuliert) verbunden werden kann. "host" kann dabei eine IPv4 Adresse oder ein über DNS auflösbarer Hostname sein.
 Die Reihenfolge des Startens ist nicht relevant. Die Verbindung bleibt auch über einen Neustart des P-PLUS Serversystems bestehen. Natürlich werden in der Zwischenzeit keine Daten aktualisiert. Es kann davon ausgegangen werden, dass nach einem P-PLUS Serverneustart, auf jeden Fall aber nach einem P-PLUS Update die DM7/P-PLUS Schnittstelle die abonnierten Daten als vollständigen Datensatz erneut übermittelt.
 
-Das Projekt "Demo_Implementierung" zeigt die Verwendung der DM7/P-PLUS Schnittstelle exemplarisch. Es kann mit beiden o.a. Adressen als Kommandozeilenparameter betrieben werden (im Falle von "demo://60" startet also ein interner Demo Server). Der Quellcode in Program.cs ist als Beispiel zu verstehen.
+Das Projekt "Demo_Implementierung" bzw. die Datei "DemoClientImplementierung.cs" zeigt die Verwendung der DM7/P-PLUS Schnittstelle exemplarisch. Es kann mit beiden o.a. Adressen als Kommandozeilenparameter betrieben werden (im Falle von "demo://60" startet also ein interner Demo Server). Der Quellcode in Program.cs ist als Beispiel zu verstehen.
 
 Das Projekt "PPLUS_Demo_Server" kann verwendet werden, um Netzwerkkommunikation zu testen. Es enthält o.a. Demo Server und muss mit einem Kommandozeilenparameter der Form tcp://host:port gestartet werden. Natürlich kann auch die Demo_Implementierung mit diesem simulierten Server kommunizieren.
 

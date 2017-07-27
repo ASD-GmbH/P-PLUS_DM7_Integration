@@ -57,3 +57,8 @@ Thumbs.db
 # Folder config file
 Desktop.ini
 _build_tools/
+DM7_PPLUS_Integration/Version.gen.cs
+.fake/
+_deploy/
+_pack/
+DM7_PPLUS_Integration/Properties/Assemblyinfo.gen.cs
