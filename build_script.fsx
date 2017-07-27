@@ -189,10 +189,10 @@ Target "Init" empty
 Target "Default" empty
 
 "Init"
-  ==> "Clean"
   ==> "TodoRelease"
-  ==> "RestorePackages"
   ==> "BuildInfo"
+  ==> "RestorePackages"  
+  ==> "Clean"
   ==> "Build"
   ==> "Test"
   ==> "PackDeployables"
