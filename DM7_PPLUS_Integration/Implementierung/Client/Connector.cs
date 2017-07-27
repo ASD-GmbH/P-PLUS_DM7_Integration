@@ -41,6 +41,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         private static Task<Tuple<Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung, int, int>> Verbindungsaufbau(string networkaddress, int client_min_api_level_request, int client_max_api_level_request, Ebene_2_Proxy_Factory factory, Log log, DisposeGroup disposegroup)
         {
+            log.Info("DM7/P-PLUS Integrationsschnittstelle - " + Version.VersionString);
+
             var login = "test";
 
             if (networkaddress.StartsWith("tcp://"))
@@ -59,7 +61,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             if (factory==null) throw new ConnectionErrorException("Unbekanntes Protokoll im Connection string gefunden. Erwartet wird tcp://...");
 
             var info = networkaddress.StartsWith("tcp://") ? "DM7/P-PLUS Verbindung über NetMQ" : "Test/Demo Verbindung";
-
             log.Info(info + " wird aufgebaut...");
             var verbindung_tuple = factory.Connect_Ebene_2(networkaddress, log);
 

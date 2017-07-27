@@ -24,6 +24,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         private DM7_PPLUS_Host(PPLUS_Backend backend, Action<Exception> onError, Log log, string hostaddress, int port, List<int> apiLevels)
         {
+            log.Info("DM7/P-PLUS Integrationsschnittstelle - " + Version.VersionString);
+
             _disposegroup = new DisposeGroup();
 
             if (apiLevels.Contains(0)) Ebene_1_API_Level_0 = new TestBackend_Level_0();
