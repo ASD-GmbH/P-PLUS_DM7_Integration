@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration;
@@ -218,6 +219,21 @@ namespace DM7_PPLUS_Integration_Specs
         public void TearDown()
         {
             Beende_Infrastruktur();
+        }
+
+
+        [Test]
+        public void Ein_Mitarbeiter_wird_vollstaendig_uebertragen()
+        {
+            Mitarbeiter_anlegen("Martha", "Musterfrau");
+
+            var data = API.Mitarbeiterdaten_abrufen().Result;
+            data.Mitarbeiter.Single().Should().Be(Einziger_Mitarbeiterdatensatz_auf_dem_Server());
+        }
+
+        private Mitarbeiterdatensatz Einziger_Mitarbeiterdatensatz_auf_dem_Server()
+        {
+            return _server.Mitarbeiterdatensaetze_abrufen(_server.Alle_Mitarbeiter()).Single();
         }
 
         protected abstract void Erzeuge_Infrastruktur(int auswahllistenversion);
