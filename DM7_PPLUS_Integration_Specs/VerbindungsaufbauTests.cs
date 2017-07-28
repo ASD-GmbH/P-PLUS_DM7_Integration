@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Implementierung.Client;
@@ -14,21 +15,27 @@ namespace DM7_PPLUS_Integration_Specs
     [TestFixture]
     public class VerbindungsaufbauTests_async
     {
-        private Task<DM7_PPLUS_API> Verbindungsaufbau_1_async(string netzwerkadresse, TimeSpan connection_timeout)
+        private Task<DM7_PPLUS_API> Verbindungsaufbau_1_async(string netzwerkadresse, out Action cancel)
         {
+            cancel = () => { throw new NotImplementedException(); };
             return TestConnector.Instance_API_Level_1(netzwerkadresse, new TestLog("[client] "));
         }
 
-        [Test, Ignore]
-        public void Verbindungsaufbau_kann_abgebrochen_werden()
-        {
-            Action action = () =>
-            {
-                var task = Verbindungsaufbau_1_async("tcp://127.0.0.1:4711", TimeSpan.FromMilliseconds(50));
-                task.Wait(TimeSpan.FromMilliseconds(100));
-            };
 
-            action.ShouldThrow<ConnectionErrorException>();
+        // TODO: Verbindungsaufbau blockiert im Moment unendlich lange. Es muss möglich sein, den Verbindungsaufbau abzubrechen...
+        [Test]
+        public void Verbindungsaufbau_kann_abgebrochen_werden__Modell_1_Timeout()
+        {
+            Action cancel;
+            var task = Verbindungsaufbau_1_async("tcp://127.0.0.1:4711", out cancel);
+            task.Wait(TimeSpan.FromMilliseconds(100));
+            Warte_auf_Konsistenz();
+            cancel();
+            Assert.IsTrue(task.IsCanceled);
+        }
+
+        private void Warte_auf_Konsistenz()
+        {
         }
     }
 
