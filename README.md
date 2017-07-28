@@ -7,10 +7,10 @@ Ziel ist es, die Integration beidseitig versionsflexibel zu entwickeln, damit me
 ## Benutzung
 Das aktuelle Release findet sich hier:
 https://github.com/ASD-GmbH/P-PLUS_DM7_Integration/releases .
-Die .nupkg Datei kann mittels NuGet oder Paket in eine Vistual Studio Solution eingebunden werden. Die .zip Datei enthält zusätzlich einen Beispiel Client und -server, die miteinander oder auch mit einer zu erstellenden Client Implementierung kommunizieren können. Außerdem ist der Quellcode der für den API Kontrakt relevanten Dateien aus dieserm Repository nocheinmal in der Zip Datei abgelegt.
+Die .nupkg Datei kann mittels NuGet oder Paket in eine Visual Studio Solution eingebunden werden. Die .zip Datei enthält zusätzlich einen Beispiel Client und -server, die miteinander oder auch mit einer zu erstellenden Client Implementierung kommunizieren können. Außerdem ist der Quellcode der für den API Kontrakt relevanten Dateien aus diesem Repository noch einmal in der Zip Datei abgelegt.
 
 ## Benutzung
-Zunächst muss das NuGet Paket in die Solutino eingebunden werden.
+Zunächst muss das NuGet Paket in die Solution eingebunden werden.
 
 Danach kann eine Instanz der DM7_PPLUS_API via 
 ``` 
@@ -21,15 +21,15 @@ erstellt werden.
 Zur Verbindung braucht die API eine Netzwerkadresse (IP & Port). 
 Der Log Adapter dient als Rückkanal, um Support- und Betriebsnachrichten von P-PLUS zu DM7 zu senden.
 Die Netzwerkadresse kann zur Zeit zwei verschiedene Protokolle nutzen. 
-Für den Entwicklungsbetrieb kann die Adresse "demo://nnn" verwendet werden. Hierdurch wird in-Process ein simuliertes Backend gestartet, dass im nnn-Sekunden Takt Änderungen an Mitarbeitern generiert. Zur Zeit startet das Demosystem mit 10 Mitarbeitern mit zufälligen Namen und variert in 3 Takten jeweils einen Mitarbeiter und im 4. wird ein neuer Mitarbeiter hinzugefügt. Falls kein Wert für die Intervalllänge angegeben wird, beträgt sie 60 Sekunden.
+Für den Entwicklungsbetrieb kann die Adresse "demo://nnn" verwendet werden. Hierdurch wird in-Process ein simuliertes Backend gestartet, dass im nnn-Sekunden Takt Änderungen an Mitarbeitern generiert. Zur Zeit startet das Demosystem mit 10 Mitarbeitern mit zufälligen Namen und variiert in 3 Takten jeweils einen Mitarbeiter und im 4. wird ein neuer Mitarbeiter hinzugefügt. Falls kein Wert für die Intervalllänge angegeben wird, beträgt sie 60 Sekunden.
 Für den Echtbetrieb kann die Adresse "tcp://host:port" angegeben werden, unter der ein P-PLUS Server (echt oder extern simuliert) verbunden werden kann. "host" kann dabei eine IPv4 Adresse oder ein über DNS auflösbarer Hostname sein.
 Die Reihenfolge des Startens ist nicht relevant. Die Verbindung bleibt auch über einen Neustart des P-PLUS Serversystems bestehen. Natürlich werden in der Zwischenzeit keine Daten aktualisiert. Es kann davon ausgegangen werden, dass nach einem P-PLUS Serverneustart, auf jeden Fall aber nach einem P-PLUS Update die DM7/P-PLUS Schnittstelle die abonnierten Daten als vollständigen Datensatz erneut übermittelt.
 
-Das Projekt "Demo_Implementierung" bzw. die arin enthaltene Datei "DemoClientImplementierung.cs" zeigt die Verwendung der DM7/P-PLUS Schnittstelle exemplarisch. Es kann mit beiden o.a. Adressen als Kommandozeilenparameter betrieben werden (im Falle von "demo://60" startet also ein interner Demo Server).
+Das Projekt "Demo_Implementierung" bzw. die darin enthaltene Datei "DemoClientImplementierung.cs" zeigt die Verwendung der DM7/P-PLUS Schnittstelle exemplarisch. Es kann mit beiden o.a. Adressen als Kommandozeilenparameter betrieben werden (im Falle von "demo://60" startet also ein interner Demo Server).
 
 Das Projekt "PPLUS_Demo_Server" kann verwendet werden, um Netzwerkkommunikation zu testen. Es enthält o.a. Demo Server und muss mit einem Kommandozeilenparameter der Form tcp://host:port gestartet werden. Natürlich kann auch die Demo_Implementierung mit diesem simulierten Server kommunizieren.
 
-Das Projekt "DM7_PPLUS_Integration" enthält die eigentliche DLL in der aktuellen Version und darf ignoriert werden. Statt dessen sollte das nuget Paket und die ZIP Dateien aus dem github Projekt direkt verwendet werden.
+Das Projekt "DM7_PPLUS_Integration" enthält die eigentliche DLL in der aktuellen Version und darf ignoriert werden. Stattdessen sollte das nuget Paket und die ZIP Dateien aus dem github Projekt direkt verwendet werden.
 
 ## DM7_PPLUS_API
 Die API ermöglicht ein asynchrones Abrufen aller Mitarbeiterdaten, und ein eingeschränktes Abrufen der Mitarbeiter, bei denen sich Änderungen ergeben haben:
