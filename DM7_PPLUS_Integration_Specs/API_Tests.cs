@@ -32,7 +32,7 @@ namespace DM7_PPLUS_Integration_Specs
             var log = new TestLog("[server] ");
 
             var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
-            var proxy = TestConnector.Instance_API_Level_1("test://test", new TestLog("[client] "), new LoopbackFactory(host, 2)).Result;
+            var proxy = TestConnector.Instance_API_Level_1("test://test", new TestLog("[client] "), CancellationToken.None, new LoopbackFactory(host, 2)).Result;
 
             Setup_Testframework(proxy, server);
         }
@@ -47,7 +47,7 @@ namespace DM7_PPLUS_Integration_Specs
             var log = new TestLog("[server] ");
 
             var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
-            var proxy = TestConnector.Instance_API_Level_1("test://test", new TestLog("[client] "), new LoopbackFactory(host, 3)).Result;
+            var proxy = TestConnector.Instance_API_Level_1("test://test", new TestLog("[client] "), CancellationToken.None, new LoopbackFactory(host, 3)).Result;
 
             Setup_Testframework(proxy, server);
         }

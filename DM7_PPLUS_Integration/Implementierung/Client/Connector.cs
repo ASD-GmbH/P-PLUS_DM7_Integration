@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
 using DM7_PPLUS_Integration.Implementierung.Server;
@@ -9,7 +10,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 {
     internal static class Connector
     {
-        public static Task<Level_0_Test_API> Instance_API_level_0_nur_fuer_Testzwecke(string networkAddress, Log log, Ebene_2_Proxy_Factory factory = null)
+        public static Task<Level_0_Test_API> Instance_API_level_0_nur_fuer_Testzwecke(string networkAddress, Log log, CancellationToken cancellationToken_Verbindung, Ebene_2_Proxy_Factory factory = null)
         {
 
             var client_min_api_level_request = 0;
@@ -18,11 +19,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var disposegroup = new DisposeGroup();
             disposegroup.With(() => { log.Info("DM7/P-PLUS Schnittstelle geschlossen."); });
             return
-                Verbindungsaufbau(networkAddress, client_min_api_level_request, client_max_api_level_request, factory, log, disposegroup)
-                    .ContinueWith(task => (Level_0_Test_API)new Level_0_Test_Proxy(task.Result.Item1));
+                Verbindungsaufbau(networkAddress, client_min_api_level_request, client_max_api_level_request, factory, log, disposegroup, cancellationToken_Verbindung)
+                    .ContinueWith(task => (Level_0_Test_API)new Level_0_Test_Proxy(task.Result.Item1), cancellationToken_Verbindung);
         }
 
-        public static Task<DM7_PPLUS_API> Instance_API_Level_1(string networkAddress, Log log, Ebene_2_Proxy_Factory factory = null)
+        public static Task<DM7_PPLUS_API> Instance_API_Level_1(string networkAddress, Log log, CancellationToken cancellationToken_Verbindung, Ebene_2_Proxy_Factory factory = null)
         {
 
             var client_min_api_level_request = networkAddress == "test://0" ? 0 : 1;
@@ -31,15 +32,15 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var disposegroup = new DisposeGroup();
             disposegroup.With(() => { log.Info("DM7/P-PLUS Schnittstelle geschlossen."); });
             return
-                Verbindungsaufbau(networkAddress, client_min_api_level_request, client_max_api_level_request, factory, log, disposegroup)
+                Verbindungsaufbau(networkAddress, client_min_api_level_request, client_max_api_level_request, factory, log, disposegroup, cancellationToken_Verbindung)
                     .ContinueWith(task =>
                         task.Result.Item2 != 1
                         ? (DM7_PPLUS_API)new Level_1_upgrade_Test_Proxy(task.Result.Item1)
-                        : (DM7_PPLUS_API)new API_Level_1_Proxy(task.Result.Item1, task.Result.Item3, log, disposegroup));
+                        : (DM7_PPLUS_API)new API_Level_1_Proxy(task.Result.Item1, task.Result.Item3, log, disposegroup), cancellationToken_Verbindung);
         }
 
 
-        private static Task<Tuple<Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung, int, int>> Verbindungsaufbau(string networkaddress, int client_min_api_level_request, int client_max_api_level_request, Ebene_2_Proxy_Factory factory, Log log, DisposeGroup disposegroup)
+        private static Task<Tuple<Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung, int, int>> Verbindungsaufbau(string networkaddress, int client_min_api_level_request, int client_max_api_level_request, Ebene_2_Proxy_Factory factory, Log log, DisposeGroup disposegroup, CancellationToken cancellationToken_Verbindung)
         {
             log.Info("DM7/P-PLUS Integrationsschnittstelle - " + Version.VersionString);
 
@@ -62,7 +63,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
             var info = networkaddress.StartsWith("tcp://") ? "DM7/P-PLUS Verbindung über NetMQ" : "Test/Demo Verbindung";
             log.Info(info + " wird aufgebaut...");
-            var verbindung_tuple = factory.Connect_Ebene_2(networkaddress, log);
+            var verbindung_tuple = factory.Connect_Ebene_2(networkaddress, log, cancellationToken_Verbindung);
 
             return verbindung_tuple.ContinueWith(task =>
             {
