@@ -107,7 +107,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 throw new ConnectionErrorException(
                     $"Fehler beim Verbindungsaufbau mit P-PLUS (unbekannte Antwort: {result.GetType().Name})");
 
-            });
+            }, cancellationToken_Verbindung);
         }
 
 
