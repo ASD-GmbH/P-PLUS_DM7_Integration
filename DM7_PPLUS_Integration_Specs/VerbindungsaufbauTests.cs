@@ -1,4 +1,5 @@
 using System;
+using System.CodeDom;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,8 +18,11 @@ namespace DM7_PPLUS_Integration_Specs
     {
         private Task<DM7_PPLUS_API> Verbindungsaufbau_1_async(string netzwerkadresse, out Action cancel)
         {
-            cancel = () => { throw new NotImplementedException(); };
-            return TestConnector.Instance_API_Level_1(netzwerkadresse, new TestLog("[client] "));
+            var cancellationTokenSource= new CancellationTokenSource();
+            var cancellationToken_Verbindung = cancellationTokenSource.Token;
+
+            cancel = () => { cancellationTokenSource.Cancel(); };
+            return TestConnector.Instance_API_Level_1(netzwerkadresse, new TestLog("[client] "), cancellationToken_Verbindung);
         }
 
 
@@ -53,7 +57,7 @@ namespace DM7_PPLUS_Integration_Specs
 
         private DM7_PPLUS_API Verbindungsaufbau_1(string netzwerkadresse)
         {
-            return TestConnector.Instance_API_Level_1(netzwerkadresse, new TestLog("[client] "), _factory).Result;
+            return TestConnector.Instance_API_Level_1(netzwerkadresse, new TestLog("[client] "), CancellationToken.None, _factory).Result;
         }
 
         private void Server_kompatibel_mit_API_level(int server_min_api_level, int server_max_api_level)

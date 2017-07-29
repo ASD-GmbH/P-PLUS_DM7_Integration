@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
 using DM7_PPLUS_Integration.Implementierung.Server;
@@ -19,7 +20,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         /// <summary>
         ///  Sendet serialisierte Nachrichten über ZeroMQ an NetMQ_Server
         /// </summary>
-        public NetMQ_Client(string networkaddress, Log log, DisposeGroup disposegroup) : base(disposegroup)
+        public NetMQ_Client(string networkaddress, Log log, DisposeGroup disposegroup, CancellationToken cancellationToken_Verbindung) : base(disposegroup)
         {
             _log = log;
             _notifications = new Subject<byte[]>();
@@ -54,6 +55,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 _log.Debug("NetMQ Poller wird geschlossen...");
                 _poller.Dispose();
             });
+
+            cancellationToken_Verbindung.Register(disposegroup.Dispose);
         }
 
         private void _subscriber_socket_receive_ready(object sender, NetMQSocketEventArgs e)
