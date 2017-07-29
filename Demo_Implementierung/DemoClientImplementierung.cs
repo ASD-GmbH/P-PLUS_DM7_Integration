@@ -50,8 +50,11 @@ namespace Demo_Implementierung
 
             var url = (args.Length > 0) ? args[0] : DEMO_URL;
 
+            var cancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken_Verbindung = cancellationTokenSource.Token;
+
             // Rückgabe von Connect muss Disposed werden, um alle Verbindungen zu schließen
-            using (var api = PPLUS.Connect(url, log).Result)
+            using (var api = PPLUS.Connect(url, log, cancellationToken_Verbindung).Result)
             {
                 if (api==null) throw new ApplicationException("P-PLUS API war unterwarteterweise <null>.");
 
@@ -72,6 +75,7 @@ namespace Demo_Implementierung
                 {
                     Console.Out.WriteLine("- Press any key to quit.");
                     Console.ReadKey();
+                    cancellationTokenSource.Cancel();
                 }
 
             }

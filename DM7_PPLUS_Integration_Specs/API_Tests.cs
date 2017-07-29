@@ -143,7 +143,7 @@ namespace DM7_PPLUS_Integration_Specs
                 start();
             };
 
-            _proxy = PPLUS.Connect("tcp://127.0.0.1:" + port, new TestLog("[client] ")).Result;
+            _proxy = PPLUS.Connect("tcp://127.0.0.1:" + port, new TestLog("[client] "), CancellationToken.None).Result;
             Setup_Testframework(_proxy, server);
         }
 
