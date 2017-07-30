@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
 using DM7_PPLUS_Integration.Implementierung.Shared;
 using DM7_PPLUS_Integration.Implementierung.Testing;
@@ -120,12 +123,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
                     foreach (var ma in mitarbeiter.Result.Mitarbeiter)
                     {
-                        var nachname = System.Text.Encoding.UTF8.GetBytes(ma.Vorname);
-                        var vorname = System.Text.Encoding.UTF8.GetBytes(ma.Nachname);
-                        result.Add(BitConverter.GetBytes(nachname.Length));
-                        result.Add(BitConverter.GetBytes(vorname.Length));
-                        result.Add(nachname);
-                        result.Add(vorname);
+                        result.AddRange(Serializer.Serialize(ma));
                     }
 
                     var resultarray = new byte[result.Sum(_ => _.Length)];
@@ -149,5 +147,41 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         public IObservable<Notification> Notifications { get; }
     }
 
+    internal static class Serializer
+    {
+        internal static IEnumerable<byte[]> Serialize(Mitarbeiterdatensatz mitarbeiter)
+        {
+            yield return Serialize(mitarbeiter.Id);
+            yield return Serialize(mitarbeiter.Titel);
+            yield return Serialize(mitarbeiter.Vorname);
+            yield return Serialize(mitarbeiter.Nachname);
+            yield return Serialize(mitarbeiter.Postanschrift);
+            yield return Serialize(mitarbeiter.Geburtstag);
+            yield return Serialize(mitarbeiter.Familienstand);
+            yield return Serialize(mitarbeiter.Konfession);
+            yield return Serialize(mitarbeiter.Eintritt);
+            yield return Serialize(mitarbeiter.Austritt);
+            yield return Serialize(mitarbeiter.Qualifikation);
+            yield return Serialize(mitarbeiter.Handzeichen);
+            yield return Serialize(mitarbeiter.Personalnummer);
+            yield return Serialize(mitarbeiter.Geschlecht);
+            yield return Serialize(mitarbeiter.Kontakte);
+        }
 
+        private static byte[] Serialize(Postanschrift? anschrift) => new byte[0];
+        private static byte[] Serialize(Guid id) => id.ToByteArray();
+        private static byte[] Serialize(string text) => PrependLength(Encoding.UTF8.GetBytes(text));
+        private static byte[] Serialize(ReadOnlyCollection<Kontakt> kontakte) => new byte[0];
+        private static byte[] Serialize(ReadOnlyCollection<Qualifikation> qualifikationen) => new byte[0];
+        private static byte[] Serialize(Datum? datum) =>
+            PrependLength(
+                Encoding.UTF8.GetBytes(
+                    datum.HasValue
+                        ? $"{datum.Value.Jahr.ToString("0000")}{datum.Value.Monat.ToString("00")}{datum.Value.Tag.ToString("00")}"
+                        : ""));
+        private static byte[] Serialize(Datum datum) =>
+            PrependLength(
+                Encoding.UTF8.GetBytes($"{datum.Jahr.ToString("0000")}{datum.Monat.ToString("00")}{datum.Tag.ToString("00")}"));
+        private static byte[] PrependLength(byte[] b) => BitConverter.GetBytes(b.Length).Concat(b).ToArray();
+    }
 }
