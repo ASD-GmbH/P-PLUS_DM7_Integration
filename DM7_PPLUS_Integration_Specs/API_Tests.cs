@@ -228,7 +228,7 @@ namespace DM7_PPLUS_Integration_Specs
             Mitarbeiter_anlegen("Martha", "Musterfrau");
 
             var data = API.Mitarbeiterdaten_abrufen().Result;
-            data.Mitarbeiter.Single().Should().Be(Einziger_Mitarbeiterdatensatz_auf_dem_Server());
+            data.Mitarbeiter.Single().ShouldBeEquivalentTo(Einziger_Mitarbeiterdatensatz_auf_dem_Server());
         }
 
         private Mitarbeiterdatensatz Einziger_Mitarbeiterdatensatz_auf_dem_Server()
