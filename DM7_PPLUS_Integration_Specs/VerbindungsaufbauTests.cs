@@ -1,5 +1,4 @@
 using System;
-using System.CodeDom;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,7 +25,6 @@ namespace DM7_PPLUS_Integration_Specs
         }
 
 
-        // TODO: Verbindungsaufbau blockiert im Moment unendlich lange. Es muss möglich sein, den Verbindungsaufbau abzubrechen...
         [Test]
         public void Verbindungsaufbau_kann_abgebrochen_werden__Modell_1_Timeout()
         {
