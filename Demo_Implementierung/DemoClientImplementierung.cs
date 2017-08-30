@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Daten;
-using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace Demo_Implementierung
 {
@@ -50,37 +49,94 @@ namespace Demo_Implementierung
 
             var url = (args.Length > 0) ? args[0] : DEMO_URL;
 
-            var cancellationTokenSource = new CancellationTokenSource();
-            var cancellationToken_Verbindung = cancellationTokenSource.Token;
+            var api = Connect_mit_Abbruchmoeglichkeit(url, log);
+            //var api = Einfaches_Connect_ohne_Abbruchmoeglichkeit(url, log);
 
-            // Rückgabe von Connect muss Disposed werden, um alle Verbindungen zu schließen
-            using (var api = PPLUS.Connect(url, log, cancellationToken_Verbindung).Result)
+            if (api != null)
             {
-                if (api==null) throw new ApplicationException("P-PLUS API war unterwarteterweise <null>.");
 
-                Console.Out.WriteLine($"- Auswahlliste: {api.Auswahllisten_Version}");
-
-                // Beim Neustart wird einmal der Stammdatenbestand abgerufen
-                UpdateCache(api.Mitarbeiterdaten_abrufen().Result); // <-- im Echteinsatz nicht blockierend...
-                _verfuegbarer_Stand = _stand_im_Cache;
-                _angeforderter_Stand = _stand_im_Cache;
-
-                // Subscription auf Änderungen, muss Disposed werden, um die Subscription aufzuheben
-                using (api.Stand_Mitarbeiterdaten.Subscribe(
-                    new
-                        Observer<Stand>(
-                            // ReSharper disable once AccessToDisposedClosure
-                            s => Neuen_Stand_vermerken(api, s),
-                            ex => log.Debug(ex.Message))))
+                // Rückgabe von Connect muss Disposed werden, um alle Verbindungen zu schließen
+                using (api)
                 {
-                    Console.Out.WriteLine("- Press any key to quit.");
-                    Console.ReadKey();
-                    cancellationTokenSource.Cancel();
-                }
+                    Console.Out.WriteLine($"- Auswahlliste: {api.Auswahllisten_Version}");
 
+                    // Beim Neustart wird einmal der Stammdatenbestand abgerufen
+                    UpdateCache(api.Mitarbeiterdaten_abrufen().Result); // <-- im Echteinsatz nicht blockierend...
+                    _verfuegbarer_Stand = _stand_im_Cache;
+                    _angeforderter_Stand = _stand_im_Cache;
+
+                    // Subscription auf Änderungen, muss Disposed werden, um die Subscription aufzuheben
+                    using (api.Stand_Mitarbeiterdaten.Subscribe(
+                        new
+                            Observer<Stand>(
+                                // ReSharper disable once AccessToDisposedClosure
+                                s => Neuen_Stand_vermerken(api, s),
+                                ex => log.Debug(ex.Message))))
+                    {
+                        Console.Out.WriteLine("- Press any key to quit.");
+                        Console.ReadKey();
+                    }
+
+                }
+            }
+            else
+            {
+                Console.Out.WriteLine("Verbindungsaufbau wurde abgebrochen.");
             }
 
             Thread.Sleep(2000);
+        }
+
+        // ReSharper disable once UnusedMember.Local
+        private static DM7_PPLUS_API Einfaches_Connect_ohne_Abbruchmoeglichkeit(string url, Log log)
+        {
+            return PPLUS.Connect(url, log, CancellationToken.None).Result;
+        }
+
+        private static DM7_PPLUS_API Connect_mit_Abbruchmoeglichkeit(string url, Log log)
+        {
+            Console.TreatControlCAsInput = true;
+            var cancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken_Verbindung = cancellationTokenSource.Token;
+
+            try
+            {
+                DM7_PPLUS_API result = null;
+
+                var task = PPLUS.Connect(url, log, cancellationToken_Verbindung);
+
+                var cancel = false;
+                var info = "Verbindung konnte noch nicht hergestellt werden. Bitte warten - oder eine Taste drücken, um abzubrechen.";
+                while (result == null && !cancel)
+                {
+                    if (task.Wait(TimeSpan.FromMilliseconds(2000)))
+                    {
+                        result = task.Result;
+                    }
+                    else
+                    {
+                        if (Console.KeyAvailable)
+                        {
+                            while (Console.KeyAvailable) Console.ReadKey(true);
+                            cancel = true;
+                        }
+                        else
+                        {
+                            Console.Out.WriteLine(info);
+                            info = ".";
+                        }
+                    }
+                }
+
+                if (cancel) cancellationTokenSource.Cancel();
+                return result;
+
+            }
+            finally
+            {
+                Console.TreatControlCAsInput = false;
+                cancellationTokenSource.Dispose();
+            }
         }
 
         /// <summary>
@@ -223,6 +279,7 @@ namespace Demo_Implementierung
 
         public void Debug(string text)
         {
+            //return;
             lock (_console)
             {
                 Console.ForegroundColor = ConsoleColor.Gray;
