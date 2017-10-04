@@ -9,17 +9,18 @@ Das aktuelle Release findet sich hier:
 https://github.com/ASD-GmbH/P-PLUS_DM7_Integration/releases .
 Die .nupkg Datei kann mittels NuGet oder Paket in eine Visual Studio Solution eingebunden werden. Die .zip Datei enthält zusätzlich einen Beispiel Client und -server, die miteinander oder auch mit einer zu erstellenden Client Implementierung kommunizieren können. Außerdem ist der Quellcode der für den API Kontrakt relevanten Dateien aus diesem Repository noch einmal in der Zip Datei abgelegt.
 
-## Benutzung
 Zunächst muss das NuGet Paket in die Solution eingebunden werden.
-
 Danach kann eine Instanz der DM7_PPLUS_API via 
 ``` 
-var api = PPLUS.Connect(url,log).Result;
+var api = PPLUS.Connect(url,log,cancellationToken_Verbindung).Result;
 ``` 
 erstellt werden.
 
 Zur Verbindung braucht die API eine Netzwerkadresse (IP & Port). 
 Der Log Adapter dient als Rückkanal, um Support- und Betriebsnachrichten von P-PLUS zu DM7 zu senden.
+Mittels CancellationToken kann ein laufender Verbindungsaufbau abgebrochen werden, beispielsweise durch extern festgestellten Timeout oder Benutzeranforderung. Alternativ kann CancellationToken.None übergeben werden, dann bricht der Verbindungsaufbau nie ab, dann kann mittels .Result ewig auf den Aufbau einer Verbindung gewartet werden oder mittels .ContinueWith asynchron auf den erfolgreichen Verbindungsaufbau reagiert werden.
+Im Falle eines Verbindungsabbruchs mittels CancellationTokenSource gibt der Task dann null als Result zurück!
+
 Die Netzwerkadresse kann zur Zeit zwei verschiedene Protokolle nutzen. 
 Für den Entwicklungsbetrieb kann die Adresse "demo://nnn" verwendet werden. Hierdurch wird in-Process ein simuliertes Backend gestartet, dass im nnn-Sekunden Takt Änderungen an Mitarbeitern generiert. Zur Zeit startet das Demosystem mit 10 Mitarbeitern mit zufälligen Namen und variiert in 3 Takten jeweils einen Mitarbeiter und im 4. wird ein neuer Mitarbeiter hinzugefügt. Falls kein Wert für die Intervalllänge angegeben wird, beträgt sie 60 Sekunden.
 Für den Echtbetrieb kann die Adresse "tcp://host:port" angegeben werden, unter der ein P-PLUS Server (echt oder extern simuliert) verbunden werden kann. "host" kann dabei eine IPv4 Adresse oder ein über DNS auflösbarer Hostname sein.
@@ -65,6 +66,12 @@ Wie behandeln wir mehrere (P-PLUS) Mandanten in der Integration.
 5. Submit a pull request :D
 
 ## Änderungen
+- 0.20 (04.10.2017): **Breaking Change**
+Die Connect Methode erwartet als dritten Parameter ein CancellationToken.
+Damit kann ein laufender Verbindungsaufbau abgebrochen werden, beispielsweise durch extern festgestellten Timeout oder Benutzeranforderung. Alternativ kann CancellationToken.None übergeben werden, dann bricht der Verbindungsaufbau nie ab. Mittels .Result kann dann ewig auf den Aufbau einer Verbindung gewartet werden oder mittels .ContinueWith asynchron auf den erfolgreichen Verbindungsaufbau reagiert werden.
+**Achtung**: Im Falle eines Verbindungsabbruchs mittels CancellationTokenSource gibt der Task dann null als Result zurück!
+Die DemoClientImplementierung ist um den Fall eines Abbruchs nach Benutzeraufforderung erweitert.
+
 - 0.10 (27.07.2017): Änderung des Aufrufs zum Starten der Client-Seite der Schnittstelle, neu: PPLUS.Connect(network_address:string, log:Log):Task<DM7_PPLUS_API>. Die Konfiguration ist weggefallen. Im Task können nach wie vor zwei Exceptions auftreten, ConnectionErrorException sowie UnsupportedVersionException. Hierbei ist zu beachten, dass diese in einer AggregateException verpackt auftreten können. Außerdem ist der PPLUS_Demo_Server hinzugekommen.
 
 ## License
