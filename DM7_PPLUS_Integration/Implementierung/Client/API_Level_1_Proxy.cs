@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Daten;
@@ -137,7 +138,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     Deserialize_Nullable_Datum(data, ref position),
                     Deserialize_Guid(data, ref position),
                     Deserialize_Guid(data, ref position),
-                    Deserialize_Datum(data, ref position), 
+                    Deserialize_Datum(data, ref position),
                     Deserialize_Nullable_Datum(data, ref position),
                     Deserialize_Qualifikationen(data, ref position),
                     Deserialize_String(data, ref position),
@@ -200,7 +201,27 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         private static Postanschrift? Deserialize_Postanschrift(byte[] data, ref int position)
         {
-            return null;
+            var laenge = BitConverter.ToInt32(data, position);
+            position += 4;
+            if (laenge != 0)
+            {
+                position += laenge;
+                using (var stream = new MemoryStream(data, position-laenge, laenge, false))
+                {
+                    var id = stream.ReadGuid();
+                    var adresszusatz = stream.ReadStringWithPrefixedLength();
+                    var strasse = stream.ReadStringWithPrefixedLength();
+                    var plz = stream.ReadStringWithPrefixedLength();
+                    var ort = stream.ReadStringWithPrefixedLength();
+                    var land = stream.ReadStringWithPrefixedLength();
+                    return new Postanschrift(id, strasse, plz, ort, land, adresszusatz);
+                }
+            }
+            else
+            {
+                return null;
+            }
+
         }
 
         private static string Deserialize_String(byte[] data, ref int position)
