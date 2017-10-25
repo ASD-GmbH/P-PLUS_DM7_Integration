@@ -63,6 +63,7 @@
     <Compile Include="Implementierung\Protokoll\Nachrichten\ConnectionSucceeded.cs" />
     <Compile Include="Implementierung\Client\Connector.cs" />
     <Compile Include="Implementierung\Shared\DisposeGroup.cs" />
+    <Compile Include="Implementierung\Shared\StreamReaderExtension.cs" />
     <Compile Include="Implementierung\Testing\TestBackend_Level_0.cs" />
     <Compile Include="Implementierung\Testing\TestConnector.cs" />
     <Compile Include="Properties\Assemblyinfo.gen.cs" />

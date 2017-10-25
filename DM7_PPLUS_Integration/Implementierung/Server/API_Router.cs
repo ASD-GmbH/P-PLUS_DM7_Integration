@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -111,6 +112,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 var mitarbeiter =
                     _backendLevel1.Mitarbeiterdaten_abrufen(new VersionsStand(session, von),
                         new VersionsStand(session, bis));
+
                 return mitarbeiter.ContinueWith(task =>
                 {
                     var result = new List<byte[]>
@@ -168,7 +170,27 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             yield return Serialize(mitarbeiter.Kontakte);
         }
 
-        private static byte[] Serialize(Postanschrift? anschrift) => new byte[0];
+        private static byte[] Serialize(Postanschrift? anschrift)
+        {
+            if (anschrift.HasValue)
+            {
+                using (var stream = new MemoryStream())
+                {
+                    stream.Write(anschrift.Value.Id.ToByteArray(), 0, 16);
+                    stream.WriteStringWithLengthPrefix(anschrift.Value.Adresszusatz);
+                    stream.WriteStringWithLengthPrefix(anschrift.Value.Strasse);
+                    stream.WriteStringWithLengthPrefix(anschrift.Value.Postleitzahl);
+                    stream.WriteStringWithLengthPrefix(anschrift.Value.Ort);
+                    stream.WriteStringWithLengthPrefix(anschrift.Value.Land);
+                    return PrependLength(stream.ToArray());
+                }
+            }
+            else
+            {
+                return PrependLength(new byte[0]);
+            }
+        }
+
         private static byte[] Serialize(Guid id) => id.ToByteArray();
         private static byte[] Serialize(string text) => PrependLength(Encoding.UTF8.GetBytes(text));
         private static byte[] Serialize(ReadOnlyCollection<Kontakt> kontakte) => new byte[0];
