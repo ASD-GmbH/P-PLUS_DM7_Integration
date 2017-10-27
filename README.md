@@ -66,6 +66,11 @@ Wie behandeln wir mehrere (P-PLUS) Mandanten in der Integration.
 5. Submit a pull request :D
 
 ## Änderungen
+- 0.12 (27.10.2017): Vollständige Serialisierung
+Die vollständige Serialisierung ist als API Level 2 implementiert.
+Das externe Interface ist unverändert.
+
+
 - 0.11 (04.10.2017): **Breaking Change**
 Die Connect Methode erwartet als dritten Parameter ein CancellationToken.
 Damit kann ein laufender Verbindungsaufbau abgebrochen werden, beispielsweise durch extern festgestellten Timeout oder Benutzeranforderung. Alternativ kann CancellationToken.None übergeben werden, dann bricht der Verbindungsaufbau nie ab. Mittels .Result kann dann ewig auf den Aufbau einer Verbindung gewartet werden oder mittels .ContinueWith asynchron auf den erfolgreichen Verbindungsaufbau reagiert werden.
