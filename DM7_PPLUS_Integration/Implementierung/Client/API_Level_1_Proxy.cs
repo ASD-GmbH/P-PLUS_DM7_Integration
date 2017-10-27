@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
@@ -82,7 +80,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                             var result = task.Result as QueryResult;
                             if (result != null)
                             {
-                                var mitarbeiterdatensaetze = Deserialize.Deserialisiere_Mitarbeiterdatensaetze(result.Data);
+                                var mitarbeiterdatensaetze = Deserialisiere_Mitarbeiterdatensaetze(result.Data);
                                 _log.Debug($"Mitarbeiterdaten empfangen ({mitarbeiterdatensaetze.Mitarbeiter.Count} Mitarbeiter, {mitarbeiterdatensaetze.Fotos.Count} Bilder, @{mitarbeiterdatensaetze.Stand}, {(mitarbeiterdatensaetze.Teilmenge?"teildaten":"vollständig")})");
                                 return mitarbeiterdatensaetze;
                             }
@@ -107,44 +105,58 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     );
         }
 
-        public Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen()
+        private Mitarbeiterdatensaetze Deserialisiere_Mitarbeiterdatensaetze(byte[] resultData)
         {
-            var stand = VersionsStand.AbInitio();
-            return Mitarbeiterdaten_abrufen(stand, stand);
-        }
-    }
+            var guidbuffer = new byte[16];
 
-    internal static class Deserialize
-    {
-        internal static Mitarbeiterdatensaetze Deserialisiere_Mitarbeiterdatensaetze(byte[] data)
-        {
             var position = 0;
 
-            var session = Deserialize_Guid(data, ref position);
-            var version = Deserialize_Longint(data, ref position);
-            var teildaten = Deserialize_Bool(data, ref position);
+            Array.Copy(resultData, guidbuffer, 16);
+            var session = new Guid(guidbuffer);
+            position += 16;
+            var version = BitConverter.ToInt64(resultData, position);
+            position += 8;
 
-            var anzahl_Mitarbeiterdatensaetze = Deserialize_Int(data, ref position);
+            var teildaten = resultData[position] == 1;
+            position += 1;
+
+            var anzahl_Mitarbeiterdatensaetze = BitConverter.ToInt32(resultData, position);
+            position += 4;
+
             var mitarbeiter = new List<Mitarbeiterdatensatz>();
 
             for (var i = 0; i < anzahl_Mitarbeiterdatensaetze; i++)
             {
-                mitarbeiter.Add(new Mitarbeiterdatensatz(
-                    Deserialize_Guid(data, ref position),
-                    Deserialize_Guid(data, ref position),
-                    Deserialize_String(data, ref position),
-                    Deserialize_String(data, ref position),
-                    Deserialize_Postanschrift(data, ref position),
-                    Deserialize_Nullable_Datum(data, ref position),
-                    Deserialize_Guid(data, ref position),
-                    Deserialize_Guid(data, ref position),
-                    Deserialize_Datum(data, ref position),
-                    Deserialize_Nullable_Datum(data, ref position),
-                    Deserialize_Qualifikationen(data, ref position),
-                    Deserialize_String(data, ref position),
-                    Deserialize_String(data, ref position),
-                    Deserialize_Guid(data, ref position),
-                    Deserialize_Kontakte(data, ref position)));
+                var laenge_nachname = BitConverter.ToInt32(resultData, position);
+                position += 4;
+                var laenge_vorname = BitConverter.ToInt32(resultData, position);
+                position += 4;
+
+                var nachname = System.Text.Encoding.UTF8.GetString(resultData, position, laenge_nachname);
+                position += laenge_nachname;
+
+                var vorname = System.Text.Encoding.UTF8.GetString(resultData, position, laenge_vorname);
+                position += laenge_vorname;
+
+                var ma =
+                    new Mitarbeiterdatensatz(
+                        Guid.NewGuid(),
+                        Guid.Empty,
+                        vorname,
+                        nachname,
+                        null,
+                        null,
+                        Guid.Empty,
+                        Guid.Empty,
+                        new Datum(1, 1, 2017),
+                        null,
+                        new ReadOnlyCollection<Qualifikation>(new List<Qualifikation>()),
+                        "",
+                        "1",
+                        Guid.Empty,
+                        new ReadOnlyCollection<Kontakt>(new List<Kontakt>()));
+
+                mitarbeiter.Add(ma);
             }
 
             return
@@ -157,110 +169,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     new ReadOnlyCollection<Mitarbeiterfoto>(new List<Mitarbeiterfoto>()));
         }
 
-        private static ReadOnlyCollection<Kontakt> Deserialize_Kontakte(byte[] data, ref int position)
+        public Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen()
         {
-            return new ReadOnlyCollection<Kontakt>(new List<Kontakt>());
-        }
-
-        private static ReadOnlyCollection<Qualifikation> Deserialize_Qualifikationen(byte[] data, ref int position)
-        {
-            return new ReadOnlyCollection<Qualifikation>(new List<Qualifikation>());
-        }
-
-        private static Datum? Deserialize_Nullable_Datum(byte[] data, ref int position)
-        {
-            var laenge = BitConverter.ToInt32(data, position);
-            position += 4;
-            switch (laenge)
-            {
-                case 8:
-                    var d = System.Text.Encoding.UTF8.GetString(data, position, 8);
-                    position += 8;
-                    return new Datum(int.Parse(d.Substring(6, 2)), int.Parse(d.Substring(4, 2)), int.Parse(d.Substring(0, 4)));
-                case 0:
-                    return null;
-                default:
-                    throw new ConnectionErrorException($"Fehler beim Deserialisieren eines Mitarbeiters. Datumsformat defekt. Datagram: {data}");
-            }
-        }
-
-        private static Datum Deserialize_Datum(byte[] data, ref int position)
-        {
-            var laenge = BitConverter.ToInt32(data, position);
-            position += 4;
-            switch (laenge)
-            {
-                case 8:
-                    var d = System.Text.Encoding.UTF8.GetString(data, position, 8);
-                    position += 8;
-                    return new Datum(int.Parse(d.Substring(6, 2)), int.Parse(d.Substring(4,2)), int.Parse(d.Substring(0, 4)));
-                default:
-                    throw new ConnectionErrorException($"Fehler beim Deserialisieren eines Mitarbeiters. Datumsformat defekt. Datagram: {data}");
-            }
-        }
-
-        private static Postanschrift? Deserialize_Postanschrift(byte[] data, ref int position)
-        {
-            var laenge = BitConverter.ToInt32(data, position);
-            position += 4;
-            if (laenge != 0)
-            {
-                position += laenge;
-                using (var stream = new MemoryStream(data, position-laenge, laenge, false))
-                {
-                    var id = stream.ReadGuid();
-                    var adresszusatz = stream.ReadStringWithPrefixedLength();
-                    var strasse = stream.ReadStringWithPrefixedLength();
-                    var plz = stream.ReadStringWithPrefixedLength();
-                    var ort = stream.ReadStringWithPrefixedLength();
-                    var land = stream.ReadStringWithPrefixedLength();
-                    return new Postanschrift(id, strasse, plz, ort, land, adresszusatz);
-                }
-            }
-            else
-            {
-                return null;
-            }
-
-        }
-
-        private static string Deserialize_String(byte[] data, ref int position)
-        {
-            var laenge = BitConverter.ToInt32(data, position);
-            position += 4;
-            var result = System.Text.Encoding.UTF8.GetString(data, position, laenge);
-            position += laenge;
-            return result;
-        }
-
-        private static bool Deserialize_Bool(byte[] data, ref int position)
-        {
-            var result = data[position] == 1;
-            position += 1;
-            return result;
-        }
-
-        private static long Deserialize_Longint(byte[] data, ref int position)
-        {
-            var result = BitConverter.ToInt64(data, position);
-            position += 8;
-            return result;
-        }
-
-        private static int Deserialize_Int(byte[] data, ref int position)
-        {
-            var result = BitConverter.ToInt32(data, position);
-            position += 4;
-            return result;
-        }
-
-        private static Guid Deserialize_Guid(byte[] data, ref int position)
-        {
-            var guidbuffer = new byte[16];
-            Array.Copy(data.Skip(position).ToArray(), guidbuffer, 16);
-            position += 16;
-            return new Guid(guidbuffer);
+            var stand = VersionsStand.AbInitio();
+            return Mitarbeiterdaten_abrufen(stand, stand);
         }
     }
-
 }
