@@ -12,6 +12,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     {
         public Level_0_Test_API Ebene_1_API_Level_0 { get; }
         public DM7_PPLUS_API Ebene_1_API_Level_1 { get; }
+        public DM7_PPLUS_API Ebene_1_API_Level_2 { get; }
 
         public Ebene_2_Protokoll__Verbindungsaufbau Ebene_2_Service { get; }
         public Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung Ebene_2_Data { get; }
@@ -20,7 +21,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         private readonly DisposeGroup _disposegroup;
 
-        private static readonly List<int> API_LEVELS = new List<int> {1};
+        private static readonly List<int> API_LEVELS = new List<int> {1,2};
 
         private DM7_PPLUS_Host(PPLUS_Backend backend, Action<Exception> onError, Log log, string hostaddress, int port, List<int> apiLevels)
         {
@@ -30,8 +31,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
             if (apiLevels.Contains(0)) Ebene_1_API_Level_0 = new TestBackend_Level_0();
             if (apiLevels.Contains(1)) Ebene_1_API_Level_1 = new API_Level_1_Adapter(backend, onError, log, _disposegroup);
+            if (apiLevels.Contains(2)) Ebene_1_API_Level_2 = new API_Level_2_Adapter(backend, onError, log, _disposegroup);
 
-            var router = new API_Router(log, backend.AuswahllistenVersion, Ebene_1_API_Level_0, Ebene_1_API_Level_1, _disposegroup);
+            var router = new API_Router(log, backend.AuswahllistenVersion, Ebene_1_API_Level_0, Ebene_1_API_Level_1, Ebene_1_API_Level_2, _disposegroup);
             Ebene_2_Service = router;
             Ebene_2_Data = router;
 
@@ -46,7 +48,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             new Thread(() =>
             {
                 Thread.Sleep(500);
-                (Ebene_1_API_Level_1 as API_Level_1_Adapter)?.Announce();
+                (Ebene_1_API_Level_1 as API_Level_2_Adapter)?.Announce();
             }).Start();
         }
 

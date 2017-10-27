@@ -15,5 +15,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
         {
             return Connector.Instance_API_Level_1(networkAddress, log, cancellationToken_Verbindung, factory);
         }
+
+        public static Task<DM7_PPLUS_API> Instance_API_Level_2(string networkAddress, Log log, CancellationToken cancellationToken_Verbindung, Ebene_2_Proxy_Factory factory = null)
+        {
+            return Connector.Instance_API_Level_2(networkAddress, log, cancellationToken_Verbindung, factory);
+        }
     }
 }

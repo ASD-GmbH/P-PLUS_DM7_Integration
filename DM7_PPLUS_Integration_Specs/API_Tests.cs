@@ -13,19 +13,19 @@ using NUnit.Framework;
 namespace DM7_PPLUS_Integration_Specs
 {
     [TestFixture]
-    public sealed class API_Level_1__Ebene_1 : API_Test_Base
+    public sealed class API_Level_2__Ebene_1 : API_Test_Base
     {
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
             var server = new Test_PPLUS_Backend(auswahllistenversion);
             var log = new TestLog("[server] ");
             var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
-            Setup_Testframework(host.Ebene_1_API_Level_1, server);
+            Setup_Testframework(host.Ebene_1_API_Level_2, server);
         }
     }
 
     [TestFixture]
-    public class API_Level_1__Ebene_2 : API_Test_Base
+    public class API_Level_2__Ebene_2 : API_Test_Base
     {
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
@@ -33,14 +33,14 @@ namespace DM7_PPLUS_Integration_Specs
             var log = new TestLog("[server] ");
 
             var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
-            var proxy = TestConnector.Instance_API_Level_1("test://test", new TestLog("[client] "), CancellationToken.None, new LoopbackFactory(host, 2)).Result;
+            var proxy = TestConnector.Instance_API_Level_2("test://test", new TestLog("[client] "), CancellationToken.None, new LoopbackFactory(host, 2)).Result;
 
             Setup_Testframework(proxy, server);
         }
     }
 
     [TestFixture]
-    public class API_Level_1__Ebene_3 : API_Test_Base
+    public class API_Level_2__Ebene_3 : API_Test_Base
     {
         protected override void Erzeuge_Infrastruktur(int auswahllistenversion)
         {
@@ -48,7 +48,7 @@ namespace DM7_PPLUS_Integration_Specs
             var log = new TestLog("[server] ");
 
             var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
-            var proxy = TestConnector.Instance_API_Level_1("test://test", new TestLog("[client] "), CancellationToken.None, new LoopbackFactory(host, 3)).Result;
+            var proxy = TestConnector.Instance_API_Level_2("test://test", new TestLog("[client] "), CancellationToken.None, new LoopbackFactory(host, 3)).Result;
 
             Setup_Testframework(proxy, server);
         }
@@ -62,7 +62,7 @@ namespace DM7_PPLUS_Integration_Specs
 
 
     [TestFixture]
-    public class API_Level_1__Ebene_4 : API_Test_Base
+    public class API_Level_2__Ebene_4 : API_Test_Base
     {
 
         [Test]
@@ -203,9 +203,9 @@ namespace DM7_PPLUS_Integration_Specs
         protected DM7_PPLUS_API API;
         private Test_PPLUS_Backend _server;
 
-        protected void Setup_Testframework(DM7_PPLUS_API level_1_API, Test_PPLUS_Backend server)
+        protected void Setup_Testframework(DM7_PPLUS_API level_2_API, Test_PPLUS_Backend server)
         {
-            API = level_1_API;
+            API = level_2_API ?? throw new ArgumentNullException("level_2_API nicht initialisiert!");
             _server = server;
         }
 
