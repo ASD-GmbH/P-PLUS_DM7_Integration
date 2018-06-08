@@ -64,7 +64,6 @@ namespace DM7_PPLUS_Integration_Specs
     [TestFixture]
     public class API_Level_2__Ebene_4 : API_Test_Base
     {
-
         [Test]
         public void Nach_Serverneustart_wird_die_vollstaendige_Mitarbeiterliste_uebertragen_1()
         {
