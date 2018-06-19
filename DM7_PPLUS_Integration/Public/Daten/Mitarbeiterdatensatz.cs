@@ -8,9 +8,12 @@ namespace DM7_PPLUS_Integration.Daten
     /// </summary>
     public struct Mitarbeiterdatensatz
     {
-        public Mitarbeiterdatensatz(Guid id, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, Datum? geburtstag, Guid familienstand, Guid konfession, Datum eintritt, Datum? austritt, ReadOnlyCollection<Qualifikation> qualifikation, string handzeichen, string personalnummer, Guid geschlecht, ReadOnlyCollection<Kontakt> kontakte)
+
+        //ReadOnlyCollection<int> mandant,
+        public Mitarbeiterdatensatz(Guid id, ReadOnlyCollection<int> mandanten, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, Datum? geburtstag, Guid familienstand, Guid konfession, Datum eintritt, Datum? austritt, ReadOnlyCollection<Qualifikation> qualifikation, string handzeichen, string personalnummer, Guid geschlecht, ReadOnlyCollection<Kontakt> kontakte)
         {
             Id = id;
+            Mandanten = mandanten;
             Titel = titel;
             Vorname = vorname;
             Nachname = nachname;
@@ -32,6 +35,11 @@ namespace DM7_PPLUS_Integration.Daten
         /// </summary>
         public readonly Guid Id;
 
+        /// <summary>
+        /// DM7 Mandanten, in P-PLUS repräsentiert als Strukturen auf denen der Mitarbetier arbeitet.
+        /// </summary>
+        public readonly ReadOnlyCollection<int> Mandanten;
+        
         /// <summary>
         /// Titel des Mitarbeiters, muss ggf. in DM7 als Auswahllisteneintrag gepflegt werden
         /// </summary>

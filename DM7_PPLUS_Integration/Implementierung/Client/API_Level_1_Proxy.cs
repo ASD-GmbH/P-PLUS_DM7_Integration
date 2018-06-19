@@ -141,6 +141,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 var ma =
                     new Mitarbeiterdatensatz(
                         Guid.NewGuid(),
+                        new ReadOnlyCollection<int>(new List<int>()),
                         Guid.Empty,
                         vorname,
                         nachname,

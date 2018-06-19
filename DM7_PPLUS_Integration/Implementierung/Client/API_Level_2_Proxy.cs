@@ -131,6 +131,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             {
                 mitarbeiter.Add(new Mitarbeiterdatensatz(
                     Deserialize_Guid(data, ref position),
+                    Deserialize_Mandanten(data, ref position),
                     Deserialize_Guid(data, ref position),
                     Deserialize_String(data, ref position),
                     Deserialize_String(data, ref position),
@@ -160,6 +161,20 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         private static ReadOnlyCollection<Kontakt> Deserialize_Kontakte(byte[] data, ref int position)
         {
             return new ReadOnlyCollection<Kontakt>(new List<Kontakt>());
+        }
+
+        private static ReadOnlyCollection<int> Deserialize_Mandanten(byte[] data, ref int position)
+        {
+            var anzahl = BitConverter.ToInt32(data, position);
+            position += 4;
+
+            var mandanten = new List<int>();
+            for (var i = 0; i < anzahl; i++)
+            {
+                mandanten.Add(BitConverter.ToInt32(data,position));
+                position += 4;
+            }
+            return new ReadOnlyCollection<int>(mandanten);
         }
 
         private static ReadOnlyCollection<Qualifikation> Deserialize_Qualifikationen(byte[] data, ref int position)

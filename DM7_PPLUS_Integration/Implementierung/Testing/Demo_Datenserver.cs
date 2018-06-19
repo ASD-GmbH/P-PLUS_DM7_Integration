@@ -40,6 +40,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
 
                     var ma_neu = new Mitarbeiterdatensatz(
                         ma_alt.Id,
+                        ma_alt.Mandanten,
                         ma_alt.Titel,
                         ma_alt.Vorname,
                         Nachname(),
@@ -79,6 +80,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
         {
             var neuerMitarbeiter = new Mitarbeiterdatensatz(
                 Guid.NewGuid(),
+                new ReadOnlyCollection<int>(new List<int>{1}),
                 Auswahllisten_0.Titel.Kein,
                 Vorname(),
                 Nachname(),

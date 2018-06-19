@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung.Client;
@@ -64,12 +64,13 @@ namespace DM7_PPLUS_Integration_Specs
     [TestFixture]
     public class API_Level_2__Ebene_4 : API_Test_Base
     {
+
         [Test]
         public void Nach_Serverneustart_wird_die_vollstaendige_Mitarbeiterliste_uebertragen_1()
         {
-            Mitarbeiter_anlegen("Martha", "Musterfrau");
-            Mitarbeiter_anlegen("Marco", "Mustermann");
-            Mitarbeiter_anlegen("Martin", "Mustermaus");
+            Mitarbeiter_anlegen("Martha", "Musterfrau", Mandant_1());
+            Mitarbeiter_anlegen("Marco", "Mustermann", Mandant_1());
+            Mitarbeiter_anlegen("Martin", "Mustermaus", Mandant_1());
             var mitabeiterdatensaetze = API.Mitarbeiterdaten_abrufen();
             var bekannter_Stand = Stand(mitabeiterdatensaetze.Result);
             var verfuegbarerStand = bekannter_Stand;
@@ -77,11 +78,11 @@ namespace DM7_PPLUS_Integration_Specs
             {
                 verfuegbarerStand = stand;
             });
-
+            
             Serverneustart();
             Warte_auf_Konsistenz();
 
-            Mitarbeiter_anlegen("Tester", "Testerino");
+            Mitarbeiter_anlegen("Tester", "Testerino", Mandant_1());
             Warte_auf_Konsistenz();
 
             var data = API.Mitarbeiterdaten_abrufen(bekannter_Stand, verfuegbarerStand).Result;
@@ -92,9 +93,9 @@ namespace DM7_PPLUS_Integration_Specs
         [Test]
         public void Nach_Serverneustart_wird_die_vollstaendige_Mitarbeiterliste_uebertragen_2()
         {
-            Mitarbeiter_anlegen("Martha", "Musterfrau");
-            Mitarbeiter_anlegen("Marco", "Mustermann");
-            Mitarbeiter_anlegen("Martin", "Mustermaus");
+            Mitarbeiter_anlegen("Martha", "Musterfrau", Mandant_1());
+            Mitarbeiter_anlegen("Marco", "Mustermann", Mandant_1());
+            Mitarbeiter_anlegen("Martin", "Mustermaus", Mandant_1());
             var mitabeiterdatensaetze = API.Mitarbeiterdaten_abrufen();
             var bekannter_Stand = Stand(mitabeiterdatensaetze.Result);
             var verfuegbarerStand = bekannter_Stand;
@@ -106,13 +107,13 @@ namespace DM7_PPLUS_Integration_Specs
             Serverneustart();
             Warte_auf_Konsistenz();
 
-            Mitarbeiter_anlegen("Tester", "Testerino");
+            Mitarbeiter_anlegen("Tester", "Testerino", Mandant_1());
             Warte_auf_Konsistenz();
 
             var data1 = API.Mitarbeiterdaten_abrufen(bekannter_Stand, verfuegbarerStand).Result;
             bekannter_Stand = Stand(data1);
 
-            Mitarbeiter_anlegen("Tester", "Testerina");
+            Mitarbeiter_anlegen("Tester", "Testerina", Mandant_1());
             Warte_auf_Konsistenz();
 
             var data = API.Mitarbeiterdaten_abrufen(bekannter_Stand, verfuegbarerStand).Result;
@@ -201,12 +202,16 @@ namespace DM7_PPLUS_Integration_Specs
     {
         protected DM7_PPLUS_API API;
         private Test_PPLUS_Backend _server;
-
+        
         protected void Setup_Testframework(DM7_PPLUS_API level_2_API, Test_PPLUS_Backend server)
         {
             API = level_2_API ?? throw new ArgumentNullException("level_2_API nicht initialisiert!");
             _server = server;
         }
+
+        protected IEnumerable<int> Mandant_1() => new[] {1};
+        protected IEnumerable<int> Mandant_2() => new[] {2};
+        protected IEnumerable<int> Mandant_1_und_2() => new[] {1,2};
 
         [SetUp]
         public void Setup()
@@ -224,7 +229,7 @@ namespace DM7_PPLUS_Integration_Specs
         [Test]
         public void Ein_Mitarbeiter_wird_vollstaendig_uebertragen()
         {
-            Mitarbeiter_anlegen("Martha", "Musterfrau");
+            Mitarbeiter_anlegen("Martha", "Musterfrau", Mandant_1());
 
             var data = API.Mitarbeiterdaten_abrufen().Result;
             data.Mitarbeiter.Single().ShouldBeEquivalentTo(Einziger_Mitarbeiterdatensatz_auf_dem_Server());
@@ -248,7 +253,7 @@ namespace DM7_PPLUS_Integration_Specs
         [Test]
         public void Ein_vorhandener_Mitarbeiter_wird_zurueckgeliefert()
         {
-            Mitarbeiter_anlegen("Martha", "Musterfrau");
+            Mitarbeiter_anlegen("Martha", "Musterfrau", Mandant_1());
 
             var data = API.Mitarbeiterdaten_abrufen().Result;
             Anzahl(data).Should().Be(1);
@@ -271,7 +276,7 @@ namespace DM7_PPLUS_Integration_Specs
                 stand => { benachrichtigt++; },
                 ex => { throw new Exception("Unexpected exception", ex); }));
 
-            Mitarbeiter_anlegen("Martha", "Musterfrau");
+            Mitarbeiter_anlegen("Martha", "Musterfrau", Mandant_1());
 
             Warte_auf_Konsistenz();
 
@@ -281,15 +286,15 @@ namespace DM7_PPLUS_Integration_Specs
         [Test]
         public void Nur_neue_Mitarbeiter_werden_abgefragt()
         {
-            Mitarbeiter_anlegen("Martha", "Musterfrau");
-            Mitarbeiter_anlegen("Marco", "Mustermann");
-            Mitarbeiter_anlegen("Martin", "Mustermaus");
+            Mitarbeiter_anlegen("Martha", "Musterfrau", Mandant_1());
+            Mitarbeiter_anlegen("Marco", "Mustermann", Mandant_2());
+            Mitarbeiter_anlegen("Martin", "Mustermaus", Mandant_1_und_2());
             var mitabeiterdatensaetze = API.Mitarbeiterdaten_abrufen();
             var bekannter_Stand = Stand(mitabeiterdatensaetze.Result);
             var verfuegbarerStand = bekannter_Stand;
             API.Stand_Mitarbeiterdaten.Subscribe(stand => { verfuegbarerStand = stand; });
 
-            Mitarbeiter_anlegen("Tester", "Testerino");
+            Mitarbeiter_anlegen("Tester", "Testerino", Mandant_1());
             Warte_auf_Konsistenz();
 
             var data = API.Mitarbeiterdaten_abrufen(bekannter_Stand, verfuegbarerStand).Result;
@@ -300,15 +305,15 @@ namespace DM7_PPLUS_Integration_Specs
         [Test]
         public void Teilweise_Daten_werden_als_Teilmenge_gekennzeichnet()
         {
-            Mitarbeiter_anlegen("Martha", "Musterfrau");
-            Mitarbeiter_anlegen("Marco", "Mustermann");
-            Mitarbeiter_anlegen("Martin", "Mustermaus");
+            Mitarbeiter_anlegen("Martha", "Musterfrau", Mandant_1());
+            Mitarbeiter_anlegen("Marco", "Mustermann", Mandant_1());
+            Mitarbeiter_anlegen("Martin", "Mustermaus", Mandant_1());
             var mitabeiterdatensaetze = API.Mitarbeiterdaten_abrufen();
             var bekannter_Stand = Stand(mitabeiterdatensaetze.Result);
             var verfuegbarerStand = bekannter_Stand;
             API.Stand_Mitarbeiterdaten.Subscribe(stand => { verfuegbarerStand = stand; });
 
-            Mitarbeiter_anlegen("Tester", "Testerino");
+            Mitarbeiter_anlegen("Tester", "Testerino", Mandant_1());
             Warte_auf_Konsistenz();
 
             var data = API.Mitarbeiterdaten_abrufen(bekannter_Stand, verfuegbarerStand).Result;
@@ -333,9 +338,9 @@ namespace DM7_PPLUS_Integration_Specs
             Erzeuge_Infrastruktur(auswahllistenversion);
         }
 
-        protected void Mitarbeiter_anlegen(string name, string nachname)
+        protected void Mitarbeiter_anlegen(string name, string nachname, IEnumerable<int> mandanten)
         {
-            _server.Mitarbeiter_hinzufuegen(name, nachname);
+            _server.Mitarbeiter_hinzufuegen(name, nachname, mandanten);
         }
 
         protected int Anzahl(Mitarbeiterdatensaetze data)

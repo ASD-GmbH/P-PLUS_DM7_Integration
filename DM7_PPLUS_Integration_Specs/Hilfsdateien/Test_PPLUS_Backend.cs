@@ -32,18 +32,19 @@ namespace DM7_PPLUS_Integration_Specs
             return _mitarbeiter.Where(_ => mitarbeiter_ids.Contains(_.Id));
         }
 
-        public void Mitarbeiter_hinzufuegen(string name, string nachname)
+        public void Mitarbeiter_hinzufuegen(string name, string nachname, IEnumerable<int> mandanten)
         {
-            var neuerMitarbeiter = Neuer_Mitarbeiter(name, nachname);
+            var neuerMitarbeiter = Neuer_Mitarbeiter(name, nachname, mandanten);
             _mitarbeiter.Add(neuerMitarbeiter);
             _staende_stream.Next(new List<Guid> { neuerMitarbeiter.Id });
         }
 
-        private Mitarbeiterdatensatz Neuer_Mitarbeiter(string name, string nachname)
+        private Mitarbeiterdatensatz Neuer_Mitarbeiter(string name, string nachname, IEnumerable<int> mandanten)
         {
             return
                 new Mitarbeiterdatensatz(
                     Guid.NewGuid(),
+                    new ReadOnlyCollection<int>(mandanten.ToList()),
                     Auswahllisten_0.Titel.Kein,
                     name,
                     nachname,
