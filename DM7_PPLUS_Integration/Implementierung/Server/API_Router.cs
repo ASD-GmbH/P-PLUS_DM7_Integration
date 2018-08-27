@@ -171,8 +171,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     {
         internal static IEnumerable<byte[]> Serialize(Mitarbeiterdatensatz mitarbeiter)
         {
-            yield return Serialize(mitarbeiter.Id);
-            yield return Serialize(mitarbeiter.Mandanten);
+            yield return Serialize(mitarbeiter.DatensatzId);
+            yield return Serialize(mitarbeiter.PersonId);
+            yield return Serialize(mitarbeiter.Mandant);
+            yield return Serialize(mitarbeiter.Struktur);
             yield return Serialize(mitarbeiter.Titel);
             yield return Serialize(mitarbeiter.Vorname);
             yield return Serialize(mitarbeiter.Nachname);
@@ -211,6 +213,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         }
 
         private static byte[] Serialize(Guid id) => id.ToByteArray();
+        private static byte[] Serialize(int value) => BitConverter.GetBytes(value);
         private static byte[] Serialize(string text) => PrependLength(Encoding.UTF8.GetBytes(text));
         private static byte[] Serialize(ReadOnlyCollection<int> mandanten) => BitConverter.GetBytes(mandanten.Count).Concat(mandanten.SelectMany(BitConverter.GetBytes)).ToArray();
         private static byte[] Serialize(ReadOnlyCollection<Kontakt> kontakte) => new byte[0];

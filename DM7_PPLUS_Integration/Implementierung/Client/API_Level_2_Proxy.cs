@@ -130,8 +130,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             for (var i = 0; i < anzahl_Mitarbeiterdatensaetze; i++)
             {
                 mitarbeiter.Add(new Mitarbeiterdatensatz(
+                    Deserialize_String(data, ref position),
                     Deserialize_Guid(data, ref position),
-                    Deserialize_Mandanten(data, ref position),
+                    Deserialize_Int(data, ref position),
+                    Deserialize_Guid(data, ref position),
                     Deserialize_Guid(data, ref position),
                     Deserialize_String(data, ref position),
                     Deserialize_String(data, ref position),

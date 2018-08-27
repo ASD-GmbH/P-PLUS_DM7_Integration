@@ -10,10 +10,12 @@ namespace DM7_PPLUS_Integration.Daten
     {
 
         //ReadOnlyCollection<int> mandant,
-        public Mitarbeiterdatensatz(Guid id, ReadOnlyCollection<int> mandanten, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, Datum? geburtstag, Guid familienstand, Guid konfession, Datum eintritt, Datum? austritt, ReadOnlyCollection<Qualifikation> qualifikation, string handzeichen, string personalnummer, Guid geschlecht, ReadOnlyCollection<Kontakt> kontakte)
+        public Mitarbeiterdatensatz(string datensatzId, Guid personId, int mandant, Guid struktur, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, Datum? geburtstag, Guid familienstand, Guid konfession, Datum eintritt, Datum? austritt, ReadOnlyCollection<Qualifikation> qualifikation, string handzeichen, string personalnummer, Guid geschlecht, ReadOnlyCollection<Kontakt> kontakte)
         {
-            Id = id;
-            Mandanten = mandanten;
+            DatensatzId = datensatzId;
+            PersonId = personId;
+            Mandant = mandant;
+            Struktur = struktur;
             Titel = titel;
             Vorname = vorname;
             Nachname = nachname;
@@ -33,13 +35,23 @@ namespace DM7_PPLUS_Integration.Daten
         /// <summary>
         /// Primärschlüssel
         /// </summary>
-        public readonly Guid Id;
+        public readonly string DatensatzId;
 
         /// <summary>
-        /// DM7 Mandanten, in P-PLUS repräsentiert als Strukturen auf denen der Mitarbetier arbeitet.
+        /// Primärschlüssel
         /// </summary>
-        public readonly ReadOnlyCollection<int> Mandanten;
-        
+        public readonly Guid PersonId;
+
+        /// <summary>
+        /// DM7 Mandanten, in P-PLUS repräsentiert als Strukturen auf denen der Mitarbeiter arbeitet.
+        /// </summary>
+        public readonly int Mandant;
+
+        /// <summary>
+        /// Struktur, für die der Datensatz gültig ist
+        /// </summary>
+        public readonly Guid Struktur;
+
         /// <summary>
         /// Titel des Mitarbeiters, muss ggf. in DM7 als Auswahllisteneintrag gepflegt werden
         /// </summary>
