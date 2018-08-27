@@ -66,6 +66,58 @@ Wie behandeln wir mehrere (P-PLUS) Mandanten in der Integration.
 5. Submit a pull request :D
 
 ## Änderungen
+- 0.13 (t.b.d.): Grundlegende Änderungen
+
+Überleitung der Stammdaten:
+Da eine Person mehrere Vertragsverhältnisse mit unterschiedlichen Personalnummern oder Strukturzuordnungen haben kann übergeben wir zukünftig je Person mehrere Datensätze mit 
+1. einer PersonId, die bei mehreren Datensätzen gleich sein könnte,
+2. DatensatzId des Datensatzes mit den Informationen und 
+3. einer gültigen Strukturexportnummer
+Aufgrund der Tatsache, dass ein MA innerhalb einer Datenbank von einem Mandanten in den nächsten Mandanten wechseln könnte und somit nur eine Befristung auf einer Struktur (Strukturnummer in Kombination mit Mandantennummer) hätte und kein Austrittsdatum, werden wir in jedem Datensatz ein Gültig von und ein Gültig bis übergeben und nicht Eintrit und Austritt, was ggfs. für DM7 gleichbedeutend ist. Auch wenn der MA innerhalb eines Mandanten einen Strukturwechsel durchläuft (Bereichswechsel) würde es entsprechend viele Datensätze für einen Personenid geben)
+
+### Breaking Changes
+
+#### API Version
+Das API Level wird von 2 auf 3 angehoben.
+Die Rückwärtskompatibilität zu P-PLUS Servern mit dem Protokoll API Level 2 besteht nicht (pre-release).
+
+#### Mitarbeiterdatensatz.DatensatzId
+Ein neues Feld DatensatzId: string wird eingeführt. Dieses übernimmt die Funktion des bisherigen Feldes Id in Bezug auf Aktualisierung des Datensatzes. Entsprechend ändert dich der Datentyp für Referenzlisten von Guid auf string.
+
+#### Mitarbeiterdatensatz.Id / Mitarbeiterdatensatz.PersonId
+Das bisherige Feld Id wird in PersonId umbenannt. Es korreliert verschiedene Datensätze zu einer Person und ist damit nicht mehr verlässlich eindeutig je Datensatz.
+Mehrere Datensätze entstehen bspw. bei auf mehrere Strukturen verteilten Mitarbeitern (zeitlich parallel) sowie bei Strukturwechsel, und Elternzeit in Verbindung mit zwischenzeitlicher geringfügiger Beschäftigung (zeitlich seriell).
+
+#### Mitarbeiterdatensatz.Titel
+Neues Feld Titel: string, dass Titel der Person als Text enthält.
+
+#### Mitarbeiterdatensatz.Mandanten
+Der Typ ändert sich von ReadonlyCollection<int> zu string. Es enthält in der Mitarbeiter Exportkonfiguration einstellbare Daten (DM Mandantennummer). Wird ein Mitarbeiter für mehrere Strukturen und/oder Mandanten exportiert, entstehen mehrere Datensätze, die über das Feld PersonIs korrelierbar sind.
+
+#### Mitarbeiterdatensatz.Struktur
+Neues Feld Struktur: string, dass die P-PLUS Strukturexportnummer des Mitarbeiters enthält.
+
+#### Mitarbeiterdatensatz.Eintritt/Mitarbeiterdatensatz.Austritt / Mitarbeiterdatensatz.GueltigAb/Mitarbeiterdatensatz.GueltigBis
+Die Felder Eintritt und Austritt werden jeweils in GueltigAb und GueltigBis umbenannt. Ihr Inhalt spiegelt die Anwendbarkeit der im Datensatz übertragenen Daten wieder. Dies kann, muss aber nicht auf Eintritt und Austritt beschränkt sein. So führt bspw. ein Strukturwechsel dazu, dass der bisherige Datensatz einen GueltigBis Wert der Vortags des Strukturwechsels bekommt und für die neue Struktur ein Datensatz mit GueltigAb Wert ab dem Tag des Strukturwechsels angelegt wird.
+
+#### Authentifizierung
+Beim Anmelden an P-PLUS muss ein API Key angegeben werden, der geheim zu halten ist.
+
+
+### Non-breaking Changes
+
+#### Exportbeschränkung
+P-PLUS exportiert in der die API Level 3 implementierenden Version (R-4xx t.b.d.) nur soche Datensätze, für deren Mitarbeiter und Struktur jeweils ein Export konfiguriert ist. Mitarbeiter mit einem Status (Elternzeit, Mutterschutz, Altersteilzeit?) werden nicht exportiert, solange der Status nicht durch ein weiteres Arbeitsverhältnis ergänzt wird.
+
+#### Kontaktdaten werden exportiert
+P-PLUS exportiert in der die API Level 3 implementierenden Version (R-4xx t.b.d.) Kontaktdaten entsprechend dem bestehenden Schema.
+
+#### Qualifikatinosdaten werden exportiert
+P-PLUS exportiert in der die API Level 3 implementierenden Version (R-4xx t.b.d.) Qualifikationsdaten entsprechend dem bestehenden Schema.
+
+#### Verschlüsselung
+Die Datenübertragung erfolgt verschlüsselt.
+
 - 0.12 (27.10.2017): Vollständige Serialisierung
 Die vollständige Serialisierung ist als API Level 2 implementiert.
 Das externe Interface ist unverändert.
