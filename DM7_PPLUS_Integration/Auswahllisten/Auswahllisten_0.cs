@@ -8,6 +8,7 @@ namespace DM7_PPLUS_Integration.Auswahllisten
         {
             public static readonly Guid Maennlich = new Guid("EA55105D-DDE7-48F6-A3D6-6059E6487681");
             public static readonly Guid Weiblich = new Guid("5FE792B5-6305-471F-A61C-D4A39C1FAFBF");
+            public static readonly Guid Divers = new Guid("716464DA-9B64-4F22-A7C2-18E495A761AB");
         }
 
         public static class Konfession

@@ -5,7 +5,7 @@ using DM7_PPLUS_Integration.Daten;
 namespace DM7_PPLUS_Integration
 {
     /// <summary>
-    /// Instanz der DM7_PPLUS_Integrationsschnittstelle, API Level 1
+    /// Instanz der DM7_PPLUS_Integrationsschnittstelle, API Level 3
     /// </summary>
     public interface DM7_PPLUS_API : IDisposable
     {

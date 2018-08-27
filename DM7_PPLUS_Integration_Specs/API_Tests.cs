@@ -78,7 +78,7 @@ namespace DM7_PPLUS_Integration_Specs
             {
                 verfuegbarerStand = stand;
             });
-            
+
             Serverneustart();
             Warte_auf_Konsistenz();
 
@@ -202,16 +202,16 @@ namespace DM7_PPLUS_Integration_Specs
     {
         protected DM7_PPLUS_API API;
         private Test_PPLUS_Backend _server;
-        
+
         protected void Setup_Testframework(DM7_PPLUS_API level_2_API, Test_PPLUS_Backend server)
         {
             API = level_2_API ?? throw new ArgumentNullException("level_2_API nicht initialisiert!");
             _server = server;
         }
 
-        protected IEnumerable<int> Mandant_1() => new[] {1};
-        protected IEnumerable<int> Mandant_2() => new[] {2};
-        protected IEnumerable<int> Mandant_1_und_2() => new[] {1,2};
+        protected int Mandant_1() => 1;
+        protected int Mandant_2() => 2;
+
 
         [SetUp]
         public void Setup()
@@ -237,7 +237,7 @@ namespace DM7_PPLUS_Integration_Specs
 
         private Mitarbeiterdatensatz Einziger_Mitarbeiterdatensatz_auf_dem_Server()
         {
-            return _server.Mitarbeiterdatensaetze_abrufen(_server.Alle_Mitarbeiter()).Single();
+            return _server.Mitarbeiterdatensaetze_abrufen(_server.Alle_Mitarbeiterdatensaetze()).Single();
         }
 
         protected abstract void Erzeuge_Infrastruktur(int auswahllistenversion);
@@ -288,7 +288,7 @@ namespace DM7_PPLUS_Integration_Specs
         {
             Mitarbeiter_anlegen("Martha", "Musterfrau", Mandant_1());
             Mitarbeiter_anlegen("Marco", "Mustermann", Mandant_2());
-            Mitarbeiter_anlegen("Martin", "Mustermaus", Mandant_1_und_2());
+//            Mitarbeiter_anlegen("Martin", "Mustermaus", Mandant_1_und_2());
             var mitabeiterdatensaetze = API.Mitarbeiterdaten_abrufen();
             var bekannter_Stand = Stand(mitabeiterdatensaetze.Result);
             var verfuegbarerStand = bekannter_Stand;
@@ -338,9 +338,9 @@ namespace DM7_PPLUS_Integration_Specs
             Erzeuge_Infrastruktur(auswahllistenversion);
         }
 
-        protected void Mitarbeiter_anlegen(string name, string nachname, IEnumerable<int> mandanten)
+        protected void Mitarbeiter_anlegen(string name, string nachname, int mandant)
         {
-            _server.Mitarbeiter_hinzufuegen(name, nachname, mandanten);
+            _server.Mitarbeiter_hinzufuegen(name, nachname, mandant);
         }
 
         protected int Anzahl(Mitarbeiterdatensaetze data)

@@ -17,8 +17,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         private readonly Guid _session;
         private long _stand;
 
-        private readonly Dictionary<long, IEnumerable<Guid>> _Mitarbeiter_je_Stand =
-            new Dictionary<long, IEnumerable<Guid>>();
+        private readonly Dictionary<long, IEnumerable<string>> _Mitarbeiter_je_Stand =
+            new Dictionary<long, IEnumerable<string>>();
 
 
         public API_Level_2_Adapter(PPLUS_Backend backend, Action<Exception> onException, Log log, IDisposable disposegroup) : base(disposegroup)
@@ -26,15 +26,15 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             _session = Guid.NewGuid();
             log.Debug($"Server ID {_session.ToString()} ");
             _backend = backend;
-            _Mitarbeiter_je_Stand.Add(_stand, _backend.Alle_Mitarbeiter());
+            _Mitarbeiter_je_Stand.Add(_stand, _backend.Alle_Mitarbeiterdatensaetze());
 
             Stand_Mitarbeiterdaten = new Subject<Stand>();
             _backend.Aenderungen_an_Mitarbeiterstammdaten.Subscribe(
-                new Observer<IEnumerable<Guid>>(
-                    mitarbeiter =>
+                new Observer<IEnumerable<string>>(
+                    datensatz =>
                     {
                         _stand++;
-                        _Mitarbeiter_je_Stand.Add(_stand, mitarbeiter);
+                        _Mitarbeiter_je_Stand.Add(_stand, datensatz);
                         Announce();
                     },
                     onException));

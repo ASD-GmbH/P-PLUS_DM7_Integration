@@ -19,7 +19,7 @@ namespace Demo_Implementierung
         /// <summary>
         /// Repräsentiert die lokale Persistenz, z.B. die HVP Datenbank
         /// </summary>
-        private static readonly Dictionary<Guid, Mitarbeiterdatensatz> _mitarbeiter = new Dictionary<Guid, Mitarbeiterdatensatz>();
+        private static readonly Dictionary<string, Mitarbeiterdatensatz> _mitarbeiter_datensaetze = new Dictionary<string, Mitarbeiterdatensatz>();
 
         private static readonly object _lock = new object();
 
@@ -198,17 +198,17 @@ namespace Demo_Implementierung
         {
             lock (_lock)
             {
-                if (!daten.Teilmenge) _mitarbeiter.Clear();
+                if (!daten.Teilmenge) _mitarbeiter_datensaetze.Clear();
 
                 foreach (var datensatz in daten.Mitarbeiter)
                 {
-                    if (!_mitarbeiter.ContainsKey(datensatz.Id))
+                    if (!_mitarbeiter_datensaetze.ContainsKey(datensatz.DatensatzId))
                     {
-                        _mitarbeiter.Add(datensatz.Id, datensatz);
+                        _mitarbeiter_datensaetze.Add(datensatz.DatensatzId, datensatz);
                     }
                     else
                     {
-                        _mitarbeiter[datensatz.Id] = datensatz;
+                        _mitarbeiter_datensaetze[datensatz.DatensatzId] = datensatz;
                     }
                 }
 
@@ -219,7 +219,7 @@ namespace Demo_Implementierung
             Console.Out.WriteLine($"- {(daten.Teilmenge ? "Neu oder geändert" : "Vollständige Liste")} in Stand {daten.Stand}:");
             foreach (var mitarbeiter in daten.Mitarbeiter)
             {
-                Console.Out.WriteLine($"- Mitarbeiter {mitarbeiter.Personalnummer}: {mitarbeiter.Vorname}, {mitarbeiter.Nachname}. Mandanten ({mitarbeiter.Mandanten.Select(_ => _.ToString()).Aggregate((i, j) => i + ", " + j)})");
+                Console.Out.WriteLine($"- Mitarbeiter {mitarbeiter.Personalnummer}: {mitarbeiter.Vorname}, {mitarbeiter.Nachname}. Mandant ({mitarbeiter.Mandant})");
             }
         }
     }

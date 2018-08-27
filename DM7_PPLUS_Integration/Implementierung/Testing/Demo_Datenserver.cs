@@ -15,7 +15,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
         private readonly Log _log;
         private readonly Random random = new Random();
         private readonly List<Mitarbeiterdatensatz> mitarbeiter;
-        private readonly Subject<IEnumerable<Guid>> _subject = new Subject<IEnumerable<Guid>>();
+        private readonly Subject<IEnumerable<string>> _subject = new Subject<IEnumerable<string>>();
         private readonly Timer _timer;
         private int changeCounter = 0;
 
@@ -39,8 +39,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
                     var ma_alt = mitarbeiter[selected];
 
                     var ma_neu = new Mitarbeiterdatensatz(
-                        ma_alt.Id,
-                        ma_alt.Mandanten,
+                        ma_alt.DatensatzId,
+                        ma_alt.PersonId,
+                        ma_alt.Mandant,
+                        ma_alt.Struktur,
                         ma_alt.Titel,
                         ma_alt.Vorname,
                         Nachname(),
@@ -59,7 +61,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
                     _log.Debug($" - Geänderter Mitarbeiter im DemoServer: {ma_neu.Nachname}, {ma_neu.Vorname} (vormals: {ma_alt.Nachname}, {ma_neu.Vorname}) ({ma_neu.Personalnummer})");
 
                     mitarbeiter[selected] = ma_neu;
-                    _subject.Next(new List<Guid> {ma_alt.Id});
+                    _subject.Next(new List<string> {ma_alt.DatensatzId});
                 }
                 else
                 {
@@ -73,14 +75,16 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
         {
             var neue_mitarbeiter = Enumerable.Range(0, random.Next(1,5)).Select(_ => Neuer_Mitarbeiter()).ToList();
             mitarbeiter.AddRange(neue_mitarbeiter);
-            _subject.Next(neue_mitarbeiter.Select(_ => _.Id));
+            _subject.Next(neue_mitarbeiter.Select(_ => _.DatensatzId));
         }
 
         private Mitarbeiterdatensatz Neuer_Mitarbeiter()
         {
             var neuerMitarbeiter = new Mitarbeiterdatensatz(
+                Guid.NewGuid().ToString(),
                 Guid.NewGuid(),
-                new ReadOnlyCollection<int>(new List<int>{1}),
+                1,
+                Guid.NewGuid(),
                 Auswahllisten_0.Titel.Kein,
                 Vorname(),
                 Nachname(),
@@ -116,15 +120,15 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
         }
 
         public int AuswahllistenVersion => 0;
-        public IObservable<IEnumerable<Guid>> Aenderungen_an_Mitarbeiterstammdaten { get; }
+        public IObservable<IEnumerable<string>> Aenderungen_an_Mitarbeiterstammdaten { get; }
 
-        public IEnumerable<Guid> Alle_Mitarbeiter()
+        public IEnumerable<string> Alle_Mitarbeiterdatensaetze()
         {
-            return mitarbeiter.Select(_ => _.Id);
+            return mitarbeiter.Select(_ => _.DatensatzId);
         }
 
-        public IEnumerable<Mitarbeiterdatensatz> Mitarbeiterdatensaetze_abrufen(IEnumerable<Guid> mitarbeiter_ids) =>
-            mitarbeiter.Where(_ => mitarbeiter_ids.Contains(_.Id));
+        public IEnumerable<Mitarbeiterdatensatz> Mitarbeiterdatensaetze_abrufen(IEnumerable<string> datensatz_ids) =>
+            mitarbeiter.Where(_ => datensatz_ids.Contains(_.DatensatzId));
 
         public void Dispose()
         {
