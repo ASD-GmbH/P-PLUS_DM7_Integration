@@ -44,11 +44,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         }
 
 
-        public static Task<DM7_PPLUS_API> Instance_API_Level_2(string networkAddress, Log log, CancellationToken cancellationToken_Verbindung, Ebene_2_Proxy_Factory factory = null)
+        public static Task<DM7_PPLUS_API> Instance_API_Level_3(string networkAddress, Log log, CancellationToken cancellationToken_Verbindung, Ebene_2_Proxy_Factory factory = null)
         {
 
             var client_min_api_level_request = networkAddress == "test://0" ? 0 : 1;
-            var client_max_api_level_request = 2;
+            var client_max_api_level_request = 3;
 
             var disposegroup = new DisposeGroup();
             disposegroup.With(() => { log.Info("DM7/P-PLUS Schnittstelle geschlossen."); });
@@ -59,7 +59,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                         DM7_PPLUS_API api = null;
                         if (task.Result.Item2 == 0) api = new Level_1_upgrade_Test_Proxy(task.Result.Item1);
                         if (task.Result.Item2 == 1) api = new API_Level_1_Proxy(task.Result.Item1, task.Result.Item3, log, disposegroup);
-                        if (task.Result.Item2 == 2) api = new API_Level_2_Proxy(task.Result.Item1, task.Result.Item3, log, disposegroup);
+                        if (task.Result.Item2 == 3) api = new API_Level_3_Proxy(task.Result.Item1, task.Result.Item3, log, disposegroup);
                         if (api==null) throw new UnsupportedVersionException($"Vereinbartes API Level entspricht nicht den Rahmenbedingungen: {task.Result.Item2}");
                         return api;
                     }, cancellationToken_Verbindung);

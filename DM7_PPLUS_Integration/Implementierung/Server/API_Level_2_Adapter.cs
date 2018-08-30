@@ -11,7 +11,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     /// <summary>
     /// Stellt die Version 2 der API zur Verfügung und erfüllt Anfragen nach Daten und Notifications
     /// </summary>
-    internal sealed class API_Level_2_Adapter : DisposeGroupMember, DM7_PPLUS_API
+    internal sealed class API_Level_3_Adapter : DisposeGroupMember, DM7_PPLUS_API
     {
         private readonly PPLUS_Backend _backend;
         private readonly Guid _session;
@@ -21,7 +21,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             new Dictionary<long, IEnumerable<string>>();
 
 
-        public API_Level_2_Adapter(PPLUS_Backend backend, Action<Exception> onException, Log log, IDisposable disposegroup) : base(disposegroup)
+        public API_Level_3_Adapter(PPLUS_Backend backend, Action<Exception> onException, Log log, IDisposable disposegroup) : base(disposegroup)
         {
             _session = Guid.NewGuid();
             log.Debug($"Server ID {_session.ToString()} ");

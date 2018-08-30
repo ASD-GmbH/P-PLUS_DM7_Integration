@@ -19,7 +19,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     internal class API_Router : DisposeGroupMember, Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung
     {
         private readonly DM7_PPLUS_API _backendLevel1;
-        private readonly DM7_PPLUS_API _backendLevel2;
+        private readonly DM7_PPLUS_API _backendLevel3;
         private readonly HashSet<int> _apiLevel = new HashSet<int>();
         private readonly int _auswahllistenversion;
         private readonly Log _log;
@@ -33,8 +33,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             int auswahllisten_version,
             Level_0_Test_API backend_level_0,
             DM7_PPLUS_API backend_level_1,
-            DM7_PPLUS_API backend_level_2,
-            /*DM7_PPLUS_API_3 backend_level_3, */
+            DM7_PPLUS_API backend_level_3,
             DisposeGroup disposegroup) : base(disposegroup)
         {
             _log = log;
@@ -43,10 +42,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
             if (backend_level_0 != null) _apiLevel.Add(0);
             if (backend_level_1 != null) _apiLevel.Add(1);
-            if (backend_level_2 != null) _apiLevel.Add(2);
+            if (backend_level_3 != null) _apiLevel.Add(3);
 
             _backendLevel1 = backend_level_1;
-            _backendLevel2 = backend_level_2;
+            _backendLevel3 = backend_level_3;
 
             _versionen =
                 _apiLevel.Count==1
@@ -59,9 +58,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
             var subject = new Subject<Notification>();
 
-            if (backend_level_2 != null)
+            if (backend_level_3 != null)
             {
-                var subscription = backend_level_2.Stand_Mitarbeiterdaten.Subscribe(
+                var subscription = backend_level_3.Stand_Mitarbeiterdaten.Subscribe(
                     new Observer<Stand>(
                         s =>
                         {
@@ -128,7 +127,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             if (api_level == 1 || api_level==2)
             {
                 var mitarbeiter =
-                    (_backendLevel2?? _backendLevel1).Mitarbeiterdaten_abrufen(new VersionsStand(session, von),
+                    (_backendLevel3?? _backendLevel1).Mitarbeiterdaten_abrufen(new VersionsStand(session, von),
                         new VersionsStand(session, bis));
 
                 return mitarbeiter.ContinueWith(task =>
@@ -182,8 +181,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             yield return Serialize(mitarbeiter.Geburtstag);
             yield return Serialize(mitarbeiter.Familienstand);
             yield return Serialize(mitarbeiter.Konfession);
-            yield return Serialize(mitarbeiter.Eintritt);
-            yield return Serialize(mitarbeiter.Austritt);
+            yield return Serialize(mitarbeiter.GueltigAb);
+            yield return Serialize(mitarbeiter.GueltigBis);
             yield return Serialize(mitarbeiter.Qualifikation);
             yield return Serialize(mitarbeiter.Handzeichen);
             yield return Serialize(mitarbeiter.Personalnummer);

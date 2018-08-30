@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Auswahllisten\Auswahllisten_1.cs" />
     <Compile Include="Auswahllisten\Auswahllisten_0.cs" />
     <Compile Include="Implementierung\Client\API_Level_1_Proxy.cs" />
     <Compile Include="Implementierung\Client\API_Level_2_Proxy.cs" />
