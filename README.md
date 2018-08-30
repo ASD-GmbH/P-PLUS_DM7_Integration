@@ -85,8 +85,11 @@ Die Rückwärtskompatibilität zu P-PLUS Servern mit dem Protokoll API Level 2 b
 Ein neues Feld DatensatzId: string wird eingeführt. Dieses übernimmt die Funktion des bisherigen Feldes Id in Bezug auf Aktualisierung des Datensatzes. Entsprechend ändert dich der Datentyp für Referenzlisten von Guid auf string.
 
 #### Mitarbeiterdatensatz.Id / Mitarbeiterdatensatz.PersonId
-Das bisherige Feld Id wird in PersonId umbenannt. Es korreliert verschiedene Datensätze zu einer Person und ist damit nicht mehr verlässlich eindeutig je Datensatz.
+Das bisherige Feld Id wird in PersonId umbenannt und zum Typ string. Es korreliert verschiedene Datensätze zu einer Person und ist damit nicht mehr verlässlich eindeutig je Datensatz.
 Mehrere Datensätze entstehen bspw. bei auf mehrere Strukturen verteilten Mitarbeitern (zeitlich parallel) sowie bei Strukturwechsel, und Elternzeit in Verbindung mit zwischenzeitlicher geringfügiger Beschäftigung (zeitlich seriell).
+
+#### Mitarbeiterdatensatz.ArbeitsverhaeltnisId
+Id des Arbeitsverhältnisses des Mitarbeiters (P-PLUS Konzept Mitarbeiter)
 
 #### Mitarbeiterdatensatz.Titel
 Neues Feld Titel: string, dass Titel der Person als Text enthält.

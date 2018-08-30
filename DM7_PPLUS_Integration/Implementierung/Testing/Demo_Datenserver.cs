@@ -41,6 +41,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
                     var ma_neu = new Mitarbeiterdatensatz(
                         ma_alt.DatensatzId,
                         ma_alt.PersonId,
+                        ma_alt.ArbeitsverhaeltnisId,
                         ma_alt.Mandant,
                         ma_alt.Struktur,
                         ma_alt.Titel,
@@ -82,9 +83,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
         {
             var neuerMitarbeiter = new Mitarbeiterdatensatz(
                 Guid.NewGuid().ToString(),
-                Guid.NewGuid(),
+                Guid.NewGuid().ToString(),
+                Guid.NewGuid().ToString(),
                 1,
-                Guid.NewGuid(),
+                Guid.NewGuid().ToString(),
                 Auswahllisten_0.Titel.Kein,
                 Vorname(),
                 Nachname(),

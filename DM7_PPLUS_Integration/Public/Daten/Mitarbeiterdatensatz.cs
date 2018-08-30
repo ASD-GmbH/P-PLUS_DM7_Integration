@@ -9,11 +9,11 @@ namespace DM7_PPLUS_Integration.Daten
     public struct Mitarbeiterdatensatz
     {
 
-        //ReadOnlyCollection<int> mandant,
-        public Mitarbeiterdatensatz(string datensatzId, Guid personId, int mandant, Guid struktur, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, Datum? geburtstag, Guid familienstand, Guid konfession, Datum gueltigAb, Datum? gueltigBis, ReadOnlyCollection<Qualifikation> qualifikation, string handzeichen, string personalnummer, Guid geschlecht, ReadOnlyCollection<Kontakt> kontakte)
+        public Mitarbeiterdatensatz(string datensatzId, string personId, string arbeitsverhaeltnisId, int mandant, string struktur, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, Datum? geburtstag, Guid familienstand, Guid konfession, Datum gueltigAb, Datum? gueltigBis, ReadOnlyCollection<Qualifikation> qualifikation, string handzeichen, string personalnummer, Guid geschlecht, ReadOnlyCollection<Kontakt> kontakte)
         {
             DatensatzId = datensatzId;
             PersonId = personId;
+            ArbeitsverhaeltnisId = arbeitsverhaeltnisId;
             Mandant = mandant;
             Struktur = struktur;
             Titel = titel;
@@ -38,9 +38,14 @@ namespace DM7_PPLUS_Integration.Daten
         public readonly string DatensatzId;
 
         /// <summary>
-        /// Primärschlüssel
+        /// Id des Mitarbeiters (P-PLUS Entität Person)
         /// </summary>
-        public readonly Guid PersonId;
+        public readonly string PersonId;
+
+        /// <summary>
+        /// Id des Arbeitsverhältnisses (P-PLUS Entität Mitarbeiter)
+        /// </summary>
+        public readonly string ArbeitsverhaeltnisId;
 
         /// <summary>
         /// DM7 Mandanten, in P-PLUS repräsentiert als Strukturen auf denen der Mitarbeiter arbeitet.
@@ -48,9 +53,9 @@ namespace DM7_PPLUS_Integration.Daten
         public readonly int Mandant;
 
         /// <summary>
-        /// Struktur, für die der Datensatz gültig ist
+        /// Id der Struktur, für die der Datensatz gültig ist
         /// </summary>
-        public readonly Guid Struktur;
+        public readonly string Struktur;
 
         /// <summary>
         /// Titel des Mitarbeiters, muss ggf. in DM7 als Auswahllisteneintrag gepflegt werden
