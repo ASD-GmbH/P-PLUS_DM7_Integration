@@ -66,7 +66,7 @@ Wie behandeln wir mehrere (P-PLUS) Mandanten in der Integration.
 5. Submit a pull request :D
 
 ## Änderungen
-- 0.13 (t.b.d.): Grundlegende Änderungen
+- 0.13 (30.08.2018): Grundlegende Änderungen
 
 Überleitung der Stammdaten:
 Da eine Person mehrere Vertragsverhältnisse mit unterschiedlichen Personalnummern oder Strukturzuordnungen haben kann übergeben wir zukünftig je Person mehrere Datensätze mit 
@@ -100,23 +100,7 @@ Neues Feld Struktur: string, dass die P-PLUS Strukturexportnummer des Mitarbeite
 #### Mitarbeiterdatensatz.Eintritt/Mitarbeiterdatensatz.Austritt / Mitarbeiterdatensatz.GueltigAb/Mitarbeiterdatensatz.GueltigBis
 Die Felder Eintritt und Austritt werden jeweils in GueltigAb und GueltigBis umbenannt. Ihr Inhalt spiegelt die Anwendbarkeit der im Datensatz übertragenen Daten wieder. Dies kann, muss aber nicht auf Eintritt und Austritt beschränkt sein. So führt bspw. ein Strukturwechsel dazu, dass der bisherige Datensatz einen GueltigBis Wert der Vortags des Strukturwechsels bekommt und für die neue Struktur ein Datensatz mit GueltigAb Wert ab dem Tag des Strukturwechsels angelegt wird.
 
-#### Authentifizierung
-Beim Anmelden an P-PLUS muss ein API Key angegeben werden, der geheim zu halten ist.
 
-
-### Non-breaking Changes
-
-#### Exportbeschränkung
-P-PLUS exportiert in der die API Level 3 implementierenden Version (R-4xx t.b.d.) nur soche Datensätze, für deren Mitarbeiter und Struktur jeweils ein Export konfiguriert ist. Mitarbeiter mit einem Status (Elternzeit, Mutterschutz, Altersteilzeit?) werden nicht exportiert, solange der Status nicht durch ein weiteres Arbeitsverhältnis ergänzt wird.
-
-#### Kontaktdaten werden exportiert
-P-PLUS exportiert in der die API Level 3 implementierenden Version (R-4xx t.b.d.) Kontaktdaten entsprechend dem bestehenden Schema.
-
-#### Qualifikatinosdaten werden exportiert
-P-PLUS exportiert in der die API Level 3 implementierenden Version (R-4xx t.b.d.) Qualifikationsdaten entsprechend dem bestehenden Schema.
-
-#### Verschlüsselung
-Die Datenübertragung erfolgt verschlüsselt.
 
 - 0.12 (27.10.2017): Vollständige Serialisierung
 Die vollständige Serialisierung ist als API Level 2 implementiert.

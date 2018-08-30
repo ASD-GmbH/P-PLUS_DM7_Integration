@@ -13,7 +13,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
     /// <summary>
     /// Implementiert die API level 2 und übersetzt die Anfragen in API-Level-unabhängige Nachrichten
     /// </summary>
-    internal class API_Level_2_Proxy : DisposeGroupMember, DM7_PPLUS_API
+    internal class API_Level_3_Proxy : DisposeGroupMember, DM7_PPLUS_API
     {
         private const int API_LEVEL = 2;
 
@@ -24,7 +24,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         /// <summary>
         /// Implementiert die API level 2 und übersetzt die Anfragen in API-Level-unabhängige Nachrichten
         /// </summary>
-        public API_Level_2_Proxy(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung ebene2Proxy, int auswahllistenversion, Log log, DisposeGroup disposegroup) : base(disposegroup)
+        public API_Level_3_Proxy(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung ebene2Proxy, int auswahllistenversion, Log log, DisposeGroup disposegroup) : base(disposegroup)
         {
             _ebene_2_Proxy = ebene2Proxy;
             disposegroup.With(() =>

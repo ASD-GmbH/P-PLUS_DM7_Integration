@@ -10,7 +10,7 @@ namespace DM7_PPLUS_Integration.Daten
     {
 
         //ReadOnlyCollection<int> mandant,
-        public Mitarbeiterdatensatz(string datensatzId, Guid personId, int mandant, Guid struktur, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, Datum? geburtstag, Guid familienstand, Guid konfession, Datum eintritt, Datum? austritt, ReadOnlyCollection<Qualifikation> qualifikation, string handzeichen, string personalnummer, Guid geschlecht, ReadOnlyCollection<Kontakt> kontakte)
+        public Mitarbeiterdatensatz(string datensatzId, Guid personId, int mandant, Guid struktur, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, Datum? geburtstag, Guid familienstand, Guid konfession, Datum gueltigAb, Datum? gueltigBis, ReadOnlyCollection<Qualifikation> qualifikation, string handzeichen, string personalnummer, Guid geschlecht, ReadOnlyCollection<Kontakt> kontakte)
         {
             DatensatzId = datensatzId;
             PersonId = personId;
@@ -23,8 +23,8 @@ namespace DM7_PPLUS_Integration.Daten
             Geburtstag = geburtstag;
             Familienstand = familienstand;
             Konfession = konfession;
-            Eintritt = eintritt;
-            Austritt = austritt;
+            GueltigAb = gueltigAb;
+            GueltigBis = gueltigBis;
             Qualifikation = qualifikation;
             Handzeichen = handzeichen;
             Personalnummer = personalnummer;
@@ -90,12 +90,12 @@ namespace DM7_PPLUS_Integration.Daten
         /// <summary>
         /// Eintrittsdatum des Mitarbeiters
         /// </summary>
-        public readonly Datum Eintritt;
+        public readonly Datum GueltigAb;
 
         /// <summary>
         /// Austrittsdatum des Mitarbeiters
         /// </summary>
-        public readonly Datum? Austritt;
+        public readonly Datum? GueltigBis;
 
         /// <summary>
         /// Qualifikation des Mitarbeiters, muss ggf. in DM7 als Auswahllisteneintrag gepflegt werden

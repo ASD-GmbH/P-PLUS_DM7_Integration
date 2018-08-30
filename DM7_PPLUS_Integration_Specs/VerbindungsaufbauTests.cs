@@ -21,7 +21,7 @@ namespace DM7_PPLUS_Integration_Specs
             var cancellationToken_Verbindung = cancellationTokenSource.Token;
 
             cancel = () => { cancellationTokenSource.Cancel(); };
-            return TestConnector.Instance_API_Level_2(netzwerkadresse, new TestLog("[client] "), cancellationToken_Verbindung);
+            return TestConnector.Instance_API_Level_3(netzwerkadresse, new TestLog("[client] "), cancellationToken_Verbindung);
         }
 
 
