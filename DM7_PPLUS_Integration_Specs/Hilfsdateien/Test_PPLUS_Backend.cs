@@ -44,9 +44,10 @@ namespace DM7_PPLUS_Integration_Specs
             return
                 new Mitarbeiterdatensatz(
                     Guid.NewGuid().ToString(),
-                    Guid.NewGuid(),
+                    Guid.NewGuid().ToString(),
+                    Guid.NewGuid().ToString(),
                     mandant,
-                    Guid.NewGuid(),
+                    Guid.NewGuid().ToString(),
                     Auswahllisten_0.Titel.Kein,
                     name,
                     nachname,

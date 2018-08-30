@@ -172,6 +172,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         {
             yield return Serialize(mitarbeiter.DatensatzId);
             yield return Serialize(mitarbeiter.PersonId);
+            yield return Serialize(mitarbeiter.ArbeitsverhaeltnisId);
             yield return Serialize(mitarbeiter.Mandant);
             yield return Serialize(mitarbeiter.Struktur);
             yield return Serialize(mitarbeiter.Titel);
