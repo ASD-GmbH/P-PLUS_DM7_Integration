@@ -216,8 +216,39 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         private static byte[] Serialize(int value) => BitConverter.GetBytes(value);
         private static byte[] Serialize(string text) => PrependLength(Encoding.UTF8.GetBytes(text));
         private static byte[] Serialize(ReadOnlyCollection<int> mandanten) => BitConverter.GetBytes(mandanten.Count).Concat(mandanten.SelectMany(BitConverter.GetBytes)).ToArray();
-        private static byte[] Serialize(ReadOnlyCollection<Kontakt> kontakte) => new byte[0];
-        private static byte[] Serialize(ReadOnlyCollection<Qualifikation> qualifikationen) => new byte[0];
+        private static byte[] Serialize(ReadOnlyCollection<Kontakt> kontakte)
+        {
+            using (var stream = new MemoryStream())
+            {
+                stream.Write(BitConverter.GetBytes(kontakte.Count), 0, 4);
+
+                foreach (var kontakt in kontakte)
+                {
+                    stream.Write(kontakt.Kontaktart.ToByteArray(), 0, 16);
+                    stream.Write(kontakt.Kontaktform.ToByteArray(), 0, 16);
+                    stream.WriteStringWithLengthPrefix(kontakt.Eintrag);
+                }
+
+                return stream.ToArray();
+            }
+        }
+
+        private static byte[] Serialize(ReadOnlyCollection<Qualifikation> qualifikationen)
+        {
+            using (var stream = new MemoryStream())
+            {
+                stream.Write(BitConverter.GetBytes(qualifikationen.Count), 0, 4);
+
+                foreach (var quali in qualifikationen)
+                {
+                    stream.Write(BitConverter.GetBytes(quali.Stufe), 0, 4);
+                    stream.WriteStringWithLengthPrefix(quali.Bezeichnung);
+                }
+
+                return stream.ToArray();
+            }
+        }
+
         private static byte[] Serialize(Datum? datum) =>
             PrependLength(
                 Encoding.UTF8.GetBytes(

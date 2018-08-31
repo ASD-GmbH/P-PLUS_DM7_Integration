@@ -163,7 +163,19 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         private static ReadOnlyCollection<Kontakt> Deserialize_Kontakte(byte[] data, ref int position)
         {
-            return new ReadOnlyCollection<Kontakt>(new List<Kontakt>());
+            var anzahl = Deserialize_Int(data, ref position);
+
+            var result = new List<Kontakt>();
+
+            for (int i = 0; i < anzahl; i++)
+            {
+                var art = Deserialize_Guid(data, ref position);
+                var form = Deserialize_Guid(data, ref position);
+                var eintrag = Deserialize_String(data, ref position);
+                result.Add(new Kontakt(art, form, eintrag));
+            }
+
+            return new ReadOnlyCollection<Kontakt>(result);
         }
 
         private static ReadOnlyCollection<int> Deserialize_Mandanten(byte[] data, ref int position)
@@ -182,7 +194,18 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         private static ReadOnlyCollection<Qualifikation> Deserialize_Qualifikationen(byte[] data, ref int position)
         {
-            return new ReadOnlyCollection<Qualifikation>(new List<Qualifikation>());
+            var anzahl = Deserialize_Int(data, ref position);
+
+            var result = new List<Qualifikation>();
+
+            for (int i = 0; i < anzahl; i++)
+            {
+                var stufe = Deserialize_Int(data, ref position);
+                var beschreibung = Deserialize_String(data, ref position);
+                result.Add(new Qualifikation(stufe, beschreibung));
+            }
+
+            return new ReadOnlyCollection<Qualifikation>(result);
         }
 
         private static Datum? Deserialize_Nullable_Datum(byte[] data, ref int position)
