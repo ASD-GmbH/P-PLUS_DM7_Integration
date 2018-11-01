@@ -135,7 +135,10 @@ namespace DM7_PPLUS_Integration_Specs
             var server = new Test_PPLUS_Backend(auswahllistenversion);
             var log = new TestLog("[server] ");
 
-            Action start = () => { _host = DM7_PPLUS_Host.Starten(server, "tcp://127.0.0.1", port, log, ex => Assert.Fail(ex.ToString())); };
+            var privatekey = CryptoService.GenerateRSAKeyPair();
+            var publickey = CryptoService.GetPublicKey(privatekey);
+
+            Action start = () => { _host = DM7_PPLUS_Host.Starten(server, "tcp://127.0.0.1", port, privatekey, log, ex => Assert.Fail(ex.ToString())); };
             start();
             _reset = () =>
             {
@@ -144,7 +147,7 @@ namespace DM7_PPLUS_Integration_Specs
                 start();
             };
 
-            _proxy = PPLUS.Connect("tcp://127.0.0.1:" + port, new TestLog("[client] "), CancellationToken.None).Result;
+            _proxy = PPLUS.Connect($"tcp://127.0.0.1:{port}|{publickey}", new TestLog("[client] "), CancellationToken.None).Result;
             Setup_Testframework(_proxy, server);
         }
 

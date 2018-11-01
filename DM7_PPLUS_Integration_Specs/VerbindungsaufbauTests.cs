@@ -29,7 +29,8 @@ namespace DM7_PPLUS_Integration_Specs
         public void Verbindungsaufbau_kann_abgebrochen_werden__Modell_1_Timeout()
         {
             Action cancel;
-            var task = Verbindungsaufbau_1_async("tcp://127.0.0.1:4711", out cancel);
+            var dummykey = CryptoService.GetPublicKey(CryptoService.GenerateRSAKeyPair());
+            var task = Verbindungsaufbau_1_async("tcp://127.0.0.1:4711|"+dummykey, out cancel);
             task.Wait(TimeSpan.FromMilliseconds(100));
             Warte_auf_Konsistenz();
             cancel();

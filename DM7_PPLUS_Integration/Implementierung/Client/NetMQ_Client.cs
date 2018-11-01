@@ -22,15 +22,25 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         /// <summary>
         ///  Sendet serialisierte Nachrichten über ZeroMQ an NetMQ_Server
         /// </summary>
-        public NetMQ_Client(string networkaddress, /*byte[] publicKey, */Log log, DisposeGroup disposegroup, CancellationToken cancellationToken_Verbindung) : base(disposegroup)
+        public NetMQ_Client(string networkaddress, Log log, DisposeGroup disposegroup, CancellationToken cancellationToken_Verbindung) : base(disposegroup)
         {
             _log = log;
 
+            var parts = networkaddress.Split('|');
+
+            networkaddress = parts[0];
+            if (parts.Length!=2) throw new ArgumentException("P-PLUS DM7 NETMQ Host Netzwerkadresse enthält kein Zertifikat", nameof(networkaddress));
+            var publicKey = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(parts[1]));
+            
             using (var aes = new AesManaged())
             {
                 aes.GenerateKey();
                 _key = aes.Key;
-                _encryptedKey = aes.Key; // TODO RELEASE: implement RSA encryption
+                using (var rsa = new RSACryptoServiceProvider())
+                {
+                    rsa.FromXmlString(publicKey);
+                    _encryptedKey = rsa.Encrypt(_key, false);
+                }
             }
 
             _notifications = new Subject<byte[]>();

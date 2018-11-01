@@ -23,7 +23,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         private static readonly List<int> API_LEVELS = new List<int> {1,3};
 
-        private DM7_PPLUS_Host(PPLUS_Backend backend, Action<Exception> onError, Log log, string hostaddress, int port, List<int> apiLevels)
+        private DM7_PPLUS_Host(PPLUS_Backend backend, Action<Exception> onError, Log log, string hostaddress, int port, string privateKey, List<int> apiLevels)
         {
             log.Info("DM7/P-PLUS Integrationsschnittstelle - " + Version.VersionString);
 
@@ -42,7 +42,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
             if (hostaddress.StartsWith("tcp://"))
             {
-                NetMQ_Server.Start(Ebene_3_Service, Ebene_3_Data, $"{hostaddress}:{port}", log, _disposegroup);
+                NetMQ_Server.Start(Ebene_3_Service, Ebene_3_Data, $"{hostaddress}:{port}", privateKey, log, _disposegroup);
             }
 
             new Thread(() =>
@@ -52,14 +52,14 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             }).Start();
         }
 
-        public static DM7_PPLUS_Host Starten(PPLUS_Backend backend, string hostname, int port, Log log, Action<Exception> onError)
+        public static DM7_PPLUS_Host Starten(PPLUS_Backend backend, string hostname, int port, string privateKey, Log log, Action<Exception> onError)
         {
-            return new DM7_PPLUS_Host(backend, onError, log, hostname, port, API_LEVELS);
+            return new DM7_PPLUS_Host(backend, onError, log, hostname, port, privateKey, API_LEVELS);
         }
 
         public static DM7_PPLUS_Host Starten(PPLUS_Backend backend, Log log, Action<Exception> onError, IEnumerable<int> levels = null)
         {
-            return new DM7_PPLUS_Host(backend, onError, log, "", 0, (levels ?? API_LEVELS).ToList());
+            return new DM7_PPLUS_Host(backend, onError, log, "", 0, "", (levels ?? API_LEVELS).ToList());
         }
 
         public void Dispose()

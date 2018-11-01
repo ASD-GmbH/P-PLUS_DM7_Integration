@@ -54,5 +54,22 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 return result.ToArray();
             }
         }
+
+        public static string GenerateRSAKeyPair()
+        {
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                return System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(rsa.ToXmlString(true)));
+            }
+        }
+
+        public static string GetPublicKey(string privatekey)
+        {
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                rsa.FromXmlString(System.Text.Encoding.UTF8.GetString(System.Convert.FromBase64String(privatekey)));
+                return System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(rsa.ToXmlString(false)));
+            }
+        }
     }
 }

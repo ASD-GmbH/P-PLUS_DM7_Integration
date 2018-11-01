@@ -1,4 +1,6 @@
-﻿using DM7_PPLUS_Integration.Implementierung.Protokoll;
+﻿using System;
+using System.Security.Cryptography;
+using DM7_PPLUS_Integration.Implementierung.Protokoll;
 using DM7_PPLUS_Integration.Implementierung.Shared;
 using NetMQ;
 using NetMQ.Sockets;
@@ -13,18 +15,26 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         private readonly Ebene_3_Protokoll__Data _backend;
         private readonly Ebene_3_Protokoll__Service _service;
         private readonly Log _log;
+        private readonly RSAParameters _rsakey;
 
         /// <summary>
         /// Empfängt serialisierte Nachrichten über ZeroMQ und gibt sie weiter an das Backend
         /// </summary>
-        public static void Start(Ebene_3_Protokoll__Service service, Ebene_3_Protokoll__Data backend, string connectionstring, Log log, DisposeGroup disposegroup)
+        public static void Start(Ebene_3_Protokoll__Service service, Ebene_3_Protokoll__Data backend, string connectionstring, string privateKey, Log log, DisposeGroup disposegroup)
         {
             // ReSharper disable once ObjectCreationAsStatement
-            new NetMQ_Server(service, backend, connectionstring, log, disposegroup);
+            new NetMQ_Server(service, backend, connectionstring, privateKey, log, disposegroup);
         }
-        private NetMQ_Server(Ebene_3_Protokoll__Service service, Ebene_3_Protokoll__Data backend, string connectionstring, Log log, DisposeGroup disposegroup) : base(disposegroup)
+        private NetMQ_Server(Ebene_3_Protokoll__Service service, Ebene_3_Protokoll__Data backend, string connectionstring, string privateKey, Log log, DisposeGroup disposegroup) : base(disposegroup)
         {
             disposegroup.With(() => _log.Info("NetMQ Server wurde beendet."));
+
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                var xml = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(privateKey));
+                rsa.FromXmlString(xml);
+                _rsakey = rsa.ExportParameters(true);
+            }
 
             _log = log;
             _backend = backend;
@@ -136,9 +146,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         private byte[] DecryptKey(byte[] encryptedKey)
         {
-            // TODO RELEASE: decrypt key using rsa private key
             // TODO RELEASE: cache rsa decrypted keys
-            return encryptedKey;
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                rsa.ImportParameters(_rsakey);
+                return rsa.Decrypt(encryptedKey, false);
+            }
         }
 
         private void Guard_unsupported_protocol(int protocol)

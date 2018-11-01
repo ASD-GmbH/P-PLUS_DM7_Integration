@@ -31,11 +31,13 @@ namespace PPLUS_Demo_Server
             int intervall;
             if (args.Length < 2 || !Int32.TryParse(args[1], out intervall)) intervall = 60;
 
+            var privatekey = CryptoService.GenerateRSAKeyPair();
+            var publickey = CryptoService.GetPublicKey(privatekey);
 
             var backend = new Demo_Datenserver(log, TimeSpan.FromSeconds(intervall));
-            var host = DM7_PPLUS_Host.Starten(backend, hostaddress, port, log, log.OnError);
+            var host = DM7_PPLUS_Host.Starten(backend, hostaddress, port, privatekey, log, log.OnError);
 
-            log.Info($"Demoserver wurde gestartet ({hostaddress}).");
+            log.Info($"Demoserver wurde gestartet ({hostaddress}|{publickey}).");
 
             var sub =
                 host.Ebene_1_API_Level_1.Stand_Mitarbeiterdaten.Subscribe(new Observer<Stand>(stand =>
