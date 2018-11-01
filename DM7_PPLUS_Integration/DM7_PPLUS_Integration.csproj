@@ -55,6 +55,7 @@
     <Compile Include="Implementierung\Client\LoopbackFactory.cs" />
     <Compile Include="Implementierung\Server\API_Level_1_Adapter.cs" />
     <Compile Include="Implementierung\Server\Constants.cs" />
+    <Compile Include="Implementierung\Server\CryptoService.cs" />
     <Compile Include="Implementierung\Server\DM7_PPLUS_Host.cs" />
     <Compile Include="Implementierung\Client\NetMQ_Client.cs" />
     <Compile Include="Implementierung\Server\Service_Adapter.cs" />

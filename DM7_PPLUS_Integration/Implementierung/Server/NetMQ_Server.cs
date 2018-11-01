@@ -66,7 +66,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             var subscription = backend.Notifications.Subscribe(new Observer<byte[]>(
                 notification =>
                 {
-                    publisherSocket.SendFrame(new byte[] {Constants.NETMQ_WIREPROTOCOL_1}, true);
+                    publisherSocket.SendFrame(new byte[] {Constants.NETMQ_WIREPROTOCOL_2}, true);
+                    // TODO RELEASE: implement encryption
                     publisherSocket.SendFrame(notification);
                 },
                 ex => { throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex); }));
@@ -98,34 +99,51 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             _log.Debug("NetMQ Nachricht wird gelesen...");
             var data = e.Socket.ReceiveFrameBytes();
             Guard_unsupported_protocol(data[0]);
-            switch (data[1])
+
+            var key = DecryptKey(e.Socket.ReceiveFrameBytes());
+            var iv = e.Socket.ReceiveFrameBytes();
+
+            using (var aes = new CryptoService(key, iv))
             {
-                case Constants.CHANNEL_1_SERVICE:
+
+                switch (data[1])
                 {
-                    var request = e.Socket.ReceiveFrameBytes();
-                    _log.Debug($"NetMQ Service Request ({request.Length} bytes)...");
-                    var response = _service.ServiceRequest(request).Result;
-                    _log.Debug($"NetMQ Response ({response.Length} bytes)...");
-                    e.Socket.SendFrame(response);
+                    case Constants.CHANNEL_1_SERVICE:
+                    {
+                        var request = aes.Decrypt(e.Socket.ReceiveFrameBytes());
+                        _log.Debug($"NetMQ Service Request ({request.Length} bytes)...");
+                        var response = _service.ServiceRequest(request).Result;
+                        _log.Debug($"NetMQ Response ({response.Length} bytes)...");
+                        e.Socket.SendFrame(aes.Encrypt(response));
+                        break;
+                    }
+
+                    case Constants.CHANNEL_2_DATA:
+                    {
+                        var request = aes.Decrypt(e.Socket.ReceiveFrameBytes());
+                        _log.Debug($"NetMQ Data Request ({request.Length} bytes)...");
+                        var response = _backend.Request(request).Result;
+                        _log.Debug($"NetMQ Response ({response.Length} bytes)...");
+                        e.Socket.SendFrame(aes.Encrypt(response));
+                        break;
+                    }
+
+                    default:
+                        throw new ConnectionErrorException($"Unbekannter NetMQ Server Kanal: {data[0].ToString()}");
                 }
-                    break;
-                case Constants.CHANNEL_2_DATA:
-                {
-                    var request = e.Socket.ReceiveFrameBytes();
-                    _log.Debug($"NetMQ Data Request ({request.Length} bytes)...");
-                    var response = _backend.Request(request).Result;
-                    _log.Debug($"NetMQ Response ({response.Length} bytes)...");
-                    e.Socket.SendFrame(response);
-                }
-                    break;
-                default:
-                    throw new ConnectionErrorException($"Unbekannter NetMQ Server Kanal: {data[0].ToString()}");
             }
+        }
+
+        private byte[] DecryptKey(byte[] encryptedKey)
+        {
+            // TODO RELEASE: decrypt key using rsa private key
+            // TODO RELEASE: cache rsa decrypted keys
+            return encryptedKey;
         }
 
         private void Guard_unsupported_protocol(int protocol)
         {
-            if (protocol != Constants.NETMQ_WIREPROTOCOL_1) throw new UnsupportedVersionException($"NetMQ Protokoll Version {protocol.ToString()} wird von dieser P-PLUS Version nicht unterstützt.");
+            if (protocol != Constants.NETMQ_WIREPROTOCOL_2) throw new UnsupportedVersionException($"NetMQ Protokoll Version {protocol.ToString()} wird von dieser P-PLUS Version nicht unterstützt.");
         }
     }
 

@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
@@ -12,17 +14,25 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
     internal class NetMQ_Client : DisposeGroupMember, Ebene_3_Protokoll__Data, Ebene_3_Protokoll__Service
     {
         private readonly Log _log;
-        private RequestSocket _request_socket;
+        private readonly RequestSocket _request_socket;
         private readonly Subject<byte[]> _notifications;
-        private SubscriberSocket _subscriber_socket;
-        private NetMQPoller _poller;
+        private readonly byte[] _key;
+        private readonly byte[] _encryptedKey;
 
         /// <summary>
         ///  Sendet serialisierte Nachrichten über ZeroMQ an NetMQ_Server
         /// </summary>
-        public NetMQ_Client(string networkaddress, Log log, DisposeGroup disposegroup, CancellationToken cancellationToken_Verbindung) : base(disposegroup)
+        public NetMQ_Client(string networkaddress, /*byte[] publicKey, */Log log, DisposeGroup disposegroup, CancellationToken cancellationToken_Verbindung) : base(disposegroup)
         {
             _log = log;
+
+            using (var aes = new AesManaged())
+            {
+                aes.GenerateKey();
+                _key = aes.Key;
+                _encryptedKey = aes.Key; // TODO RELEASE: implement RSA encryption
+            }
+
             _notifications = new Subject<byte[]>();
 
             _log.Debug($"NetMQ Request Socket ({networkaddress}) wird verbunden.");
@@ -36,24 +46,24 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
             var next_available_port = NetMQ_Server.Next_available_port(networkaddress);
             _log.Debug($"NetMQ Subscriber Socket ({next_available_port}) wird verbunden.");
-            _subscriber_socket = new SubscriberSocket(next_available_port);
-            _subscriber_socket.Subscribe("");
-            _subscriber_socket.ReceiveReady += _subscriber_socket_receive_ready;
+            var subscriberSocket = new SubscriberSocket(next_available_port);
+            subscriberSocket.Subscribe("");
+            subscriberSocket.ReceiveReady += _subscriber_socket_receive_ready;
             disposegroup.With(() =>
             {
                 _log.Debug("NetMQ Subscriber Socket wird geschlossen...");
-                _subscriber_socket.Dispose();
+                subscriberSocket.Dispose();
                 _log.Debug("NetMQ Subscriber Socket geschlossen.");
             });
 
-            _poller = new NetMQPoller {_subscriber_socket};
-            _poller.RunAsync();
+            var poller = new NetMQPoller {subscriberSocket};
+            poller.RunAsync();
             disposegroup.With(() =>
             {
                 _log.Debug("NetMQ Poller wird angehalten...");
-                _poller.Stop();
+                poller.Stop();
                 _log.Debug("NetMQ Poller wird geschlossen...");
-                _poller.Dispose();
+                poller.Dispose();
             });
 
             cancellationToken_Verbindung.Register(disposegroup.Dispose);
@@ -71,7 +81,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         private void Guard_unsupported_protocol(int protocol)
         {
-            if (protocol != Constants.NETMQ_WIREPROTOCOL_1) throw new UnsupportedVersionException($"NetMQ Protokoll Version {protocol.ToString()} wird von dieser P-PLUS Version nicht unterstützt.");
+            if (protocol != Constants.NETMQ_WIREPROTOCOL_2) throw new UnsupportedVersionException($"NetMQ Protokoll Version {protocol.ToString()} wird von dieser P-PLUS Version nicht unterstützt.");
         }
 
 
@@ -89,12 +99,17 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         {
             var task = new Task<byte[]>(() =>
             {
-                _log.Debug($"NetMQ sende Request (channel {channel}, {request.Length} bytes)...");
-                _request_socket.SendFrame(new byte[] {Constants.NETMQ_WIREPROTOCOL_1, channel}, true);
-                _request_socket.SendFrame(request);
-                var response = _request_socket.ReceiveFrameBytes();
-                _log.Debug($"NetMQ Response empfangen ({response.Length} bytes)...");
-                return response;
+                using (var aes = new CryptoService(_key))
+                {
+                    _log.Debug($"NetMQ sende Request (channel {channel}, {request.Length} bytes)...");
+                    _request_socket.SendFrame(new byte[] {Constants.NETMQ_WIREPROTOCOL_2, channel}, true);
+                    _request_socket.SendFrame(_encryptedKey, true);
+                    _request_socket.SendFrame(aes.IV, true);
+                    _request_socket.SendFrame(aes.Encrypt(request));
+                    var response = aes.Decrypt(_request_socket.ReceiveFrameBytes());
+                    _log.Debug($"NetMQ Response empfangen ({response.Length} bytes)...");
+                    return response;
+                }
             });
             task.RunSynchronously();
             return task;

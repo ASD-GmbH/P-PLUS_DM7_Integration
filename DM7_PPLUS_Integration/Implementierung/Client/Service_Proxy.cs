@@ -23,7 +23,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             return
                 _client.ServiceRequest(new List<byte[]>
                 {
-                    new byte[] {1, 1},
+                    new byte[] { Constants.SERVICE_PROTOCOL_1, Constants.SERVICE_CONNECT },
                     BitConverter.GetBytes(maxApiLevel),
                     BitConverter.GetBytes(minApiLevel),
                     BitConverter.GetBytes(loginbuffer.Length),

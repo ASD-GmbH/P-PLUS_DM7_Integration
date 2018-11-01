@@ -2,7 +2,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 {
     internal static class Constants
     {
-        public const int NETMQ_WIREPROTOCOL_1 = 1;
+        public const int NETMQ_WIREPROTOCOL_2 = 2;
+
         public const int NETMQ_NOTIFICATIONPROTOCOL_1 = 1;
         public const int CHANNEL_1_SERVICE = 1;
         public const int CHANNEL_2_DATA = 2;
