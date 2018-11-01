@@ -107,40 +107,54 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         private void _response_socket_ReceiveReady(object sender, NetMQSocketEventArgs e)
         {
             _log.Debug("NetMQ Nachricht wird gelesen...");
-            var data = e.Socket.ReceiveFrameBytes();
-            Guard_unsupported_protocol(data[0]);
 
-            var key = DecryptKey(e.Socket.ReceiveFrameBytes());
-            var iv = e.Socket.ReceiveFrameBytes();
 
-            using (var aes = new CryptoService(key, iv))
+            try
             {
 
-                switch (data[1])
+                var data = e.Socket.ReceiveFrameBytes();
+                Guard_unsupported_protocol(data[0]);
+
+                var key = DecryptKey(e.Socket.ReceiveFrameBytes());
+                var iv = e.Socket.ReceiveFrameBytes();
+
+                using (var aes = new CryptoService(key, iv))
                 {
-                    case Constants.CHANNEL_1_SERVICE:
-                    {
-                        var request = aes.Decrypt(e.Socket.ReceiveFrameBytes());
-                        _log.Debug($"NetMQ Service Request ({request.Length} bytes)...");
-                        var response = _service.ServiceRequest(request).Result;
-                        _log.Debug($"NetMQ Response ({response.Length} bytes)...");
-                        e.Socket.SendFrame(aes.Encrypt(response));
-                        break;
-                    }
 
-                    case Constants.CHANNEL_2_DATA:
+                    switch (data[1])
                     {
-                        var request = aes.Decrypt(e.Socket.ReceiveFrameBytes());
-                        _log.Debug($"NetMQ Data Request ({request.Length} bytes)...");
-                        var response = _backend.Request(request).Result;
-                        _log.Debug($"NetMQ Response ({response.Length} bytes)...");
-                        e.Socket.SendFrame(aes.Encrypt(response));
-                        break;
-                    }
+                        case Constants.CHANNEL_1_SERVICE:
+                        {
+                            var request = aes.Decrypt(e.Socket.ReceiveFrameBytes());
+                            _log.Debug($"NetMQ Service Request ({request.Length} bytes)...");
+                            var response = _service.ServiceRequest(request).Result;
+                            _log.Debug($"NetMQ Response ({response.Length} bytes)...");
+                            e.Socket.SendFrame(aes.Encrypt(response));
+                            break;
+                        }
 
-                    default:
-                        throw new ConnectionErrorException($"Unbekannter NetMQ Server Kanal: {data[0].ToString()}");
+                        case Constants.CHANNEL_2_DATA:
+                        {
+                            var request = aes.Decrypt(e.Socket.ReceiveFrameBytes());
+                            _log.Debug($"NetMQ Data Request ({request.Length} bytes)...");
+                            var response = _backend.Request(request).Result;
+                            _log.Debug($"NetMQ Response ({response.Length} bytes)...");
+                            e.Socket.SendFrame(aes.Encrypt(response));
+                            break;
+                        }
+
+                        default:
+                            throw new ConnectionErrorException($"Unbekannter NetMQ Server Kanal: {data[0].ToString()}");
+                    }
                 }
+            }
+            catch (System.Security.Cryptography.CryptographicException ex)
+            {
+                _log.Info($"Fehler beim Bearbeiten einer Anfrage: Ungültiger Schlüssel.");
+            }
+            catch (Exception ex)
+            {
+                _log.Info($"Fehler beim Bearbeiten einer Anfrage: {ex.Message}.\r\n\r\n{ex.ToString()}");
             }
         }
 
