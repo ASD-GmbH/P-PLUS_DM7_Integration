@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
 using DM7_PPLUS_Integration.Implementierung.Shared;
@@ -108,15 +109,16 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         {
             _log.Debug("NetMQ Nachricht wird gelesen...");
 
+            var frames = new Queue<byte[]>(e.Socket.ReceiveMultipartBytes());
 
             try
             {
 
-                var data = e.Socket.ReceiveFrameBytes();
+                var data = frames.Dequeue();
                 Guard_unsupported_protocol(data[0]);
 
-                var key = DecryptKey(e.Socket.ReceiveFrameBytes());
-                var iv = e.Socket.ReceiveFrameBytes();
+                var key = DecryptKey(frames.Dequeue());
+                var iv = frames.Dequeue();
 
                 using (var aes = new CryptoService(key, iv))
                 {
@@ -125,22 +127,56 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                     {
                         case Constants.CHANNEL_1_SERVICE:
                         {
-                            var request = aes.Decrypt(e.Socket.ReceiveFrameBytes());
-                            _log.Debug($"NetMQ Service Request ({request.Length} bytes)...");
-                            var response = _service.ServiceRequest(request).Result;
-                            _log.Debug($"NetMQ Response ({response.Length} bytes)...");
-                            e.Socket.SendFrame(aes.Encrypt(response));
+                            var request = aes.Decrypt(frames.Dequeue());
+                            try
+                            {
+                                _log.Debug($"NetMQ Service Request ({request.Length} bytes)...");
+                                var response = _service.ServiceRequest(request).Result;
+                                _log.Debug($"NetMQ Response ({response.Length} bytes)...");
+                                e.Socket.SendFrame(aes.Encrypt(response));
+                            }
+                            catch (Exception ex)
+                            {
+                                var error = $"Fehler beim Bearbeiten eines Service-Requests: {ex.Message}";
+                                _log.Info($"{error}\r\n{ex.ToString()}");
+                                var info = System.Text.Encoding.UTF8.GetBytes(error);
+                                var response = new List<byte[]>
+                                {
+                                    new byte[] {Constants.CONNECTION_RESPONSE_FAILURE},
+                                    BitConverter.GetBytes((int) ConnectionFailure.Internal_Server_Error),
+                                    BitConverter.GetBytes(info.Length),
+                                    info
+                                }.Concat();
+                                e.Socket.SendFrame(aes.Encrypt(response));
+                            }
                             break;
                         }
 
                         case Constants.CHANNEL_2_DATA:
                         {
-                            var request = aes.Decrypt(e.Socket.ReceiveFrameBytes());
-                            _log.Debug($"NetMQ Data Request ({request.Length} bytes)...");
-                            var response = _backend.Request(request).Result;
-                            _log.Debug($"NetMQ Response ({response.Length} bytes)...");
-                            e.Socket.SendFrame(aes.Encrypt(response));
-                            break;
+                            var request = aes.Decrypt(frames.Dequeue());
+                            try
+                            {
+                                _log.Debug($"NetMQ Data Request ({request.Length} bytes)...");
+                                var response = _backend.Request(request).Result;
+                                _log.Debug($"NetMQ Response ({response.Length} bytes)...");
+                                e.Socket.SendFrame(aes.Encrypt(response));
+                            }
+                            catch (Exception ex)
+                            {
+                                var error = $"Fehler beim Bearbeiten eines Data-Requests: {ex.Message}";
+                                _log.Info($"{error}\r\n{ex.ToString()}");
+                                var info = System.Text.Encoding.UTF8.GetBytes(error);
+                                var response = new List<byte[]>
+                                {
+                                    new byte[] {Constants.CONNECTION_RESPONSE_FAILURE},
+                                    BitConverter.GetBytes((int) ConnectionFailure.Internal_Server_Error),
+                                    BitConverter.GetBytes(info.Length),
+                                    info
+                                }.Concat();
+                                e.Socket.SendFrame(aes.Encrypt(response));
+                            }
+                                break;
                         }
 
                         default:
@@ -150,11 +186,16 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             }
             catch (System.Security.Cryptography.CryptographicException ex)
             {
-                _log.Info($"Fehler beim Bearbeiten einer Anfrage: Ungültiger Schlüssel.");
+                var info = $"Fehler beim Bearbeiten einer Anfrage: Ungültiger Schlüssel.";
+
+                _log.Info(info);
+
+                e.Socket.SendFrame(new byte[] { 9, 9, 9 });
             }
             catch (Exception ex)
             {
                 _log.Info($"Fehler beim Bearbeiten einer Anfrage: {ex.Message}.\r\n\r\n{ex.ToString()}");
+                e.Socket.SendFrame(new byte[] { 9, 9, 0 });
             }
         }
 

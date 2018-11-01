@@ -116,7 +116,18 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     _request_socket.SendFrame(_encryptedKey, true);
                     _request_socket.SendFrame(aes.IV, true);
                     _request_socket.SendFrame(aes.Encrypt(request));
-                    var response = aes.Decrypt(_request_socket.ReceiveFrameBytes());
+                    var data = _request_socket.ReceiveFrameBytes();
+                    if (data.Length == 3 && data[0] == 9 && data[1] == 9)
+                    {
+                        var error = "Server Fehler: #" + data[2];
+                        if (data[2] == 9)
+                        {
+                            error = "Server Fehler: falscher Übertragungsschlüssel!";
+                        }
+                        _log.Info(error);
+                        throw new ApplicationException(error);
+                    }
+                    var response = aes.Decrypt(data);
                     _log.Debug($"NetMQ Response empfangen ({response.Length} bytes)...");
                     return response;
                 }

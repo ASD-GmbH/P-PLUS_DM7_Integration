@@ -32,6 +32,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         }
         private ConnectionResult Deserialize(byte[] response)
         {
+            if (response.Length == 0)
+            {
+                return new ConnectionFailed(ConnectionFailure.Unsupported_Connection_Protocol, $"Empty Response");
+            }
+
             if (response[0] == Constants.CONNECTION_RESPONSE_OK)
             {
                 var apilevel = BitConverter.ToInt32(response, 1);
