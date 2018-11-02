@@ -106,7 +106,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         private void Guard_unsupported_protocol(int protocol)
         {
-            if (protocol != Constants.NETMQ_WIREPROTOCOL_2) throw new UnsupportedVersionException($"NetMQ Protokoll Version {protocol.ToString()} wird von dieser P-PLUS Version nicht unterstützt.");
+            if (protocol != Constants.NETMQ_NOTIFICATIONPROTOCOL_2) throw new UnsupportedVersionException($"NetMQ Protokoll Version {protocol.ToString()} wird von dieser P-PLUS Version nicht unterstützt.");
         }
 
 

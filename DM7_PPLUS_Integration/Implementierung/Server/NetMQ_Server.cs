@@ -81,7 +81,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             var subscription = backend.Notifications.Subscribe(new Observer<byte[]>(
                 notification =>
                 {
-                    publisherSocket.SendFrame(new byte[] {Constants.NETMQ_WIREPROTOCOL_2}, true);
+                    publisherSocket.SendFrame(new byte[] {Constants.NETMQ_NOTIFICATIONPROTOCOL_2}, true);
                     publisherSocket.SendFrame(notification, true);
                     using (var data = new MemoryStream(notification))
                     using (var rsa = new RSACryptoServiceProvider())
