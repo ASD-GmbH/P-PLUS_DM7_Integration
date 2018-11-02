@@ -12,7 +12,7 @@ Die .nupkg Datei kann mittels NuGet oder Paket in eine Visual Studio Solution ei
 Zunächst muss das NuGet Paket in die Solution eingebunden werden.
 Danach kann eine Instanz der DM7_PPLUS_API via 
 ``` 
-var api = PPLUS.Connect(url,log,cancellationToken_Verbindung).Result;
+var api = PPLUS.Connect(url,credentials,log,cancellationToken_Verbindung).Result;
 ``` 
 erstellt werden.
 
@@ -66,6 +66,17 @@ Wie behandeln wir mehrere (P-PLUS) Mandanten in der Integration.
 5. Submit a pull request :D
 
 ## Änderungen
+- 0.14 (02.11.2018): Verschlüsselung und Authentifizierung
+Die Datenübertragung erfolgt jetzt voll verschlüsselt. Bei der Anmeldung angegebene Credentials werden an P-PLUS weitergeleitet, um dort überprüft zu werden. 
+Der Connectionstring für den Client muss jetzt den Public Key des Servers enthalten, Format: tcp://ip:port|publickey
+Der Demo Server gibt den public key beim Start aus. Ausserdem kann der Demo Server nach dem gleichen Muster mit einem Schlüsselpaar initialisiert werden. Wird dieses nicht angegeben, wird ein Schlüsselpaar erzeugt und in der Konsole ausgegeben, so dass ein Neustart mit vorherigem Schlüssel möglich ist.
+
+### Breaking Changes
+
+ * Das Netzwerkprotokoll ist aufgrund der Verschlüsselung nicht mehr kompatibel zu Version 0.13
+ * Die Connect Methode erwartet jetzt als zweiten Parameter einen String mit Credentials. Dieser wird an P-PLUS übertragen. Der Inhalt ist nicht Teil dieser Schnittstelle.
+
+
 - 0.13 (30.08.2018): Grundlegende Änderungen
 
 Überleitung der Stammdaten:
