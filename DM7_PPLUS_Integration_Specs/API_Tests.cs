@@ -54,12 +54,6 @@ namespace DM7_PPLUS_Integration_Specs
         }
     }
 
-    // TODO Test: Fehlerfälle abdecken, Exceptions auslösen und prüfen, dass diese am richtigen Ort registriert werden (und der Server eine Exception überlebt)
-
-    // TODO: Authentifizierung
-
-    // TODO: Verschlüsselung
-
 
     [TestFixture]
     public class API_Level_2__Ebene_4 : API_Test_Base

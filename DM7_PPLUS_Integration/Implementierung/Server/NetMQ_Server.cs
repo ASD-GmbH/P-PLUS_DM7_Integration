@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Security;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -65,6 +66,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             poller.RunAsync();
         }
 
+        private static readonly SHA256 hash = SHA256.Create();
         private void Init_publisher_socket(Ebene_3_Protokoll__Data backend, string connectionstring, DisposeGroup disposegroup)
         {
             var publisher_port = Next_available_port(connectionstring);
@@ -80,8 +82,13 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 notification =>
                 {
                     publisherSocket.SendFrame(new byte[] {Constants.NETMQ_WIREPROTOCOL_2}, true);
-                    // TODO RELEASE: implement encryption
-                    publisherSocket.SendFrame(notification);
+                    publisherSocket.SendFrame(notification, true);
+                    using (var data = new MemoryStream(notification))
+                    using (var rsa = new RSACryptoServiceProvider())
+                    {
+                        rsa.ImportParameters(_rsakey);
+                        publisherSocket.SendFrame(rsa.SignData(data, hash));
+                    }
                 },
                 ex => throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex)));
             disposegroup.With(subscription);
@@ -192,7 +199,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         private byte[] DecryptKey(byte[] encryptedKey)
         {
-            // TODO RELEASE: cache rsa decrypted keys
             using (var rsa = new RSACryptoServiceProvider())
             {
                 rsa.ImportParameters(_rsakey);

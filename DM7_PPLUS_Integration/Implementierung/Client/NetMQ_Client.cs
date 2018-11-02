@@ -18,6 +18,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         private readonly Subject<byte[]> _notifications;
         private readonly byte[] _key;
         private readonly byte[] _encryptedKey;
+        private readonly RSAParameters _rsakey;
 
         /// <summary>
         ///  Sendet serialisierte Nachrichten über ZeroMQ an NetMQ_Server
@@ -39,6 +40,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 using (var rsa = new RSACryptoServiceProvider())
                 {
                     rsa.FromXmlString(publicKey);
+                    _rsakey = rsa.ExportParameters(false);
                     _encryptedKey = rsa.Encrypt(_key, false);
                 }
             }
@@ -79,12 +81,25 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             cancellationToken_Verbindung.Register(disposegroup.Dispose);
         }
 
+        private static readonly SHA256 hash = SHA256.Create();
         private void _subscriber_socket_receive_ready(object sender, NetMQSocketEventArgs e)
         {
             _log.Debug("NetMQ notification wird gelesen...");
-            var data = e.Socket.ReceiveMultipartBytes(2);
+            var data = e.Socket.ReceiveMultipartBytes(3);
             Guard_unsupported_protocol(data[0][0]);
             var notification = data[1];
+            var signature = data[2];
+
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                rsa.ImportParameters(_rsakey);
+                if (!rsa.VerifyData(notification, hash, signature))
+                {
+                    _log.Info("Notification wird aufgrund ungültiger Signatur verworfen!");
+                    return;
+                }
+            }
+
             _log.Debug($"NetMQ notification ({notification.Length} bytes)...");
             _notifications.Next(notification);
         }

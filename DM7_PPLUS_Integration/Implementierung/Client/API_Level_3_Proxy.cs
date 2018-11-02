@@ -37,27 +37,32 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             _log = log;
             Auswahllisten_Version = auswahllistenversion;
 
-            var subject = new Subject<Stand>();
+            var standMitarbeiterdaten = new Subject<Stand>();
             var subscription = ebene2Proxy.Notifications.Subscribe(new Observer<Notification>(
                 no =>
                 {
-                    var data = no as NotificationData;
-                    if (data != null)
+                    if (no is NotificationData data)
                     {
-                        // TODO: Datenquelle auswerten
                         if (data.Session != _session)
                         {
                             _log.Info("P-PLUS Server wurde neu verbunden.");
                             _session = data.Session;
+                            standMitarbeiterdaten.Next(new VersionsStand(data.Session, data.Version));
                         }
-                        _log.Debug($"Mitarbeiterdaten aktualisiert (@{data.Version}))");
-                        subject.Next(new VersionsStand(data.Session, data.Version));
+                        else
+                        {
+                            if (data.Datenquelle == Datenquellen.Mitarbeiter)
+                            {
+                                _log.Debug($"Mitarbeiterdaten aktualisiert (@{data.Version}))");
+                                standMitarbeiterdaten.Next(new VersionsStand(data.Session, data.Version));
+                            }
+                        }
                     }
-                    else if (no is NotificationsClosed) { subject.Completed(); }
-                    else subject.Error(new ConnectionErrorException($"Interner Fehler im Notificationstream. Unbekannte Nachricht: {no.GetType().Name}"));
+                    else if (no is NotificationsClosed) { standMitarbeiterdaten.Completed(); }
+                    else standMitarbeiterdaten.Error(new ConnectionErrorException($"Interner Fehler im Notificationstream. Unbekannte Nachricht: {no.GetType().Name}"));
                 },
-                ex => { throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex); } ));
-            Stand_Mitarbeiterdaten = subject;
+                ex => throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex)));
+            Stand_Mitarbeiterdaten = standMitarbeiterdaten;
             disposegroup.With(() =>
             {
                 log.Debug("Subscription wird geschlossen...");
@@ -81,26 +86,21 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     .ContinueWith(
                         task =>
                         {
-                            var result = task.Result as QueryResult;
-                            if (result != null)
+                            if (task.Result is QueryResult result)
                             {
                                 var mitarbeiterdatensaetze = Deserialize.Deserialisiere_Mitarbeiterdatensaetze(result.Data);
                                 _log.Debug($"Mitarbeiterdaten empfangen ({mitarbeiterdatensaetze.Mitarbeiter.Count} Mitarbeiter, {mitarbeiterdatensaetze.Fotos.Count} Bilder, @{mitarbeiterdatensaetze.Stand}, {(mitarbeiterdatensaetze.Teilmenge?"teildaten":"vollständig")})");
                                 return mitarbeiterdatensaetze;
                             }
-                            else
+                            if (task.Result is QueryFailed failed)
                             {
-                                var failed = task.Result as QueryFailed;
-                                if (failed != null)
+                                if (failed.Reason == QueryFailure.Internal_Server_Error)
                                 {
-                                    if (failed.Reason == QueryFailure.Internal_Server_Error)
-                                    {
-                                        throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterdaten_abrufen' ist auf dem Server fehlgeschlagen: {failed.Info}.");
-                                    }
-                                    if (failed.Reason == QueryFailure.Unknown_reason)
-                                    {
-                                        throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterdaten_abrufen' ist fehlgeschlagen: {failed.Info}.");
-                                    }
+                                    throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterdaten_abrufen' ist auf dem Server fehlgeschlagen: {failed.Info}.");
+                                }
+                                if (failed.Reason == QueryFailure.Unknown_reason)
+                                {
+                                    throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterdaten_abrufen' ist fehlgeschlagen: {failed.Info}.");
                                 }
                             }
 
@@ -178,20 +178,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             }
 
             return new ReadOnlyCollection<Kontakt>(result);
-        }
-
-        private static ReadOnlyCollection<int> Deserialize_Mandanten(byte[] data, ref int position)
-        {
-            var anzahl = BitConverter.ToInt32(data, position);
-            position += 4;
-
-            var mandanten = new List<int>();
-            for (var i = 0; i < anzahl; i++)
-            {
-                mandanten.Add(BitConverter.ToInt32(data,position));
-                position += 4;
-            }
-            return new ReadOnlyCollection<int>(mandanten);
         }
 
         private static ReadOnlyCollection<Qualifikation> Deserialize_Qualifikationen(byte[] data, ref int position)
