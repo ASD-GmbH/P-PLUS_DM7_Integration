@@ -63,7 +63,7 @@ namespace DM7_PPLUS_Integration_Specs
         {
             _server = new Test_PPLUS_Backend(0);
             var levels = new[] {0, 1}.Where(_ => _ >= server_min_api_level && _ <= server_max_api_level);
-            _host = DM7_PPLUS_Host.Starten(_server, new TestLog("[server] "), ex => { throw new Exception("Unexpected exception", ex); }, levels);
+            _host = DM7_PPLUS_Host.Starten(_server, new StaticAuthentication("test"), new TestLog("[server] "), ex => { throw new Exception("Unexpected exception", ex); }, levels);
             _factory = new LoopbackFactory(_host, 3);
         }
 

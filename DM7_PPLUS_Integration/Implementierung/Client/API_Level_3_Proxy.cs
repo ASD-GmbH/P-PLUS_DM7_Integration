@@ -11,12 +11,13 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
     /// <summary>
-    /// Implementiert die API level 2 und übersetzt die Anfragen in API-Level-unabhängige Nachrichten
+    /// Implementiert die API level 3 und übersetzt die Anfragen in API-Level-unabhängige Nachrichten
     /// </summary>
     internal class API_Level_3_Proxy : DisposeGroupMember, DM7_PPLUS_API
     {
-        private const int API_LEVEL = 2;
+        private const int API_LEVEL = 3;
 
+        private readonly string _credentials;
         private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _ebene_2_Proxy;
         private readonly Log _log;
         private Guid _session;
@@ -24,8 +25,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         /// <summary>
         /// Implementiert die API level 2 und übersetzt die Anfragen in API-Level-unabhängige Nachrichten
         /// </summary>
-        public API_Level_3_Proxy(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung ebene2Proxy, int auswahllistenversion, Log log, DisposeGroup disposegroup) : base(disposegroup)
+        public API_Level_3_Proxy(string credentials, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung ebene2Proxy, int auswahllistenversion, Log log, DisposeGroup disposegroup) : base(disposegroup)
         {
+            _credentials = credentials;
             _ebene_2_Proxy = ebene2Proxy;
             disposegroup.With(() =>
             {
@@ -75,7 +77,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
             return
                 _ebene_2_Proxy
-                    .Query(API_LEVEL, vvon.Session, Datenquellen.Mitarbeiter, vvon.Version, vbis.Version)
+                    .Query(_credentials, API_LEVEL, vvon.Session, Datenquellen.Mitarbeiter, vvon.Version, vbis.Version)
                     .ContinueWith(
                         task =>
                         {

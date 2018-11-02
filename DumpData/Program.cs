@@ -34,7 +34,9 @@ namespace DumpData
 
             var url = (args.Length > 0) ? args[0] : DEMO_URL;
 
-            var api = Connect_mit_Abbruchmoeglichkeit(url, log);
+            var credentials = (args.Length > 1) ? args[1] : "user";
+
+            var api = Connect_mit_Abbruchmoeglichkeit(url, credentials, log);
 
             if (api != null)
             {
@@ -67,7 +69,7 @@ namespace DumpData
             Thread.Sleep(2000);
         }
 
-        private static DM7_PPLUS_API Connect_mit_Abbruchmoeglichkeit(string url, Log log)
+        private static DM7_PPLUS_API Connect_mit_Abbruchmoeglichkeit(string url, string credentials, Log log)
         {
             Console.TreatControlCAsInput = true;
             var cancellationTokenSource = new CancellationTokenSource();
@@ -77,7 +79,7 @@ namespace DumpData
             {
                 DM7_PPLUS_API result = null;
 
-                var task = PPLUS.Connect(url, log, cancellationToken_Verbindung);
+                var task = PPLUS.Connect(url, credentials, log, cancellationToken_Verbindung);
 
                 var cancel = false;
                 var info =

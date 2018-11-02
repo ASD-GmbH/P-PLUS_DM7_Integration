@@ -49,7 +49,7 @@ namespace PPLUS_Demo_Server
             }
 
             var backend = new Demo_Datenserver(log, TimeSpan.FromSeconds(intervall));
-            var host = DM7_PPLUS_Host.Starten(backend, hostaddress, port, privatekey, log, log.OnError);
+            var host = DM7_PPLUS_Host.Starten(backend, new StaticAuthentication("user"), hostaddress, port, privatekey, log, log.OnError);
 
             log.Info($"Demoserver wurde gestartet ({hostaddress}:{port}|{publickey}).");
 

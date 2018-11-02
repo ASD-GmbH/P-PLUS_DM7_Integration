@@ -10,7 +10,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 {
     internal static class Connector
     {
-        public static Task<Level_0_Test_API> Instance_API_level_0_nur_fuer_Testzwecke(string networkAddress, Log log, CancellationToken cancellationToken_Verbindung, Ebene_2_Proxy_Factory factory = null)
+        public static Task<Level_0_Test_API> Instance_API_level_0_nur_fuer_Testzwecke(string networkAddress, string login, Log log, CancellationToken cancellationToken_Verbindung, Ebene_2_Proxy_Factory factory = null)
         {
 
             var client_min_api_level_request = 0;
@@ -19,11 +19,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var disposegroup = new DisposeGroup();
             disposegroup.With(() => { log.Info("DM7/P-PLUS Schnittstelle geschlossen."); });
             return
-                Verbindungsaufbau(networkAddress, client_min_api_level_request, client_max_api_level_request, factory, log, disposegroup, cancellationToken_Verbindung)
+                Verbindungsaufbau(networkAddress, login, client_min_api_level_request, client_max_api_level_request, factory, log, disposegroup, cancellationToken_Verbindung)
                     .ContinueWith(task => (Level_0_Test_API)new Level_0_Test_Proxy(task.Result.Item1), cancellationToken_Verbindung);
         }
 
-        public static Task<DM7_PPLUS_API> Instance_API_Level_1(string networkAddress, Log log, CancellationToken cancellationToken_Verbindung, Ebene_2_Proxy_Factory factory = null)
+        public static Task<DM7_PPLUS_API> Instance_API_Level_1(string networkAddress, string credentials, Log log, CancellationToken cancellationToken_Verbindung, Ebene_2_Proxy_Factory factory = null)
         {
 
             var client_min_api_level_request = networkAddress == "test://0" ? 0 : 1;
@@ -32,19 +32,19 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var disposegroup = new DisposeGroup();
             disposegroup.With(() => { log.Info("DM7/P-PLUS Schnittstelle geschlossen."); });
             return
-                Verbindungsaufbau(networkAddress, client_min_api_level_request, client_max_api_level_request, factory, log, disposegroup, cancellationToken_Verbindung)
+                Verbindungsaufbau(networkAddress, credentials, client_min_api_level_request, client_max_api_level_request, factory, log, disposegroup, cancellationToken_Verbindung)
                     .ContinueWith(task =>
                     {
                         DM7_PPLUS_API api = null;
                         if (task.Result.Item2 == 0) api = new Level_1_upgrade_Test_Proxy(task.Result.Item1);
-                        if (task.Result.Item2 == 1) api = new API_Level_1_Proxy(task.Result.Item1, task.Result.Item3, log, disposegroup);
+                        if (task.Result.Item2 == 1) api = new API_Level_1_Proxy(credentials, task.Result.Item1, task.Result.Item3, log, disposegroup);
                         if (api == null) throw new UnsupportedVersionException($"Vereinbartes API Level entspricht nicht den Rahmenbedingungen: {task.Result.Item2}");
                         return api;
                     }, cancellationToken_Verbindung);
         }
 
 
-        public static Task<DM7_PPLUS_API> Instance_API_Level_3(string networkAddress, Log log, CancellationToken cancellationToken_Verbindung, Ebene_2_Proxy_Factory factory = null)
+        public static Task<DM7_PPLUS_API> Instance_API_Level_3(string networkAddress, string credentials, Log log, CancellationToken cancellationToken_Verbindung, Ebene_2_Proxy_Factory factory = null)
         {
 
             var client_min_api_level_request = networkAddress == "test://0" ? 0 : 1;
@@ -53,24 +53,22 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var disposegroup = new DisposeGroup();
             disposegroup.With(() => { log.Info("DM7/P-PLUS Schnittstelle geschlossen."); });
             return
-                Verbindungsaufbau(networkAddress, client_min_api_level_request, client_max_api_level_request, factory, log, disposegroup, cancellationToken_Verbindung)
+                Verbindungsaufbau(networkAddress, credentials, client_min_api_level_request, client_max_api_level_request, factory, log, disposegroup, cancellationToken_Verbindung)
                     .ContinueWith(task =>
                     {
                         DM7_PPLUS_API api = null;
                         if (task.Result.Item2 == 0) api = new Level_1_upgrade_Test_Proxy(task.Result.Item1);
-                        if (task.Result.Item2 == 1) api = new API_Level_1_Proxy(task.Result.Item1, task.Result.Item3, log, disposegroup);
-                        if (task.Result.Item2 == 3) api = new API_Level_3_Proxy(task.Result.Item1, task.Result.Item3, log, disposegroup);
+                        if (task.Result.Item2 == 1) api = new API_Level_1_Proxy(credentials, task.Result.Item1, task.Result.Item3, log, disposegroup);
+                        if (task.Result.Item2 == 3) api = new API_Level_3_Proxy(credentials, task.Result.Item1, task.Result.Item3, log, disposegroup);
                         if (api==null) throw new UnsupportedVersionException($"Vereinbartes API Level entspricht nicht den Rahmenbedingungen: {task.Result.Item2}");
                         return api;
                     }, cancellationToken_Verbindung);
         }
 
 
-        private static Task<Tuple<Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung, int, int>> Verbindungsaufbau(string networkaddress, int client_min_api_level_request, int client_max_api_level_request, Ebene_2_Proxy_Factory factory, Log log, DisposeGroup disposegroup, CancellationToken cancellationToken_Verbindung)
+        private static Task<Tuple<Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung, int, int>> Verbindungsaufbau(string networkaddress, string credentials, int client_min_api_level_request, int client_max_api_level_request, Ebene_2_Proxy_Factory factory, Log log, DisposeGroup disposegroup, CancellationToken cancellationToken_Verbindung)
         {
             log.Info("DM7/P-PLUS Integrationsschnittstelle - " + Version.VersionString);
-
-            var login = "test";
 
             if (networkaddress.StartsWith("tcp://"))
             {
@@ -81,7 +79,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             {
                 int intervall;
                 if (!int.TryParse(networkaddress.Substring(7), out intervall)) intervall = 60;
-                var host = DM7_PPLUS_Host.Starten(new Demo_Datenserver(log, TimeSpan.FromSeconds(intervall)).WithDisposeGroup(disposegroup), log, ex => { throw new Exception("Unerwarteter Fehler", ex); }).WithDisposeGroup(disposegroup);
+                var host = DM7_PPLUS_Host.Starten(new Demo_Datenserver(log, TimeSpan.FromSeconds(intervall)).WithDisposeGroup(disposegroup), new StaticAuthentication("user"), log, ex => { throw new Exception("Unerwarteter Fehler", ex); }).WithDisposeGroup(disposegroup);
                 factory = new LoopbackFactory(host, networkaddress.EndsWith("2") ? 2 : 3, disposegroup);
             }
 
@@ -89,12 +87,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
             var info = networkaddress.StartsWith("tcp://") ? "DM7/P-PLUS Verbindung über NetMQ" : "Test/Demo Verbindung";
             log.Info(info + " wird aufgebaut...");
-            var verbindung_tuple = factory.Connect_Ebene_2(networkaddress, log, cancellationToken_Verbindung);
+            var verbindung_tuple = factory.Connect_Ebene_2(networkaddress, credentials, log, cancellationToken_Verbindung);
 
             return verbindung_tuple.ContinueWith(task =>
             {
                 log.Info("DM7 wird angemeldet...");
-                var result = task.Result.Item1.Connect_Ebene_1(login, client_max_api_level_request, client_min_api_level_request).Result;
+                var result = task.Result.Item1.Connect_Ebene_1(credentials, client_max_api_level_request, client_min_api_level_request).Result;
 
                 var succeeded = result as ConnectionSucceeded;
                 if (succeeded != null)

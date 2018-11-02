@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
 using DM7_PPLUS_Integration.Implementierung.Shared;
 using NetMQ;
@@ -81,7 +83,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                     // TODO RELEASE: implement encryption
                     publisherSocket.SendFrame(notification);
                 },
-                ex => { throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex); }));
+                ex => throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex)));
             disposegroup.With(subscription);
         }
 
@@ -113,7 +115,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
             try
             {
-
                 var data = frames.Dequeue();
                 Guard_unsupported_protocol(data[0]);
 
@@ -126,77 +127,67 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                     switch (data[1])
                     {
                         case Constants.CHANNEL_1_SERVICE:
-                        {
-                            var request = aes.Decrypt(frames.Dequeue());
-                            try
-                            {
-                                _log.Debug($"NetMQ Service Request ({request.Length} bytes)...");
-                                var response = _service.ServiceRequest(request).Result;
-                                _log.Debug($"NetMQ Response ({response.Length} bytes)...");
-                                e.Socket.SendFrame(aes.Encrypt(response));
-                            }
-                            catch (Exception ex)
-                            {
-                                var error = $"Fehler beim Bearbeiten eines Service-Requests: {ex.Message}";
-                                _log.Info($"{error}\r\n{ex.ToString()}");
-                                var info = System.Text.Encoding.UTF8.GetBytes(error);
-                                var response = new List<byte[]>
-                                {
-                                    new byte[] {Constants.CONNECTION_RESPONSE_FAILURE},
-                                    BitConverter.GetBytes((int) ConnectionFailure.Internal_Server_Error),
-                                    BitConverter.GetBytes(info.Length),
-                                    info
-                                }.Concat();
-                                e.Socket.SendFrame(aes.Encrypt(response));
-                            }
+                            Handle(e, aes, frames, "Service Request", _service.ServiceRequest);
                             break;
-                        }
 
                         case Constants.CHANNEL_2_DATA:
-                        {
-                            var request = aes.Decrypt(frames.Dequeue());
-                            try
-                            {
-                                _log.Debug($"NetMQ Data Request ({request.Length} bytes)...");
-                                var response = _backend.Request(request).Result;
-                                _log.Debug($"NetMQ Response ({response.Length} bytes)...");
-                                e.Socket.SendFrame(aes.Encrypt(response));
-                            }
-                            catch (Exception ex)
-                            {
-                                var error = $"Fehler beim Bearbeiten eines Data-Requests: {ex.Message}";
-                                _log.Info($"{error}\r\n{ex.ToString()}");
-                                var info = System.Text.Encoding.UTF8.GetBytes(error);
-                                var response = new List<byte[]>
-                                {
-                                    new byte[] {Constants.CONNECTION_RESPONSE_FAILURE},
-                                    BitConverter.GetBytes((int) ConnectionFailure.Internal_Server_Error),
-                                    BitConverter.GetBytes(info.Length),
-                                    info
-                                }.Concat();
-                                e.Socket.SendFrame(aes.Encrypt(response));
-                            }
-                                break;
-                        }
+                            Handle(e, aes, frames, "Data Request", _backend.Request);
+                            break;
 
                         default:
                             throw new ConnectionErrorException($"Unbekannter NetMQ Server Kanal: {data[0].ToString()}");
                     }
                 }
             }
-            catch (System.Security.Cryptography.CryptographicException ex)
+            catch (CryptographicException)
             {
-                var info = $"Fehler beim Bearbeiten einer Anfrage: Ungültiger Schlüssel.";
-
+                var info = "Fehler beim Bearbeiten einer Anfrage: Ungültiger Schlüssel.";
                 _log.Info(info);
-
                 e.Socket.SendFrame(new byte[] { 9, 9, 9 });
             }
             catch (Exception ex)
             {
-                _log.Info($"Fehler beim Bearbeiten einer Anfrage: {ex.Message}.\r\n\r\n{ex.ToString()}");
+                _log.Info($"Fehler beim Bearbeiten einer Anfrage: {ex.Message}.\r\n\r\n{ex}");
                 e.Socket.SendFrame(new byte[] { 9, 9, 0 });
             }
+        }
+
+        private void Handle(NetMQSocketEventArgs e, CryptoService aes, Queue<byte[]> frames, string requestinfo, Func<byte[], Task<byte[]>> requestHandler)
+        {
+            var request = aes.Decrypt(frames.Dequeue());
+            try
+            {
+                _log.Debug($"NetMQ {requestinfo} ({request.Length} bytes)...");
+                var response = requestHandler(request).Result;
+                _log.Debug($"NetMQ Response ({response.Length} bytes)...");
+                e.Socket.SendFrame(aes.Encrypt(response));
+            }
+            catch (SecurityException ex)
+            {
+                _log.Info(ex.Message);
+                var response = ErrorResponse(ConnectionFailure.Unauthorized, ex.Message);
+                e.Socket.SendFrame(aes.Encrypt(response));
+            }
+            catch (Exception ex)
+            {
+                var error = $"Fehler beim Bearbeiten eines Service-Requests: {ex.Message}";
+                _log.Info($"{error}\r\n{ex}");
+                var response = ErrorResponse(ConnectionFailure.Internal_Server_Error, error);
+                e.Socket.SendFrame(aes.Encrypt(response));
+            }
+        }
+
+        private static byte[] ErrorResponse(ConnectionFailure errorCode, string message)
+        {
+            var info = System.Text.Encoding.UTF8.GetBytes(message);
+            var response = new List<byte[]>
+            {
+                new byte[] {Constants.CONNECTION_RESPONSE_FAILURE},
+                BitConverter.GetBytes((int) errorCode),
+                BitConverter.GetBytes(info.Length),
+                info
+            }.Concat();
+            return response;
         }
 
         private byte[] DecryptKey(byte[] encryptedKey)

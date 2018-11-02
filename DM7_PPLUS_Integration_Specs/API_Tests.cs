@@ -19,7 +19,7 @@ namespace DM7_PPLUS_Integration_Specs
         {
             var server = new Test_PPLUS_Backend(auswahllistenversion);
             var log = new TestLog("[server] ");
-            var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
+            var host = DM7_PPLUS_Host.Starten(server, new StaticAuthentication("test"), log, ex => Assert.Fail(ex.ToString()));
             Setup_Testframework(host.Ebene_1_API_Level_3, server);
         }
     }
@@ -32,7 +32,7 @@ namespace DM7_PPLUS_Integration_Specs
             var server = new Test_PPLUS_Backend(auswahllistenversion);
             var log = new TestLog("[server] ");
 
-            var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
+            var host = DM7_PPLUS_Host.Starten(server, new StaticAuthentication("test"), log, ex => Assert.Fail(ex.ToString()));
             var proxy = TestConnector.Instance_API_Level_3("test://test", new TestLog("[client] "), CancellationToken.None, new LoopbackFactory(host, 2)).Result;
 
             Setup_Testframework(proxy, server);
@@ -47,7 +47,7 @@ namespace DM7_PPLUS_Integration_Specs
             var server = new Test_PPLUS_Backend(auswahllistenversion);
             var log = new TestLog("[server] ");
 
-            var host = DM7_PPLUS_Host.Starten(server, log, ex => Assert.Fail(ex.ToString()));
+            var host = DM7_PPLUS_Host.Starten(server, new StaticAuthentication("test"), log, ex => Assert.Fail(ex.ToString()));
             var proxy = TestConnector.Instance_API_Level_3("test://test", new TestLog("[client] "), CancellationToken.None, new LoopbackFactory(host, 3)).Result;
 
             Setup_Testframework(proxy, server);
@@ -138,7 +138,7 @@ namespace DM7_PPLUS_Integration_Specs
             var privatekey = CryptoService.GenerateRSAKeyPair();
             var publickey = CryptoService.GetPublicKey(privatekey);
 
-            Action start = () => { _host = DM7_PPLUS_Host.Starten(server, "tcp://127.0.0.1", port, privatekey, log, ex => Assert.Fail(ex.ToString())); };
+            Action start = () => { _host = DM7_PPLUS_Host.Starten(server, new StaticAuthentication("test"), "tcp://127.0.0.1", port, privatekey, log, ex => Assert.Fail(ex.ToString())); };
             start();
             _reset = () =>
             {
@@ -147,7 +147,7 @@ namespace DM7_PPLUS_Integration_Specs
                 start();
             };
 
-            _proxy = PPLUS.Connect($"tcp://127.0.0.1:{port}|{publickey}", new TestLog("[client] "), CancellationToken.None).Result;
+            _proxy = PPLUS.Connect($"tcp://127.0.0.1:{port}|{publickey}", "test", new TestLog("[client] "), CancellationToken.None).Result;
             Setup_Testframework(_proxy, server);
         }
 

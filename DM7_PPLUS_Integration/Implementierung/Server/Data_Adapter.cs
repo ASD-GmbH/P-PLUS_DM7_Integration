@@ -44,20 +44,30 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         {
             var guidbuffer = new byte[16];
             var position = 0;
-            Array.Copy(request, guidbuffer, 16);
+
+            var credentialsbufferlength = BitConverter.ToInt32(request, position);
+            position += 4;
+            var credentials = System.Text.Encoding.UTF8.GetString(request, position, credentialsbufferlength);
+            position += credentialsbufferlength;
+
+            Array.Copy(request, position, guidbuffer, 0, 16);
             var session = new Guid(guidbuffer);
             position += 16;
+
             var api_level = BitConverter.ToInt32(request, position);
             position += 4;
+
             var datenquelle = BitConverter.ToInt32(request, position);
             position += 4;
+
             var von = BitConverter.ToInt64(request, position);
             position += 8;
+
             var bis = BitConverter.ToInt64(request, position);
 
             return
                 _backend
-                    .Query(api_level, session, datenquelle, von, bis)
+                    .Query(credentials, api_level, session, datenquelle, von, bis)
                     .ContinueWith(task => Serialize_QueryResponse(task.Result));
         }
 

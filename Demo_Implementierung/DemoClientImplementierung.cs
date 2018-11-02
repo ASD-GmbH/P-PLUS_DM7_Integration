@@ -51,8 +51,10 @@ namespace Demo_Implementierung
 
             var url = (args.Length > 0) ? args[0] : DEMO_URL;
 
-            var api = Connect_mit_Abbruchmoeglichkeit(url, log);
-            //var api = Einfaches_Connect_ohne_Abbruchmoeglichkeit(url, log);
+            var credentials = (args.Length > 1) ? args[1] : "anonymous";
+
+            var api = Connect_mit_Abbruchmoeglichkeit(url, credentials, log);
+            //var api = Einfaches_Connect_ohne_Abbruchmoeglichkeit(url, credentials, log);
 
             if (api != null)
             {
@@ -90,12 +92,12 @@ namespace Demo_Implementierung
         }
 
         // ReSharper disable once UnusedMember.Local
-        private static DM7_PPLUS_API Einfaches_Connect_ohne_Abbruchmoeglichkeit(string url, Log log)
+        private static DM7_PPLUS_API Einfaches_Connect_ohne_Abbruchmoeglichkeit(string url, string credentials, Log log)
         {
-            return PPLUS.Connect(url, log, CancellationToken.None).Result;
+            return PPLUS.Connect(url, credentials, log, CancellationToken.None).Result;
         }
 
-        private static DM7_PPLUS_API Connect_mit_Abbruchmoeglichkeit(string url, Log log)
+        private static DM7_PPLUS_API Connect_mit_Abbruchmoeglichkeit(string url, string credentials, Log log)
         {
             Console.TreatControlCAsInput = true;
             var cancellationTokenSource = new CancellationTokenSource();
@@ -105,7 +107,7 @@ namespace Demo_Implementierung
             {
                 DM7_PPLUS_API result = null;
 
-                var task = PPLUS.Connect(url, log, cancellationToken_Verbindung);
+                var task = PPLUS.Connect(url, credentials, log, cancellationToken_Verbindung);
 
                 var cancel = false;
                 var info = "Verbindung konnte noch nicht hergestellt werden. Bitte warten - oder eine Taste drücken, um abzubrechen.";
