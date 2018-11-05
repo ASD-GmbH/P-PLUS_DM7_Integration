@@ -17,21 +17,26 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             disposegroup.With(() => _client.Dispose());
         }
 
-        public Task<ConnectionResult> Connect_Ebene_1(string login, int maxApiLevel, int minApiLevel)
+        public Task<ConnectionResult> Connect_Ebene_1(string credentials, int maxApiLevel, int minApiLevel)
         {
-            var loginbuffer = System.Text.Encoding.UTF8.GetBytes(login);
+            var credentialsBuffer = System.Text.Encoding.UTF8.GetBytes(credentials);
             return
                 _client.ServiceRequest(new List<byte[]>
                 {
-                    new byte[] {1, 1},
+                    new byte[] { Constants.SERVICE_PROTOCOL_1, Constants.SERVICE_CONNECT },
                     BitConverter.GetBytes(maxApiLevel),
                     BitConverter.GetBytes(minApiLevel),
-                    BitConverter.GetBytes(loginbuffer.Length),
-                    loginbuffer
+                    BitConverter.GetBytes(credentialsBuffer.Length),
+                    credentialsBuffer
                 }.Concat()).ContinueWith(task => Deserialize(task.Result));
         }
         private ConnectionResult Deserialize(byte[] response)
         {
+            if (response.Length == 0)
+            {
+                return new ConnectionFailed(ConnectionFailure.Unsupported_Connection_Protocol, $"Empty Response");
+            }
+
             if (response[0] == Constants.CONNECTION_RESPONSE_OK)
             {
                 var apilevel = BitConverter.ToInt32(response, 1);

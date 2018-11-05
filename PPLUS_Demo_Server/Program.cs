@@ -20,6 +20,16 @@ namespace PPLUS_Demo_Server
             if (args.Length == 0) Show_info_and_terminate(log);
 
             var url = args[0];
+
+            var privatekey = CryptoService.GenerateRSAKeyPair();
+
+            if (url.Contains("|"))
+            {
+                var parts0 = url.Split('|');
+                url = parts0[0];
+                privatekey = parts0[1];
+            }
+
             var parts = url.Split(':');
             if (parts.Length!=3) Show_info_and_terminate(log);
 
@@ -29,13 +39,19 @@ namespace PPLUS_Demo_Server
 
 
             int intervall;
-            if (args.Length < 2 || !Int32.TryParse(args[1], out intervall)) intervall = 60;
+            if (args.Length < 2 || !Int32.TryParse(args[1], out intervall)) intervall = 60;        
+            
+            var publickey = CryptoService.GetPublicKey(privatekey);
 
+            if (!args[0].Contains("|"))
+            {
+                log.Info($"PRIVATE KEY INFO ({hostaddress}:{port}|{privatekey}).");
+            }
 
             var backend = new Demo_Datenserver(log, TimeSpan.FromSeconds(intervall));
-            var host = DM7_PPLUS_Host.Starten(backend, hostaddress, port, log, log.OnError);
+            var host = DM7_PPLUS_Host.Starten(backend, new StaticAuthentication("user"), hostaddress, port, privatekey, log, log.OnError);
 
-            log.Info($"Demoserver wurde gestartet ({hostaddress}).");
+            log.Info($"Demoserver wurde gestartet ({hostaddress}:{port}|{publickey}).");
 
             var sub =
                 host.Ebene_1_API_Level_1.Stand_Mitarbeiterdaten.Subscribe(new Observer<Stand>(stand =>

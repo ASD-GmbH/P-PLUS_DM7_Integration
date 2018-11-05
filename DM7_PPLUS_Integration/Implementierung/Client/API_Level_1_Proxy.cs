@@ -15,6 +15,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
     {
         private const int API_LEVEL = 1;
 
+        private readonly string _credentials;
         private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _ebene_2_Proxy;
         private readonly Log _log;
         private Guid _session;
@@ -22,8 +23,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         /// <summary>
         /// Implementiert die API level 1 und übersetzt die Anfragen in API-Level-unabhängige Nachrichten
         /// </summary>
-        public API_Level_1_Proxy(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung ebene2Proxy, int auswahllistenversion, Log log, DisposeGroup disposegroup) : base(disposegroup)
+        public API_Level_1_Proxy(string credentials, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung ebene2Proxy, int auswahllistenversion, Log log, DisposeGroup disposegroup) : base(disposegroup)
         {
+            _credentials = credentials;
             _ebene_2_Proxy = ebene2Proxy;
             disposegroup.With(() =>
             {
@@ -33,27 +35,33 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             _log = log;
             Auswahllisten_Version = auswahllistenversion;
 
-            var subject = new Subject<Stand>();
+            var standMitarbeiterdaten = new Subject<Stand>();
+
             var subscription = ebene2Proxy.Notifications.Subscribe(new Observer<Notification>(
                 no =>
                 {
-                    var data = no as NotificationData;
-                    if (data != null)
+                    if (no is NotificationData data)
                     {
-                        // TODO: Datenquelle auswerten
                         if (data.Session != _session)
                         {
                             _log.Info("P-PLUS Server wurde neu verbunden.");
                             _session = data.Session;
+                            standMitarbeiterdaten.Next(new VersionsStand(data.Session, data.Version));
                         }
-                        _log.Debug($"Mitarbeiterdaten aktualisiert (@{data.Version}))");
-                        subject.Next(new VersionsStand(data.Session, data.Version));
+                        else
+                        {
+                            if (data.Datenquelle == Datenquellen.Mitarbeiter)
+                            {
+                                _log.Debug($"Mitarbeiterdaten aktualisiert (@{data.Version}))");
+                                standMitarbeiterdaten.Next(new VersionsStand(data.Session, data.Version));
+                            }
+                        }
                     }
-                    else if (no is NotificationsClosed) { subject.Completed(); }
-                    else subject.Error(new ConnectionErrorException($"Interner Fehler im Notificationstream. Unbekannte Nachricht: {no.GetType().Name}"));
+                    else if (no is NotificationsClosed) { standMitarbeiterdaten.Completed(); }
+                    else standMitarbeiterdaten.Error(new ConnectionErrorException($"Interner Fehler im Notificationstream. Unbekannte Nachricht: {no.GetType().Name}"));
                 },
-                ex => { throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex); } ));
-            Stand_Mitarbeiterdaten = subject;
+                ex => throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex)));
+            Stand_Mitarbeiterdaten = standMitarbeiterdaten;
             disposegroup.With(() =>
             {
                 log.Debug("Subscription wird geschlossen...");
@@ -73,30 +81,25 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
             return
                 _ebene_2_Proxy
-                    .Query(API_LEVEL, vvon.Session, Datenquellen.Mitarbeiter, vvon.Version, vbis.Version)
+                    .Query(_credentials, API_LEVEL, vvon.Session, Datenquellen.Mitarbeiter, vvon.Version, vbis.Version)
                     .ContinueWith(
                         task =>
                         {
-                            var result = task.Result as QueryResult;
-                            if (result != null)
+                            if (task.Result is QueryResult result)
                             {
                                 var mitarbeiterdatensaetze = Deserialisiere_Mitarbeiterdatensaetze(result.Data);
                                 _log.Debug($"Mitarbeiterdaten empfangen ({mitarbeiterdatensaetze.Mitarbeiter.Count} Mitarbeiter, {mitarbeiterdatensaetze.Fotos.Count} Bilder, @{mitarbeiterdatensaetze.Stand}, {(mitarbeiterdatensaetze.Teilmenge?"teildaten":"vollständig")})");
                                 return mitarbeiterdatensaetze;
                             }
-                            else
+                            if (task.Result is QueryFailed failed)
                             {
-                                var failed = task.Result as QueryFailed;
-                                if (failed != null)
+                                if (failed.Reason == QueryFailure.Internal_Server_Error)
                                 {
-                                    if (failed.Reason == QueryFailure.Internal_Server_Error)
-                                    {
-                                        throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterdaten_abrufen' ist auf dem Server fehlgeschlagen: {failed.Info}.");
-                                    }
-                                    if (failed.Reason == QueryFailure.Unknown_reason)
-                                    {
-                                        throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterdaten_abrufen' ist fehlgeschlagen: {failed.Info}.");
-                                    }
+                                    throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterdaten_abrufen' ist auf dem Server fehlgeschlagen: {failed.Info}.");
+                                }
+                                if (failed.Reason == QueryFailure.Unknown_reason)
+                                {
+                                    throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterdaten_abrufen' ist fehlgeschlagen: {failed.Info}.");
                                 }
                             }
 

@@ -46,10 +46,13 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             return new NotificationData(session,datenquelle,version);
         }
 
-        public Task<QueryResponse> Query(int api_level, Guid session, int datenquelle, long von, long bis)
+        public Task<QueryResponse> Query(string credentials, int api_level, Guid session, int datenquelle, long von, long bis)
         {
+            var credentialsBuffer = System.Text.Encoding.UTF8.GetBytes(credentials);
             var query = new List<byte[]>
             {
+                BitConverter.GetBytes(credentialsBuffer.Length),
+                credentialsBuffer,
                 session.ToByteArray(),
                 BitConverter.GetBytes(api_level),
                 BitConverter.GetBytes(datenquelle),

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Daten;
@@ -22,6 +23,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         private readonly DM7_PPLUS_API _backendLevel3;
         private readonly HashSet<int> _apiLevel = new HashSet<int>();
         private readonly int _auswahllistenversion;
+        private readonly PPLUS_Authentifizierung _authentifizierung;
         private readonly Log _log;
         private readonly string _versionen;
 
@@ -31,6 +33,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         public API_Router(
             Log log,
             int auswahllisten_version,
+            PPLUS_Authentifizierung authentifizierung,
             Level_0_Test_API backend_level_0,
             DM7_PPLUS_API backend_level_1,
             DM7_PPLUS_API backend_level_3,
@@ -38,6 +41,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         {
             _log = log;
             _auswahllistenversion = auswahllisten_version;
+            _authentifizierung = authentifizierung;
 
 
             if (backend_level_0 != null) _apiLevel.Add(0);
@@ -88,10 +92,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         }
 
 
-        public Task<ConnectionResult> Connect_Ebene_1(string login, int maxApiLevel, int minApiLevel)
+        public Task<ConnectionResult> Connect_Ebene_1(string credentials, int maxApiLevel, int minApiLevel)
         {
             var task = new Task<ConnectionResult>(() =>
             {
+                if (_authentifizierung.Authentifizieren(credentials) == null) throw new SecurityException("Keine Berechtigung zum Zugriff auf P-PLUS Daten.");
+
                 var levels = _apiLevel.Where(_=>_>=minApiLevel && _<=maxApiLevel).OrderByDescending(_=>_).ToList();
 
                 var versionen =
@@ -122,9 +128,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             return new NotificationData(s.Session, datenquelle, s.Version);
         }
 
-        public Task<QueryResponse> Query(int api_level, Guid session, int datenquelle, long von, long bis)
+        public Task<QueryResponse> Query(string credentials, int api_level, Guid session, int datenquelle, long von, long bis)
         {
-            if (api_level == 1 || api_level==2)
+            if (!(_authentifizierung.Authentifizieren(credentials) is StammdatenZugriff)) throw new SecurityException("Keine Berechtigung zum Zugriff auf P-PLUS Daten.");
+
+            if (api_level == 1 || api_level==3)
             {
                 var mitarbeiter =
                     (_backendLevel3?? _backendLevel1).Mitarbeiterdaten_abrufen(new VersionsStand(session, von),
