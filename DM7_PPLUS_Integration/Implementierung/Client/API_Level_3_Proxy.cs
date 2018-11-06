@@ -98,6 +98,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                                 {
                                     throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterdaten_abrufen' ist auf dem Server fehlgeschlagen: {failed.Info}.");
                                 }
+                                if (failed.Reason == QueryFailure.Unauthorized)
+                                {
+                                    throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterdaten_abrufen' ist fehlgeschlagen: {failed.Info}.");
+                                }
                                 if (failed.Reason == QueryFailure.Unknown_reason)
                                 {
                                     throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterdaten_abrufen' ist fehlgeschlagen: {failed.Info}.");

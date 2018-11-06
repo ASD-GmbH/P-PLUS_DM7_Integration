@@ -119,6 +119,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                         case ConnectionFailure.Internal_Server_Error:
                             throw new ConnectionErrorException(
                                 $"Fehler beim Verbindungsaufbau mit P-PLUS ({failure.Info})");
+                        case ConnectionFailure.Invalid_Server_Key:
+                            throw new ConnectionErrorException(
+                                $"Fehler beim Verbindungsaufbau mit P-PLUS (Schlüssel-Fehler, {failure.Info})");
+                        case ConnectionFailure.Unauthorized:
+                            throw new ConnectionErrorException(
+                                $"Fehler beim Verbindungsaufbau mit P-PLUS (nicht autorisiert, {failure.Info})");
                         case ConnectionFailure.Unable_to_provide_API_level:
                             throw new UnsupportedVersionException(
                                 $"Der P-PLUS Server unterstützt diese Version der DM7 Software noch nicht oder nicht mehr ({failure.Info}).");

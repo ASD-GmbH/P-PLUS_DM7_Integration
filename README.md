@@ -66,7 +66,7 @@ Wie behandeln wir mehrere (P-PLUS) Mandanten in der Integration.
 5. Submit a pull request :D
 
 ## Änderungen
-- 0.14 (02.11.2018): Verschlüsselung und Authentifizierung
+- 0.14 (05.11.2018): Verschlüsselung und Authentifizierung
 Die Datenübertragung erfolgt jetzt voll verschlüsselt. Bei der Anmeldung angegebene Credentials werden an P-PLUS weitergeleitet, um dort überprüft zu werden. 
 Der Connectionstring für den Client muss jetzt den Public Key des Servers enthalten, Format: tcp://ip:port|publickey
 Der Demo Server gibt den public key beim Start aus. Ausserdem kann der Demo Server nach dem gleichen Muster mit einem Schlüsselpaar initialisiert werden. Wird dieses nicht angegeben, wird ein Schlüsselpaar erzeugt und in der Konsole ausgegeben, so dass ein Neustart mit vorherigem Schlüssel möglich ist.
