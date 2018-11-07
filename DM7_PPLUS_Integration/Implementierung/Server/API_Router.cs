@@ -96,7 +96,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         {
             var task = new Task<ConnectionResult>(() =>
             {
-                if (_authentifizierung.Authentifizieren(credentials) == null) throw new SecurityException("Keine Berechtigung zum Zugriff auf P-PLUS Daten.");
+                if (_authentifizierung.Authentifizieren(credentials) == null)
+                {
+                    _log.Info("Unautorisierter Verbindungsversuch wurde abgelehnt.");
+                    return new ConnectionFailed(ConnectionFailure.Unauthorized, "Keine Berechtigung zum Zugriff auf P-PLUS Daten.");
+                }
 
                 var levels = _apiLevel.Where(_=>_>=minApiLevel && _<=maxApiLevel).OrderByDescending(_=>_).ToList();
 
@@ -130,7 +134,17 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         public Task<QueryResponse> Query(string credentials, int api_level, Guid session, int datenquelle, long von, long bis)
         {
-            if (!(_authentifizierung.Authentifizieren(credentials) is StammdatenZugriff)) throw new SecurityException("Keine Berechtigung zum Zugriff auf P-PLUS Daten.");
+            var autorisierung = _authentifizierung.Authentifizieren(credentials);
+
+            if (autorisierung == null)
+            {
+                return Task.FromResult((QueryResponse)new QueryFailed(QueryFailure.Unauthorized, "Ungültige oder abgelaufene Zugriffsberechtigung"));
+            }
+
+            if (!(autorisierung is StammdatenZugriff))
+            {
+                return Task.FromResult((QueryResponse)new QueryFailed(QueryFailure.Unauthorized, "Unzureichende Zugriffsberechtigung"));
+            }
 
             if (api_level == 1 || api_level==3)
             {

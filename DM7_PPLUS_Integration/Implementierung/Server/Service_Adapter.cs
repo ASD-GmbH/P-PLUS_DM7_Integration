@@ -38,7 +38,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             var minApiLevel = BitConverter.ToInt32(request, offset + 4);
             var loginlength = BitConverter.ToInt32(request, offset + 4 + 4);
             var credentials = System.Text.Encoding.UTF8.GetString(request, offset + 4 + 4 + 4, loginlength);
-            return _backend.Connect_Ebene_1(credentials, maxApiLevel, minApiLevel).ContinueWith(task => EncodeConnectionResult(task.Result));
+            var result = _backend.Connect_Ebene_1(credentials, maxApiLevel, minApiLevel);
+            return result.ContinueWith(task => EncodeConnectionResult(task.Result));
         }
 
         private byte[] EncodeConnectionResult(ConnectionResult result)

@@ -113,22 +113,46 @@ namespace Demo_Implementierung
                 var info = "Verbindung konnte noch nicht hergestellt werden. Bitte warten - oder eine Taste drücken, um abzubrechen.";
                 while (result == null && !cancel)
                 {
-                    if (task.Wait(TimeSpan.FromMilliseconds(2000)))
+                    try
                     {
-                        result = task.Result;
-                    }
-                    else
-                    {
-                        if (Console.KeyAvailable)
+                        if (task.Wait(TimeSpan.FromMilliseconds(2000)))
                         {
-                            while (Console.KeyAvailable) Console.ReadKey(true);
-                            cancel = true;
+                            result = task.Result;
                         }
                         else
                         {
-                            Console.Out.WriteLine(info);
-                            info = ".";
+                            if (Console.KeyAvailable)
+                            {
+                                while (Console.KeyAvailable) Console.ReadKey(true);
+                                cancel = true;
+                            }
+                            else
+                            {
+                                Console.Out.WriteLine(info);
+                                info = ".";
+                            }
                         }
+                    }
+                    catch (AggregateException ex)
+                    {
+                        ex.Handle(inner =>
+                        {
+                            {
+                                if (inner is ConnectionErrorException ex2)
+                                {
+                                    Console.Out.WriteLine($"Fehler beim Verbindungsaufbau: {ex2.Message}");
+                                    return true;
+                                }
+                            }
+                            {
+                                if (inner is UnsupportedVersionException ex2)
+                                {
+                                    Console.Out.WriteLine($"API Version nicht unterstützt: {ex2.Message}");
+                                    return true;
+                                }
+                            }
+                            return false;
+                        });
                     }
                 }
 
