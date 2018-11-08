@@ -66,6 +66,8 @@ Wie behandeln wir mehrere (P-PLUS) Mandanten in der Integration.
 5. Submit a pull request :D
 
 ## Änderungen
+- 0.15 (08.11.2018): Rückgabewerte statt Exceptions, so dass auf Verbindungsfehler und Authentifizierungsfehler serverseitig besser reagiert werden kann.
+
 - 0.14 (05.11.2018): Verschlüsselung und Authentifizierung
 Die Datenübertragung erfolgt jetzt voll verschlüsselt. Bei der Anmeldung angegebene Credentials werden an P-PLUS weitergeleitet, um dort überprüft zu werden. 
 Der Connectionstring für den Client muss jetzt den Public Key des Servers enthalten, Format: tcp://ip:port|publickey
