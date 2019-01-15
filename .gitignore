@@ -42,6 +42,7 @@
 _ReSharper*/
 *.resharper
 _dotCover*
+.idea 
 
 # Others
 [Bb]in
