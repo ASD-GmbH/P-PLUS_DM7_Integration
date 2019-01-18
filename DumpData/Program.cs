@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -32,9 +33,18 @@ namespace DumpData
 
         static void Main(string[] args)
         {
+            if (args.Length == 0)
+            {
+                Console.WriteLine("\nKeine Parameter angegeben.");
+                Console.WriteLine("\nFür einen Demomodus verwenden Sie \n\tDumpData demo");
+                Console.WriteLine("\nUm mit dem P-PLUS-Server zu verbinden, verwenden Sie \n\tDumpData \"<pfad>|<public key>\" \"<key>|<secret>\"");
+                Console.WriteLine("\nUm die Ausgabe in eine Log-Datei umzuleiten, verwenden Sie \n\tDumpData \"<pfad>|<public key>\" \"<key>|<secret>\" > dumpdata.log");
+                Console.WriteLine("\nBeispiel: \n\tDumpData \"tcp://127.0.0.1:21000|PFJTQUtleVZhbHVlP[...]V5VmFsdWU+\" \"ping|pong\"");
+                return;
+            }
             var log = new Observer<Stand>.ConsoleLogger();
 
-            var url = (args.Length > 0) ? args[0] : DEMO_URL;
+            var url = (args.Length == 1 && args[0] == "demo") ? DEMO_URL : args[0];
 
             var credentials = (args.Length > 1) ? args[1] : "user";
 
