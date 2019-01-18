@@ -220,6 +220,7 @@ namespace DumpData
             }
 
             Console.Out.Write($"\n\tPersonalNr.: {(mitarbeiter.Personalnummer != "" ? mitarbeiter.Personalnummer : "---")}");
+            Console.Out.Write($", Handzeichen: {(mitarbeiter.Handzeichen != "" ? mitarbeiter.Handzeichen : "---")}");
             Console.Out.Write($", AVID: {mitarbeiter.ArbeitsverhaeltnisId}");
             Console.Out.Write($", Mandant: { mitarbeiter.Mandant}");
 
