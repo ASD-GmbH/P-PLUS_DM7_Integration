@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Daten;
+using DM7_PPLUS_Integration.Auswahllisten;
 
 namespace DumpData
 {
@@ -30,9 +30,18 @@ namespace DumpData
 
         static void Main(string[] args)
         {
+            if (args.Length == 0)
+            {
+                Console.WriteLine("\nKeine Parameter angegeben.");
+                Console.WriteLine("\nFür einen Demomodus verwenden Sie \n\tDumpData demo");
+                Console.WriteLine("\nUm mit dem P-PLUS-Server zu verbinden, verwenden Sie \n\tDumpData \"<pfad>|<public key>\" \"<key>|<secret>\"");
+                Console.WriteLine("\nUm die Ausgabe in eine Log-Datei umzuleiten, verwenden Sie \n\tDumpData \"<pfad>|<public key>\" \"<key>|<secret>\" > dumpdata.log");
+                Console.WriteLine("\nBeispiel: \n\tDumpData \"tcp://127.0.0.1:21000|PFJTQUtleVZhbHVlP[...]V5VmFsdWU+\" \"ping|pong\"");
+                return;
+            }
             var log = new Observer<Stand>.ConsoleLogger();
 
-            var url = (args.Length > 0) ? args[0] : DEMO_URL;
+            var url = (args.Length == 1 && args[0] == "demo") ? DEMO_URL : args[0];
 
             var credentials = (args.Length > 1) ? args[1] : "user";
 
@@ -58,7 +67,6 @@ namespace DumpData
                         Console.Out.WriteLine("- Press any key to quit.");
                         Console.ReadKey();
                     }
-
                 }
             }
             else
@@ -107,7 +115,6 @@ namespace DumpData
 
                 if (cancel) cancellationTokenSource.Cancel();
                 return result;
-
             }
             finally
             {
@@ -133,10 +140,7 @@ namespace DumpData
                     var von = _angeforderter_Stand;
                     var bis = _verfuegbarer_Stand;
 
-                    query = () =>
-                    {
-                        Aktualisierung_anfordern(api, von, bis);
-                    };
+                    query = () => { Aktualisierung_anfordern(api, von, bis); };
 
                     _query_in_Progress = true;
                     _angeforderter_Stand = bis;
@@ -182,20 +186,85 @@ namespace DumpData
                 $"- {(daten.Teilmenge ? "Neu oder geändert" : "Vollständige Liste")} in Stand {daten.Stand}:");
             foreach (var mitarbeiter in daten.Mitarbeiter)
             {
-                Console.Out.WriteLine($"\n- Mitarbeiter {mitarbeiter.Personalnummer}\n{mitarbeiter.Vorname}, {mitarbeiter.Nachname} {mitarbeiter.DatensatzId}");
-                Console.Out.WriteLine($"{mitarbeiter.ArbeitsverhaeltnisId} {mitarbeiter.PersonId} {mitarbeiter.GueltigAb} {mitarbeiter.GueltigBis}");
-                Console.Out.WriteLine($"{mitarbeiter.Struktur}");
-                foreach (var kontakt in mitarbeiter.Kontakte) {
-                    Console.Out.WriteLine($"{kontakt.Kontaktart} {kontakt.Kontaktform} {kontakt.Eintrag}");
-                }
-                foreach (var quali in mitarbeiter.Qualifikation) {
-                    Console.Out.WriteLine($"{quali.Bezeichnung} {quali.Stufe}");
-                }
+                AusgabeMitarbeiter(mitarbeiter);
             }
         }
+
+        /// <summary>
+        /// Gibt einen Infoblock für einen Mitarbeiter auf der Konsole aus
+        /// </summary>
+        /// <param name="mitarbeiter"></param>
+        private static void AusgabeMitarbeiter(Mitarbeiterdatensatz mitarbeiter)
+        {
+            var eintrittsdatum = $"{mitarbeiter.GueltigAb.Tag}.{mitarbeiter.GueltigAb.Monat}.{mitarbeiter.GueltigAb.Jahr}";
+            var austrittsdatum = mitarbeiter.GueltigBis.HasValue ? $"{mitarbeiter.GueltigBis.Value.Tag}.{mitarbeiter.GueltigBis.Value.Monat}.{mitarbeiter.GueltigBis.Value.Jahr}" : "---";
+            var geburtstag = mitarbeiter.Geburtstag.HasValue ? $"{mitarbeiter.Geburtstag.Value.Tag}.{mitarbeiter.Geburtstag.Value.Monat}.{mitarbeiter.Geburtstag.Value.Jahr}" : "???";
+            var geschlecht = Bezeichnung_aus_Auswahlliste(typeof(Auswahllisten_1.Geschlecht), mitarbeiter.Geschlecht);
+            var titel = Bezeichnung_aus_Auswahlliste(typeof(Auswahllisten_1.Titel), mitarbeiter.Titel);
+            var familienstand = Bezeichnung_aus_Auswahlliste(typeof(Auswahllisten_1.Familienstand), mitarbeiter.Familienstand);
+            var konfession = Bezeichnung_aus_Auswahlliste(typeof(Auswahllisten_1.Konfession), mitarbeiter.Konfession);
+
+            Console.Out.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Out.Write($"\t{mitarbeiter.Nachname}, {mitarbeiter.Vorname}");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Out.Write($" - {mitarbeiter.DatensatzId}");
+
+            Console.Out.Write($"\n\tPersID: {mitarbeiter.PersonId}");
+            Console.Out.Write($", Titel: {titel}");
+            Console.Out.Write($", Geschlecht: {geschlecht}");
+
+            Console.Out.Write($"\n\tGeburtstag: {geburtstag}");
+            Console.Out.Write($", Familienstand: {familienstand}");
+            Console.Out.Write($", Konfession: {konfession}");
+
+            if (mitarbeiter.Postanschrift.HasValue)
+            {
+                Console.Out.Write($"\n\tPostanschrift: {mitarbeiter.Postanschrift.Value.Strasse}");
+                Console.Out.Write($"{(mitarbeiter.Postanschrift.Value.Adresszusatz != "" ? " - " : "")}{mitarbeiter.Postanschrift.Value.Adresszusatz}");
+                Console.Out.Write($", {mitarbeiter.Postanschrift.Value.Postleitzahl} {mitarbeiter.Postanschrift.Value.Ort}");
+                Console.Out.Write($", {mitarbeiter.Postanschrift.Value.Land}");
+            }
+
+            Console.Out.Write($"\n\tPersonalNr.: {(mitarbeiter.Personalnummer != "" ? mitarbeiter.Personalnummer : "---")}");
+            Console.Out.Write($", Handzeichen: {(mitarbeiter.Handzeichen != "" ? mitarbeiter.Handzeichen : "---")}");
+            Console.Out.Write($", AVID: {mitarbeiter.ArbeitsverhaeltnisId}");
+            Console.Out.Write($", Mandant: { mitarbeiter.Mandant}");
+
+            Console.Out.Write($"\n\tStruktur: {mitarbeiter.Struktur}");
+            Console.Out.Write($", Eintritt: {eintrittsdatum}");
+            Console.Out.Write($", Austritt: {austrittsdatum}");
+            Console.Out.WriteLine();
+
+
+            if (mitarbeiter.Kontakte.Count > 0) Console.Out.WriteLine($"\tKontaktdaten: ");
+            foreach (var kontakt in mitarbeiter.Kontakte)
+            {
+                Console.Out.WriteLine($"\t\t{Bezeichnung_aus_Auswahlliste(typeof(Auswahllisten_1.Kontaktart), kontakt.Kontaktart)} " +
+                                      $"({Bezeichnung_aus_Auswahlliste(typeof(Auswahllisten_1.Kontaktform), kontakt.Kontaktform)}): " +
+                                      $"{kontakt.Eintrag}");
+            }
+
+            if (mitarbeiter.Qualifikation.Count > 0) Console.Out.WriteLine($"\tQualifikationen: ");
+            foreach (var quali in mitarbeiter.Qualifikation)
+            {
+                Console.Out.WriteLine($"\t\t{quali.Bezeichnung} (Stufe {quali.Stufe})");
+            }
+
+            Console.Out.WriteLine();
+        }
+
+        /// <summary>
+        /// Gibt den Feldnamen für Guids aus Auswahllisten_X zurück.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="guid"></param>
+        /// <returns></returns>
+        private static string Bezeichnung_aus_Auswahlliste(Type type, Guid guid) => 
+            type
+                .GetFields()
+                .SingleOrDefault(_ => (Guid)_.GetValue(null) == guid)?.Name ?? "???";
     }
-
-
 
 
     internal class Observer<T> : IObserver<T>
@@ -223,9 +292,6 @@ namespace DumpData
         {
             throw new NotSupportedException("OnComplete ist für " + typeof(T).Name + " nicht vorgesehen.");
         }
-
-
-
 
 
         /// <summary>
