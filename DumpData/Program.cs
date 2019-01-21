@@ -199,10 +199,10 @@ namespace DumpData
             var eintrittsdatum = $"{mitarbeiter.GueltigAb.Tag}.{mitarbeiter.GueltigAb.Monat}.{mitarbeiter.GueltigAb.Jahr}";
             var austrittsdatum = mitarbeiter.GueltigBis.HasValue ? $"{mitarbeiter.GueltigBis.Value.Tag}.{mitarbeiter.GueltigBis.Value.Monat}.{mitarbeiter.GueltigBis.Value.Jahr}" : "---";
             var geburtstag = mitarbeiter.Geburtstag.HasValue ? $"{mitarbeiter.Geburtstag.Value.Tag}.{mitarbeiter.Geburtstag.Value.Monat}.{mitarbeiter.Geburtstag.Value.Jahr}" : "???";
-            var geschlecht = LookupGuid(typeof(Auswahllisten_1.Geschlecht), mitarbeiter.Geschlecht);
-            var titel = LookupGuid(typeof(Auswahllisten_1.Titel), mitarbeiter.Titel);
-            var familienstand = LookupGuid(typeof(Auswahllisten_1.Familienstand), mitarbeiter.Familienstand);
-            var konfession = LookupGuid(typeof(Auswahllisten_1.Konfession), mitarbeiter.Konfession);
+            var geschlecht = Bezeichnung_aus_Auswahlliste(typeof(Auswahllisten_1.Geschlecht), mitarbeiter.Geschlecht);
+            var titel = Bezeichnung_aus_Auswahlliste(typeof(Auswahllisten_1.Titel), mitarbeiter.Titel);
+            var familienstand = Bezeichnung_aus_Auswahlliste(typeof(Auswahllisten_1.Familienstand), mitarbeiter.Familienstand);
+            var konfession = Bezeichnung_aus_Auswahlliste(typeof(Auswahllisten_1.Konfession), mitarbeiter.Konfession);
 
             Console.Out.WriteLine();
             Console.ForegroundColor = ConsoleColor.Green;
@@ -240,8 +240,8 @@ namespace DumpData
             if (mitarbeiter.Kontakte.Count > 0) Console.Out.WriteLine($"\tKontaktdaten: ");
             foreach (var kontakt in mitarbeiter.Kontakte)
             {
-                Console.Out.WriteLine($"\t\t{LookupGuid(typeof(Auswahllisten_1.Kontaktart), kontakt.Kontaktart)} " +
-                                      $"({LookupGuid(typeof(Auswahllisten_1.Kontaktform), kontakt.Kontaktform)}): " +
+                Console.Out.WriteLine($"\t\t{Bezeichnung_aus_Auswahlliste(typeof(Auswahllisten_1.Kontaktart), kontakt.Kontaktart)} " +
+                                      $"({Bezeichnung_aus_Auswahlliste(typeof(Auswahllisten_1.Kontaktform), kontakt.Kontaktform)}): " +
                                       $"{kontakt.Eintrag}");
             }
 
@@ -260,13 +260,10 @@ namespace DumpData
         /// <param name="type"></param>
         /// <param name="guid"></param>
         /// <returns></returns>
-        private static string LookupGuid(Type type, Guid guid)
-        {
-            Type fieldsType = type;
-            FieldInfo[] fields = fieldsType.GetFields();
-            var field = fields.SingleOrDefault(_ => (Guid)_.GetValue(null) == guid);
-            return field?.Name ?? "???";
-        }
+        private static string Bezeichnung_aus_Auswahlliste(Type type, Guid guid) => 
+            type
+                .GetFields()
+                .SingleOrDefault(_ => (Guid)_.GetValue(null) == guid)?.Name ?? "???";
     }
 
 
