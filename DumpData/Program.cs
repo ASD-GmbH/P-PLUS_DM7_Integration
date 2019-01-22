@@ -64,8 +64,11 @@ namespace DumpData
                                 s => Neuen_Stand_vermerken(api, s),
                                 ex => log.Debug(ex.Message))))
                     {
-                        Console.Out.WriteLine("- Press any key to quit.");
-                        Console.ReadKey();
+                        Console.Out.WriteLine("- Esc-Taste drücken, um zu beenden.");
+                        while (Console.ReadKey(true).Key != ConsoleKey.Escape)
+                        {
+                            // do nothing until escape
+                        }
                     }
                 }
             }
@@ -260,7 +263,7 @@ namespace DumpData
         /// <param name="type"></param>
         /// <param name="guid"></param>
         /// <returns></returns>
-        private static string Bezeichnung_aus_Auswahlliste(Type type, Guid guid) => 
+        private static string Bezeichnung_aus_Auswahlliste(Type type, Guid guid) =>
             type
                 .GetFields()
                 .SingleOrDefault(_ => (Guid)_.GetValue(null) == guid)?.Name ?? "???";
