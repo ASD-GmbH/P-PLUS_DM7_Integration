@@ -16,6 +16,21 @@ var api = PPLUS.Connect(url,credentials,log,cancellationToken_Verbindung).Result
 ``` 
 erstellt werden.
 
+Format für `url` (weitere Erklärung siehe unten): `tcp://ip:port|publickey`
+
+Format für `credentials`: `key|secret`
+
+## Beispiel - weitere Erklärung siehe unten 
+(key = ping, secret = pong)
+
+```c#
+var log = // eigener Logger
+var cancellationTokenSource = new CancellationTokenSource();
+var cancellationToken_Verbindung = cancellationTokenSource.Token;
+PPLUS.Connect("tcp://127.0.0.1:21000|PFJTQUtleVZhbHVlP[...]V5VmFsdWU+", "ping|pong", log, cancellationToken_Verbindung); 
+```
+
+
 Zur Verbindung braucht die API eine Netzwerkadresse (IP & Port). 
 Der Log Adapter dient als Rückkanal, um Support- und Betriebsnachrichten von P-PLUS zu DM7 zu senden.
 Mittels CancellationToken kann ein laufender Verbindungsaufbau abgebrochen werden, beispielsweise durch extern festgestellten Timeout oder Benutzeranforderung. Alternativ kann CancellationToken.None übergeben werden, dann bricht der Verbindungsaufbau nie ab, dann kann mittels .Result ewig auf den Aufbau einer Verbindung gewartet werden oder mittels .ContinueWith asynchron auf den erfolgreichen Verbindungsaufbau reagiert werden.
