@@ -10,7 +10,7 @@ cls
 
 @IF NOT EXIST "_build_tools\FAKE\tools\Fake.exe" (
 	@echo "Installing FAKE from NUGET... (this may take a short while)"
-	@"_build_tools\nuget.exe" "install" "FAKE" "-OutputDirectory" "_build_tools" "-ExcludeVersion"
+	@"_build_tools\nuget.exe" "install" "FAKE" "-OutputDirectory" "_build_tools" "-ExcludeVersion" "-Version" "4.64.18"
 )
 
 @IF NOT EXIST "_build_tools\NUnit.Runners\tools\nunit-console.exe" (
