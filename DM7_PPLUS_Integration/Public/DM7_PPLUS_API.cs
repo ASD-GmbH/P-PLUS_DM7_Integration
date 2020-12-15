@@ -5,7 +5,7 @@ using DM7_PPLUS_Integration.Daten;
 namespace DM7_PPLUS_Integration
 {
     /// <summary>
-    /// Instanz der DM7_PPLUS_Integrationsschnittstelle, API Level 3
+    /// Instanz der DM7_PPLUS_Integrationsschnittstelle, API Version 3
     /// </summary>
     public interface DM7_PPLUS_API : IDisposable
     {
@@ -20,7 +20,7 @@ namespace DM7_PPLUS_Integration
         IObservable<Stand> Stand_Mitarbeiterdaten { get; }
 
         /// <summary>
-        /// Abruf nur der Mitarbeiterdatensätze mit Aktualisierungen zwischen den angegebenen Ständen
+        /// Abruf nur der Mitarbeiterdatensätze mit Aktualisierungen zwischen den angegschichtn Ständen
         /// </summary>
         Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen(Stand von, Stand bis);
 

@@ -11,7 +11,7 @@ using NetMQ.Sockets;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    internal class NetMQ_Client : DisposeGroupMember, Ebene_3_Protokoll__Data, Ebene_3_Protokoll__Service
+    internal class NetMQ_Client : DisposeGroupMember, Schicht_3_Protokoll__Data, Schicht_3_Protokoll__Service
     {
         private readonly Log _log;
         private readonly RequestSocket _request_socket;
@@ -110,12 +110,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         }
 
 
-        Task<byte[]> Ebene_3_Protokoll__Service.ServiceRequest(byte[] request)
+        Task<byte[]> Schicht_3_Protokoll__Service.ServiceRequest(byte[] request)
         {
             return Task(Constants.CHANNEL_1_SERVICE, request);
         }
 
-        Task<byte[]> Ebene_3_Protokoll__Data.Request(byte[] request)
+        Task<byte[]> Schicht_3_Protokoll__Data.Request(byte[] request)
         {
             return Task(Constants.CHANNEL_2_DATA, request);
         }
@@ -151,6 +151,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             return task;
         }
 
-        IObservable<byte[]> Ebene_3_Protokoll__Data.Notifications => _notifications;
+        IObservable<byte[]> Schicht_3_Protokoll__Data.Notifications => _notifications;
     }
 }

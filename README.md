@@ -84,7 +84,7 @@ Wie behandeln wir mehrere (P-PLUS) Mandanten in der Integration.
 - 0.15 (08.11.2018): Rückgabewerte statt Exceptions, so dass auf Verbindungsfehler und Authentifizierungsfehler serverseitig besser reagiert werden kann.
 
 - 0.14 (05.11.2018): Verschlüsselung und Authentifizierung
-Die Datenübertragung erfolgt jetzt voll verschlüsselt. Bei der Anmeldung angegebene Credentials werden an P-PLUS weitergeleitet, um dort überprüft zu werden. 
+Die Datenübertragung erfolgt jetzt voll verschlüsselt. Bei der Anmeldung angegschicht Credentials werden an P-PLUS weitergeleitet, um dort überprüft zu werden. 
 Der Connectionstring für den Client muss jetzt den Public Key des Servers enthalten, Format: tcp://ip:port|publickey
 Der Demo Server gibt den public key beim Start aus. Ausserdem kann der Demo Server nach dem gleichen Muster mit einem Schlüsselpaar initialisiert werden. Wird dieses nicht angegeben, wird ein Schlüsselpaar erzeugt und in der Konsole ausgegeben, so dass ein Neustart mit vorherigem Schlüssel möglich ist.
 
@@ -106,8 +106,8 @@ Aufgrund der Tatsache, dass ein MA innerhalb einer Datenbank von einem Mandanten
 ### Breaking Changes
 
 #### API Version
-Das API Level wird von 2 auf 3 angehoben.
-Die Rückwärtskompatibilität zu P-PLUS Servern mit dem Protokoll API Level 2 besteht nicht (pre-release).
+Das API Version wird von 2 auf 3 angehoben.
+Die Rückwärtskompatibilität zu P-PLUS Servern mit dem Protokoll API Version 2 besteht nicht (pre-release).
 
 #### Mitarbeiterdatensatz.DatensatzId
 Ein neues Feld DatensatzId: string wird eingeführt. Dieses übernimmt die Funktion des bisherigen Feldes Id in Bezug auf Aktualisierung des Datensatzes. Entsprechend ändert dich der Datentyp für Referenzlisten von Guid auf string.
@@ -134,7 +134,7 @@ Die Felder Eintritt und Austritt werden jeweils in GueltigAb und GueltigBis umbe
 
 
 - 0.12 (27.10.2017): Vollständige Serialisierung
-Die vollständige Serialisierung ist als API Level 2 implementiert.
+Die vollständige Serialisierung ist als API Version 2 implementiert.
 Das externe Interface ist unverändert.
 
 

@@ -6,11 +6,11 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Server
 {
-    internal class Data_Adapter : DisposeGroupMember, Ebene_3_Protokoll__Data
+    internal class Data_Adapter : DisposeGroupMember, Schicht_3_Protokoll__Data
     {
-        private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _backend;
+        private readonly Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung _backend;
 
-        public Data_Adapter(Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung backend, Log log, DisposeGroup disposegroup) : base(disposegroup)
+        public Data_Adapter(Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung backend, Log log, DisposeGroup disposegroup) : base(disposegroup)
         {
             _backend = backend;
             var subject = new Subject<byte[]>();
@@ -38,7 +38,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             throw new NotImplementedException();
         }
 
-        // empfängt serialisierte Nachrichten und gibt sie als API-Level-unabhängige Nachrichten an das Backend weiter
+        // empfängt serialisierte Nachrichten und gibt sie als API-Version-unabhängige Nachrichten an das Backend weiter
 
         public Task<byte[]> Request(byte[] request)
         {
@@ -54,7 +54,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             var session = new Guid(guidbuffer);
             position += 16;
 
-            var api_level = BitConverter.ToInt32(request, position);
+            var api_version = BitConverter.ToInt32(request, position);
             position += 4;
 
             var datenquelle = BitConverter.ToInt32(request, position);
@@ -67,7 +67,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
             return
                 _backend
-                    .Query(credentials, api_level, session, datenquelle, von, bis)
+                    .Query(credentials, api_version, session, datenquelle, von, bis)
                     .ContinueWith(task => Serialize_QueryResponse(task.Result));
         }
 

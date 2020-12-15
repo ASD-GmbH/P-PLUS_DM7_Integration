@@ -6,11 +6,11 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    internal class Data_Proxy : DisposeGroupMember, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung
+    internal class Data_Proxy : DisposeGroupMember, Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung
     {
-        private readonly Ebene_3_Protokoll__Data _proxy;
+        private readonly Schicht_3_Protokoll__Data _proxy;
 
-        public Data_Proxy(Ebene_3_Protokoll__Data proxy, DisposeGroup disposegroup) : base(disposegroup)
+        public Data_Proxy(Schicht_3_Protokoll__Data proxy, DisposeGroup disposegroup) : base(disposegroup)
         {
             _proxy = proxy;
             disposegroup.With(() => _proxy.Dispose());
@@ -46,7 +46,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             return new NotificationData(session,datenquelle,version);
         }
 
-        public Task<QueryResponse> Query(string credentials, int api_level, Guid session, int datenquelle, long von, long bis)
+        public Task<QueryResponse> Query(string credentials, int api_version, Guid session, int datenquelle, long von, long bis)
         {
             var credentialsBuffer = System.Text.Encoding.UTF8.GetBytes(credentials);
             var query = new List<byte[]>
@@ -54,7 +54,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 BitConverter.GetBytes(credentialsBuffer.Length),
                 credentialsBuffer,
                 session.ToByteArray(),
-                BitConverter.GetBytes(api_level),
+                BitConverter.GetBytes(api_version),
                 BitConverter.GetBytes(datenquelle),
                 BitConverter.GetBytes(von),
                 BitConverter.GetBytes(bis)

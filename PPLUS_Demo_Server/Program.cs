@@ -54,11 +54,11 @@ namespace PPLUS_Demo_Server
             log.Info($"Demoserver wurde gestartet ({hostaddress}:{port}|{publickey}).");
 
             var sub =
-                host.Ebene_1_API_Level_1.Stand_Mitarbeiterdaten.Subscribe(new Observer<Stand>(stand =>
+                host.Schicht_1_API_Version_1.Stand_Mitarbeiterdaten.Subscribe(new Observer<Stand>(stand =>
                 {
                     log.Debug(
                         // ReSharper disable once AccessToDisposedClosure
-                        $" - Mitarbeiterliste jetzt auf Stand {stand}, {host.Ebene_1_API_Level_1.Mitarbeiterdaten_abrufen().Result.Mitarbeiter.Count} Mitarbeiter.");
+                        $" - Mitarbeiterliste jetzt auf Stand {stand}, {host.Schicht_1_API_Version_1.Mitarbeiterdaten_abrufen().Result.Mitarbeiter.Count} Mitarbeiter.");
                 }, log.OnError));
 
             Console.ReadKey();

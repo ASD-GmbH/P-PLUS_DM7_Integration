@@ -16,7 +16,7 @@ namespace DM7_PPLUS_Integration
         /// <returns>Instanz der DM7_PPLUS_Integrationsschnittstelle</returns>
         public static Task<DM7_PPLUS_API> Connect(string network_address, string credentials, Log log, CancellationToken cancellationToken_Verbindung)
         {
-            return Connector.Instance_API_Level_3(network_address, credentials, log, cancellationToken_Verbindung);
+            return Connector.Instance_API_Version_3(network_address, credentials, log, cancellationToken_Verbindung);
         }
     }
 }

@@ -6,11 +6,11 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Server
 {
-    internal class Service_Adapter : DisposeGroupMember, Ebene_3_Protokoll__Service
+    internal class Service_Adapter : DisposeGroupMember, Schicht_3_Protokoll__Service
     {
-        private readonly Ebene_2_Protokoll__Verbindungsaufbau _backend;
+        private readonly Schicht_2_Protokoll__Verbindungsaufbau _backend;
 
-        public Service_Adapter(Ebene_2_Protokoll__Verbindungsaufbau backend, DisposeGroup disposegroup) : base(disposegroup)
+        public Service_Adapter(Schicht_2_Protokoll__Verbindungsaufbau backend, DisposeGroup disposegroup) : base(disposegroup)
         {
             _backend = backend;
         }
@@ -34,11 +34,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         private Task<byte[]> Connect(byte[] request, int offset)
         {
-            var maxApiLevel = BitConverter.ToInt32(request, offset);
-            var minApiLevel = BitConverter.ToInt32(request, offset + 4);
+            var maxApiVersion = BitConverter.ToInt32(request, offset);
+            var minApiVersion = BitConverter.ToInt32(request, offset + 4);
             var loginlength = BitConverter.ToInt32(request, offset + 4 + 4);
             var credentials = System.Text.Encoding.UTF8.GetString(request, offset + 4 + 4 + 4, loginlength);
-            var result = _backend.Connect_Ebene_1(credentials, maxApiLevel, minApiLevel);
+            var result = _backend.Connect_Schicht_1(credentials, maxApiVersion, minApiVersion);
             return result.ContinueWith(task => EncodeConnectionResult(task.Result));
         }
 
@@ -50,7 +50,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 return new List<byte[]>
                 {
                     new byte[] {Constants.CONNECTION_RESPONSE_OK},
-                    BitConverter.GetBytes(success.Api_Level),
+                    BitConverter.GetBytes(success.Api_Version),
                     BitConverter.GetBytes(success.Auswahllistenversion)
                 }.Concat();
             }

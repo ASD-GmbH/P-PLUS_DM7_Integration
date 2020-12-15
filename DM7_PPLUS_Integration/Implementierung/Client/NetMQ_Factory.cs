@@ -6,7 +6,7 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    internal class NetMQ_Factory :  Ebene_2_Proxy_Factory
+    internal class NetMQ_Factory :  Schicht_2_Proxy_Factory
     {
         private readonly DisposeGroup _disposegroup;
 
@@ -15,18 +15,18 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             _disposegroup = disposegroup;
         }
 
-        public Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>> Connect_Ebene_2(string networkAddress, string credentials, Log log, CancellationToken cancellationToken_Verbindung)
+        public Task<Tuple<Schicht_2_Protokoll__Verbindungsaufbau, Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung>> Connect_Schicht_2(string networkAddress, string credentials, Log log, CancellationToken cancellationToken_Verbindung)
         {
             var task =
-                new Task<Tuple<Ebene_2_Protokoll__Verbindungsaufbau,
-                    Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>>(() =>
+                new Task<Tuple<Schicht_2_Protokoll__Verbindungsaufbau,
+                    Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung>>(() =>
                 {
                     var client = new NetMQ_Client(networkAddress, log, _disposegroup, cancellationToken_Verbindung);
                     var serializer = new Data_Proxy(client, _disposegroup);
                     var connector = new Service_Proxy(client, _disposegroup);
 
-                    return new Tuple<Ebene_2_Protokoll__Verbindungsaufbau,
-                        Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung>(
+                    return new Tuple<Schicht_2_Protokoll__Verbindungsaufbau,
+                        Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung>(
                         connector, serializer
                     );
                 });

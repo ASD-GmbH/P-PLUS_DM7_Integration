@@ -4,12 +4,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Protokoll
 {
     public class ConnectionSucceeded : ConnectionResult
     {
-        public readonly int Api_Level;
+        public readonly int Api_Version;
         public readonly int Auswahllistenversion;
 
-        public ConnectionSucceeded(int apiLevel, int auswahllistenversion)
+        public ConnectionSucceeded(int apiVersion, int auswahllistenversion)
         {
-            Api_Level = apiLevel;
+            Api_Version = apiVersion;
             Auswahllistenversion = auswahllistenversion;
         }
     }

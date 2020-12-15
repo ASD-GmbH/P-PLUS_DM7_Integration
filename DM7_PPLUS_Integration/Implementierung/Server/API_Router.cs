@@ -15,28 +15,28 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 {
 
     /// <summary>
-    /// Empfängt API-Level-unabhängige Nachrichten und routet Sie in fachliche Nachrichten an die verschiedenen API Versionen
+    /// Empfängt API-Version-unabhängige Nachrichten und routet Sie in fachliche Nachrichten an die verschiedenen API Versionen
     /// </summary>
-    internal class API_Router : DisposeGroupMember, Ebene_2_Protokoll__Verbindungsaufbau, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung
+    internal class API_Router : DisposeGroupMember, Schicht_2_Protokoll__Verbindungsaufbau, Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung
     {
-        private readonly DM7_PPLUS_API _backendLevel1;
-        private readonly DM7_PPLUS_API _backendLevel3;
-        private readonly HashSet<int> _apiLevel = new HashSet<int>();
+        private readonly DM7_PPLUS_API _backendVersion1;
+        private readonly DM7_PPLUS_API _backendVersion3;
+        private readonly HashSet<int> _apiVersion = new HashSet<int>();
         private readonly int _auswahllistenversion;
         private readonly PPLUS_Authentifizierung _authentifizierung;
         private readonly Log _log;
         private readonly string _versionen;
 
         /// <summary>
-        /// Empfängt API-Level-unabhängige Nachrichten und routet Sie in fachliche Nachrichten an die verschiedenen API Versionen
+        /// Empfängt API-Version-unabhängige Nachrichten und routet Sie in fachliche Nachrichten an die verschiedenen API Versionen
         /// </summary>
         public API_Router(
             Log log,
             int auswahllisten_version,
             PPLUS_Authentifizierung authentifizierung,
-            Level_0_Test_API backend_level_0,
-            DM7_PPLUS_API backend_level_1,
-            DM7_PPLUS_API backend_level_3,
+            Version_0_Test_API backend_version_0,
+            DM7_PPLUS_API backend_version_1,
+            DM7_PPLUS_API backend_version_3,
             DisposeGroup disposegroup) : base(disposegroup)
         {
             _log = log;
@@ -44,17 +44,17 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             _authentifizierung = authentifizierung;
 
 
-            if (backend_level_0 != null) _apiLevel.Add(0);
-            if (backend_level_1 != null) _apiLevel.Add(1);
-            if (backend_level_3 != null) _apiLevel.Add(3);
+            if (backend_version_0 != null) _apiVersion.Add(0);
+            if (backend_version_1 != null) _apiVersion.Add(1);
+            if (backend_version_3 != null) _apiVersion.Add(3);
 
-            _backendLevel1 = backend_level_1;
-            _backendLevel3 = backend_level_3;
+            _backendVersion1 = backend_version_1;
+            _backendVersion3 = backend_version_3;
 
             _versionen =
-                _apiLevel.Count==1
-                    ? "Version " + _apiLevel.Single()
-                    : "Versionen " + String.Join(", ", (_apiLevel.OrderByDescending(_ => _).Select(_ => _.ToString())));
+                _apiVersion.Count==1
+                    ? "Version " + _apiVersion.Single()
+                    : "Versionen " + String.Join(", ", (_apiVersion.OrderByDescending(_ => _).Select(_ => _.ToString())));
 
             log.Info(string.Format("DM7 Schittstelle mit API {0} bereitgestellt.", _versionen));
 
@@ -62,9 +62,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
             var subject = new Subject<Notification>();
 
-            if (backend_level_3 != null)
+            if (backend_version_3 != null)
             {
-                var subscription = backend_level_3.Stand_Mitarbeiterdaten.Subscribe(
+                var subscription = backend_version_3.Stand_Mitarbeiterdaten.Subscribe(
                     new Observer<Stand>(
                         s =>
                         {
@@ -75,9 +75,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             }
             else
             {
-                if (backend_level_1 != null)
+                if (backend_version_1 != null)
                 {
-                    var subscription = backend_level_1.Stand_Mitarbeiterdaten.Subscribe(
+                    var subscription = backend_version_1.Stand_Mitarbeiterdaten.Subscribe(
                         new Observer<Stand>(
                             s =>
                             {
@@ -92,7 +92,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         }
 
 
-        public Task<ConnectionResult> Connect_Ebene_1(string credentials, int maxApiLevel, int minApiLevel)
+        public Task<ConnectionResult> Connect_Schicht_1(string credentials, int maxApiVersion, int minApiVersion)
         {
             var task = new Task<ConnectionResult>(() =>
             {
@@ -102,23 +102,23 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                     return new ConnectionFailed(ConnectionFailure.Unauthorized, "Keine Berechtigung zum Zugriff auf P-PLUS Daten.");
                 }
 
-                var levels = _apiLevel.Where(_=>_>=minApiLevel && _<=maxApiLevel).OrderByDescending(_=>_).ToList();
+                var versions = _apiVersion.Where(_=>_>=minApiVersion && _<=maxApiVersion).OrderByDescending(_=>_).ToList();
 
                 var versionen =
-                    minApiLevel == maxApiLevel
-                        ? "Version " + maxApiLevel
-                        : "Versionen " + maxApiLevel + ".." + minApiLevel;
+                    minApiVersion == maxApiVersion
+                        ? "Version " + maxApiVersion
+                        : "Versionen " + maxApiVersion + ".." + minApiVersion;
 
-                if (levels.Any())
+                if (versions.Any())
                 {
-                    var level = levels.First();
-                    _log.Info($"Verbindungsanfrage für API {versionen} erhalten, Verbindung aufgebaut mit API {level}.");
-                    return new ConnectionSucceeded(level, _auswahllistenversion);
+                    var version = versions.First();
+                    _log.Info($"Verbindungsanfrage für API {versionen} erhalten, Verbindung aufgebaut mit API {version}.");
+                    return new ConnectionSucceeded(version, _auswahllistenversion);
                 }
                 else
                 {
                     _log.Info($"Verbindungsanfrage für API {versionen} konnte nicht erfüllt werden.");
-                    return new ConnectionFailed(ConnectionFailure.Unable_to_provide_API_level, $"Dieser P-PLUS-Server kann nur APIs {_versionen} bereitstellen.");
+                    return new ConnectionFailed(ConnectionFailure.Unable_to_provide_API_version, $"Dieser P-PLUS-Server kann nur APIs {_versionen} bereitstellen.");
                 }
             });
             task.RunSynchronously();
@@ -132,7 +132,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             return new NotificationData(s.Session, datenquelle, s.Version);
         }
 
-        public Task<QueryResponse> Query(string credentials, int api_level, Guid session, int datenquelle, long von, long bis)
+        public Task<QueryResponse> Query(string credentials, int api_version, Guid session, int datenquelle, long von, long bis)
         {
             var autorisierung = _authentifizierung.Authentifizieren(credentials);
 
@@ -146,10 +146,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 return Task.FromResult((QueryResponse)new QueryFailed(QueryFailure.Unauthorized, "Unzureichende Zugriffsberechtigung"));
             }
 
-            if (api_level == 1 || api_level==3)
+            if (api_version == 1 || api_version==3)
             {
                 var mitarbeiter =
-                    (_backendLevel3?? _backendLevel1).Mitarbeiterdaten_abrufen(new VersionsStand(session, von),
+                    (_backendVersion3?? _backendVersion1).Mitarbeiterdaten_abrufen(new VersionsStand(session, von),
                         new VersionsStand(session, bis));
 
                 return mitarbeiter.ContinueWith(task =>

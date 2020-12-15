@@ -16,20 +16,20 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     /// </summary>
     internal class NetMQ_Server : DisposeGroupMember
     {
-        private readonly Ebene_3_Protokoll__Data _backend;
-        private readonly Ebene_3_Protokoll__Service _service;
+        private readonly Schicht_3_Protokoll__Data _backend;
+        private readonly Schicht_3_Protokoll__Service _service;
         private readonly Log _log;
         private readonly RSAParameters _rsakey;
 
         /// <summary>
         /// Empfängt serialisierte Nachrichten über ZeroMQ und gibt sie weiter an das Backend
         /// </summary>
-        public static void Start(Ebene_3_Protokoll__Service service, Ebene_3_Protokoll__Data backend, string connectionstring, string privateKey, Log log, DisposeGroup disposegroup)
+        public static void Start(Schicht_3_Protokoll__Service service, Schicht_3_Protokoll__Data backend, string connectionstring, string privateKey, Log log, DisposeGroup disposegroup)
         {
             // ReSharper disable once ObjectCreationAsStatement
             new NetMQ_Server(service, backend, connectionstring, privateKey, log, disposegroup);
         }
-        private NetMQ_Server(Ebene_3_Protokoll__Service service, Ebene_3_Protokoll__Data backend, string connectionstring, string privateKey, Log log, DisposeGroup disposegroup) : base(disposegroup)
+        private NetMQ_Server(Schicht_3_Protokoll__Service service, Schicht_3_Protokoll__Data backend, string connectionstring, string privateKey, Log log, DisposeGroup disposegroup) : base(disposegroup)
         {
             disposegroup.With(() => _log.Info("NetMQ Server wurde beendet."));
 
@@ -67,7 +67,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         }
 
         private static readonly SHA256 hash = SHA256.Create();
-        private void Init_publisher_socket(Ebene_3_Protokoll__Data backend, string connectionstring, DisposeGroup disposegroup)
+        private void Init_publisher_socket(Schicht_3_Protokoll__Data backend, string connectionstring, DisposeGroup disposegroup)
         {
             var publisher_port = Next_available_port(connectionstring);
             _log.Debug($"NetMQ publisher socket wird bereitgestellt ({publisher_port})...");

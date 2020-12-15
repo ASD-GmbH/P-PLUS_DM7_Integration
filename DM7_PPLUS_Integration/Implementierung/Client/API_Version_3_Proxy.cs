@@ -11,24 +11,24 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
     /// <summary>
-    /// Implementiert die API level 3 und übersetzt die Anfragen in API-Level-unabhängige Nachrichten
+    /// Implementiert die API version 3 und übersetzt die Anfragen in API-Version-unabhängige Nachrichten
     /// </summary>
-    internal class API_Level_3_Proxy : DisposeGroupMember, DM7_PPLUS_API
+    internal class API_Version_3_Proxy : DisposeGroupMember, DM7_PPLUS_API
     {
-        private const int API_LEVEL = 3;
+        private const int API_VERSION = 3;
 
         private readonly string _credentials;
-        private readonly Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung _ebene_2_Proxy;
+        private readonly Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung _schicht_2_Proxy;
         private readonly Log _log;
         private Guid _session;
 
         /// <summary>
-        /// Implementiert die API level 2 und übersetzt die Anfragen in API-Level-unabhängige Nachrichten
+        /// Implementiert die API version 2 und übersetzt die Anfragen in API-Version-unabhängige Nachrichten
         /// </summary>
-        public API_Level_3_Proxy(string credentials, Ebene_2_Protokoll__API_Level_unabhaengige_Uebertragung ebene2Proxy, int auswahllistenversion, Log log, DisposeGroup disposegroup) : base(disposegroup)
+        public API_Version_3_Proxy(string credentials, Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung schicht2Proxy, int auswahllistenversion, Log log, DisposeGroup disposegroup) : base(disposegroup)
         {
             _credentials = credentials;
-            _ebene_2_Proxy = ebene2Proxy;
+            _schicht_2_Proxy = schicht2Proxy;
             disposegroup.With(() =>
             {
                 _log.Info("DM7/P-PLUS Schnittstelle wird beendent...");
@@ -38,7 +38,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             Auswahllisten_Version = auswahllistenversion;
 
             var standMitarbeiterdaten = new Subject<Stand>();
-            var subscription = ebene2Proxy.Notifications.Subscribe(new Observer<Notification>(
+            var subscription = schicht2Proxy.Notifications.Subscribe(new Observer<Notification>(
                 no =>
                 {
                     if (no is NotificationData data)
@@ -81,8 +81,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var vbis = ((VersionsStand)bis);
 
             return
-                _ebene_2_Proxy
-                    .Query(_credentials, API_LEVEL, vvon.Session, Datenquellen.Mitarbeiter, vvon.Version, vbis.Version)
+                _schicht_2_Proxy
+                    .Query(_credentials, API_VERSION, vvon.Session, Datenquellen.Mitarbeiter, vvon.Version, vbis.Version)
                     .ContinueWith(
                         task =>
                         {

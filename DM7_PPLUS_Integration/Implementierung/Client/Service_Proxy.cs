@@ -7,25 +7,25 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
-    internal class Service_Proxy : DisposeGroupMember, Ebene_2_Protokoll__Verbindungsaufbau
+    internal class Service_Proxy : DisposeGroupMember, Schicht_2_Protokoll__Verbindungsaufbau
     {
-        private readonly Ebene_3_Protokoll__Service _client;
+        private readonly Schicht_3_Protokoll__Service _client;
 
-        public Service_Proxy(Ebene_3_Protokoll__Service client, DisposeGroup disposegroup) : base(disposegroup)
+        public Service_Proxy(Schicht_3_Protokoll__Service client, DisposeGroup disposegroup) : base(disposegroup)
         {
             _client = client;
             disposegroup.With(() => _client.Dispose());
         }
 
-        public Task<ConnectionResult> Connect_Ebene_1(string credentials, int maxApiLevel, int minApiLevel)
+        public Task<ConnectionResult> Connect_Schicht_1(string credentials, int maxApiVersion, int minApiVersion)
         {
             var credentialsBuffer = System.Text.Encoding.UTF8.GetBytes(credentials);
             return
                 _client.ServiceRequest(new List<byte[]>
                 {
                     new byte[] { Constants.SERVICE_PROTOCOL_1, Constants.SERVICE_CONNECT },
-                    BitConverter.GetBytes(maxApiLevel),
-                    BitConverter.GetBytes(minApiLevel),
+                    BitConverter.GetBytes(maxApiVersion),
+                    BitConverter.GetBytes(minApiVersion),
                     BitConverter.GetBytes(credentialsBuffer.Length),
                     credentialsBuffer
                 }.Concat()).ContinueWith(task => Deserialize(task.Result));
@@ -39,9 +39,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
             if (response[0] == Constants.CONNECTION_RESPONSE_OK)
             {
-                var apilevel = BitConverter.ToInt32(response, 1);
+                var apiversion = BitConverter.ToInt32(response, 1);
                 var auswahllistenversion = BitConverter.ToInt32(response, 1 + 4);
-                return new ConnectionSucceeded(apilevel, auswahllistenversion);
+                return new ConnectionSucceeded(apiversion, auswahllistenversion);
             }
             if (response[0] == Constants.CONNECTION_RESPONSE_FAILURE)
             {
