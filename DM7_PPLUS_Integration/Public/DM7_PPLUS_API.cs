@@ -20,7 +20,7 @@ namespace DM7_PPLUS_Integration
         IObservable<Stand> Stand_Mitarbeiterdaten { get; }
 
         /// <summary>
-        /// Abruf nur der Mitarbeiterdatensätze mit Aktualisierungen zwischen den angegschichtn Ständen
+        /// Abruf nur der Mitarbeiterdatensätze mit Aktualisierungen zwischen den angegebenen Ständen
         /// </summary>
         Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen(Stand von, Stand bis);
 
