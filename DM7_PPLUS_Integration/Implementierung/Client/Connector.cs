@@ -79,7 +79,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             {
                 int intervall;
                 if (!int.TryParse(networkaddress.Substring(7), out intervall)) intervall = 60;
-                var host = DM7_PPLUS_Host.Starten(new Demo_Datenserver(log, TimeSpan.FromSeconds(intervall)).WithDisposeGroup(disposegroup), new StaticAuthentication("user"), log, ex => { throw new Exception("Unerwarteter Fehler", ex); }).WithDisposeGroup(disposegroup);
+                var host = DM7_PPLUS_Host.Starten(new Demo_Datenserver(log, TimeSpan.FromSeconds(intervall)).WithDisposeGroup(disposegroup), new StaticAuthentication("anonymous"), log, ex => { throw new Exception("Unerwarteter Fehler", ex); }).WithDisposeGroup(disposegroup);
                 factory = new LoopbackFactory(host, networkaddress.EndsWith("2") ? 2 : 3, disposegroup);
             }
 
