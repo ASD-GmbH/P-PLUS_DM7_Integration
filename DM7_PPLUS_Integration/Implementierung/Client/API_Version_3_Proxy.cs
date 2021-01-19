@@ -118,6 +118,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var stand = VersionsStand.AbInitio();
             return Mitarbeiterdaten_abrufen(stand, stand);
         }
+
+        public Task<ReadOnlyCollection<Dienst>> Dienste_abrufen()
+        {
+            throw new NotSupportedException();
+        }
     }
 
     internal static class Deserialize
@@ -167,6 +172,28 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     new ReadOnlyCollection<Mitarbeiterfoto>(new List<Mitarbeiterfoto>()));
         }
 
+        internal static ReadOnlyCollection<Dienst> Deserialisiere_Dienste(byte[] data)
+        {
+            var position = 0;
+
+            var anzahl_datensätze = Deserialize_Int(data, ref position);
+            return new ReadOnlyCollection<Dienst>(
+                Enumerable.Range(0, anzahl_datensätze)
+                    .Select(_ => new Dienst(
+                        Deserialize_Int(data, ref position),
+                        Deserialize_Guid(data, ref position),
+                        Deserialize_String(data, ref position),
+                        Deserialize_String(data, ref position),
+                        Deserialize_Datum(data, ref position),
+                        Deserialize_Nullable_Datum(data, ref position),
+                        Deserialize_Uhrzeit(data, ref position),
+                        Deserialize_Dienst_Gültigkeit(data, ref position),
+                        Deserialize_Bool(data, ref position)
+                    ))
+                    .ToList()
+            );
+        }
+
         private static ReadOnlyCollection<Kontakt> Deserialize_Kontakte(byte[] data, ref int position)
         {
             var anzahl = Deserialize_Int(data, ref position);
@@ -182,6 +209,20 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             }
 
             return new ReadOnlyCollection<Kontakt>(result);
+        }
+
+        private static Dienst_Gültigkeit Deserialize_Dienst_Gültigkeit(byte[] data, ref int position)
+        {
+            return new Dienst_Gültigkeit(
+                Deserialize_Bool(data, ref position),
+                Deserialize_Bool(data, ref position),
+                Deserialize_Bool(data, ref position),
+                Deserialize_Bool(data, ref position),
+                Deserialize_Bool(data, ref position),
+                Deserialize_Bool(data, ref position),
+                Deserialize_Bool(data, ref position),
+                Deserialize_Bool(data, ref position)
+            );
         }
 
         private static ReadOnlyCollection<Qualifikation> Deserialize_Qualifikationen(byte[] data, ref int position)
@@ -230,6 +271,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 default:
                     throw new ConnectionErrorException($"Fehler beim Deserialisieren eines Mitarbeiters. Datumsformat defekt. Datagram: {data}");
             }
+        }
+
+        private static Uhrzeit Deserialize_Uhrzeit(byte[] data, ref int position)
+        {
+            return Uhrzeit.HHMM(Deserialize_Int(data, ref position), Deserialize_Int(data, ref position));
         }
 
         private static Postanschrift? Deserialize_Postanschrift(byte[] data, ref int position)

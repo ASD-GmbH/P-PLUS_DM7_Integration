@@ -32,6 +32,11 @@ namespace DM7_PPLUS_Integration_Specs
             return _mitarbeiter_datensaetze.Where(_ => mitarbeiter_ids.Contains(_.DatensatzId));
         }
 
+        public IEnumerable<Dienst> Dienste_abrufen()
+        {
+            throw new NotImplementedException();
+        }
+
         public void Mitarbeiter_hinzufuegen(string name, string nachname, int mandant)
         {
             var neuerMitarbeiter = Neuer_Mitarbeiter(name, nachname, mandant);

@@ -9,9 +9,9 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 namespace DM7_PPLUS_Integration.Implementierung.Server
 {
     /// <summary>
-    /// Stellt die Version 1 der API zur Verfügung und erfüllt Anfragen nach Daten und Notifications
+    /// Stellt die Version 4 der API zur Verfügung und erfüllt Anfragen nach Daten und Notifications
     /// </summary>
-    internal sealed class API_Version_1_Adapter : DisposeGroupMember, DM7_PPLUS_API
+    internal sealed class API_Version_4_Adapter : DisposeGroupMember, DM7_PPLUS_API
     {
         private readonly PPLUS_Backend _backend;
         private readonly Guid _session;
@@ -21,7 +21,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             new Dictionary<long, IEnumerable<string>>();
 
 
-        public API_Version_1_Adapter(PPLUS_Backend backend, Action<Exception> onException, Log log, IDisposable disposegroup) : base(disposegroup)
+        public API_Version_4_Adapter(PPLUS_Backend backend, Action<Exception> onException, Log log, IDisposable disposegroup) : base(disposegroup)
         {
             _session = Guid.NewGuid();
             log.Debug($"Server ID {_session.ToString()} ");
@@ -82,7 +82,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         public Task<ReadOnlyCollection<Dienst>> Dienste_abrufen()
         {
-            throw new NotSupportedException();
+            return Task.Run(() => new ReadOnlyCollection<Dienst>(_backend.Dienste_abrufen().ToList()));
         }
 
         public void Announce()

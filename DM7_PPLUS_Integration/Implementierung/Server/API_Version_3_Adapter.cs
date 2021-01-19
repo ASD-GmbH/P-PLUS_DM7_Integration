@@ -9,7 +9,7 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 namespace DM7_PPLUS_Integration.Implementierung.Server
 {
     /// <summary>
-    /// Stellt die Version 2 der API zur Verfügung und erfüllt Anfragen nach Daten und Notifications
+    /// Stellt die Version 3 der API zur Verfügung und erfüllt Anfragen nach Daten und Notifications
     /// </summary>
     internal sealed class API_Version_3_Adapter : DisposeGroupMember, DM7_PPLUS_API
     {
@@ -78,6 +78,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         public Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen()
         {
             return Mitarbeiterdaten_abrufen(Ab_Initio, Aktueller_Stand);
+        }
+
+        public Task<ReadOnlyCollection<Dienst>> Dienste_abrufen()
+        {
+            throw new NotSupportedException();
         }
 
         public void Announce()

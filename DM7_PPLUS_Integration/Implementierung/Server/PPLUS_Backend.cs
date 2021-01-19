@@ -10,5 +10,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         IObservable<IEnumerable<string>> Aenderungen_an_Mitarbeiterstammdaten { get; }
         IEnumerable<string> Alle_Mitarbeiterdatensaetze();
         IEnumerable<Mitarbeiterdatensatz> Mitarbeiterdatensaetze_abrufen(IEnumerable<string> datensatz_ids);
+        IEnumerable<Dienst> Dienste_abrufen();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Daten;
 
@@ -28,5 +29,11 @@ namespace DM7_PPLUS_Integration
         /// Abruf aller Mitarbeiterdatensätze
         /// </summary>
         Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen();
+
+
+        /// <summary>
+        /// Abruf aller Dienste
+        /// </summary>
+        Task<ReadOnlyCollection<Dienst>> Dienste_abrufen();
     }
 }

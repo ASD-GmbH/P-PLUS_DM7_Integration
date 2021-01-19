@@ -17,7 +17,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
         private readonly List<Mitarbeiterdatensatz> mitarbeiter;
         private readonly Subject<IEnumerable<string>> _subject = new Subject<IEnumerable<string>>();
         private readonly Timer _timer;
-        private int changeCounter = 0;
+        private int changeCounter;
 
         public Demo_Datenserver(Log log, TimeSpan interval)
         {
@@ -108,6 +108,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
 
         private string Personalnummer() => random.Next(1000, 9999).ToString();
         private Datum Zufaelliges_Datum(int minJahr, int maxJahr) => new Datum(random.Next(1,28), random.Next(1,12), random.Next(minJahr, maxJahr));
+        private Uhrzeit Zufällige_Uhrzeit() => Uhrzeit.HHMM(random.Next(0, 23), random.Next(0, 59));
+        private bool Zufälliger_Wahrheitswert() => random.Next(0, 2) == 1;
 
         private string Nachname()
         {
@@ -131,6 +133,67 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
 
         public IEnumerable<Mitarbeiterdatensatz> Mitarbeiterdatensaetze_abrufen(IEnumerable<string> datensatz_ids) =>
             mitarbeiter.Where(_ => datensatz_ids.Contains(_.DatensatzId));
+
+        public IEnumerable<Dienst> Dienste_abrufen()
+        {
+            return Enumerable.Range(1, random.Next(1, 20)).Select(Neuer_Demo_Dienst);
+        }
+
+        private Dienst Neuer_Demo_Dienst(int id)
+        {
+            var (kurzbezeichnung, bezeichnung) = Dienst_Bezeichnung();
+            var zufallstdatum = Zufaelliges_Datum(2010, 2021);
+            return new Dienst(
+                id,
+                Guid.NewGuid(),
+                kurzbezeichnung,
+                bezeichnung,
+                zufallstdatum,
+                Zufälliger_Wahrheitswert()
+                    ? Zufaelliges_Datum(zufallstdatum.Jahr + 1, zufallstdatum.Jahr + 5)
+                    : (Datum?) null,
+                Zufällige_Uhrzeit(),
+                Demo_Gültigkeit(),
+                Zufälliger_Wahrheitswert()
+            );
+        }
+
+        private Dienst_Gültigkeit Demo_Gültigkeit()
+        {
+            return new Dienst_Gültigkeit(
+                Zufälliger_Wahrheitswert(),
+                Zufälliger_Wahrheitswert(),
+                Zufälliger_Wahrheitswert(),
+                Zufälliger_Wahrheitswert(),
+                Zufälliger_Wahrheitswert(),
+                Zufälliger_Wahrheitswert(),
+                Zufälliger_Wahrheitswert(),
+                Zufälliger_Wahrheitswert()
+            );
+        }
+
+        private (string, string) Dienst_Bezeichnung()
+        {
+            var bezeichnungen =
+                new[]
+                {
+                    ("0800-1200", "Wohngr1 08.00 - 12.00"),
+                    ("A", "Nachtbereitschaft"),
+                    ("F", "Frühdienst"),
+                    ("F1", "Pflege Frühdienst 1"),
+                    ("F10", "Pflege Frühdienst 10"),
+                    ("F18", "Frühdienst 18"),
+                    ("F2", "Frühtour 2"),
+                    ("N", "Nachtdienst"),
+                    ("NB", "Nacht mit Bereitschaft"),
+                    ("NF", "Nachtdienst Fachkraft"),
+                    ("S", "Spätdienst"),
+                    ("S1", "Pflege Spätdienst"),
+                    ("S2", "Pflege Spätdienst 2"),
+                    ("Z", "Pflege Zwischendienst")
+                };
+            return bezeichnungen[random.Next(0, bezeichnungen.Length)];
+        }
 
         public void Dispose()
         {

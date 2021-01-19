@@ -13,6 +13,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         public Version_0_Test_API Schicht_1_API_Version_0 { get; }
         public DM7_PPLUS_API Schicht_1_API_Version_1 { get; }
         public DM7_PPLUS_API Schicht_1_API_Version_3 { get; }
+        public DM7_PPLUS_API Schicht_1_API_Version_4 { get; }
 
         public Schicht_2_Protokoll__Verbindungsaufbau Schicht_2_Service { get; }
         public Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung Schicht_2_Data { get; }
@@ -21,7 +22,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         private readonly DisposeGroup _disposegroup;
 
-        private static readonly List<int> API_VERSIONS = new List<int> {1,3};
+        private static readonly List<int> API_VERSIONS = new List<int> {1,3,4};
 
         private DM7_PPLUS_Host(PPLUS_Backend backend, PPLUS_Authentifizierung authentifizierung, Action<Exception> onError, Log log, string hostaddress, int port, string privateKey, List<int> apiVersions)
         {
@@ -32,8 +33,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             if (apiVersions.Contains(0)) Schicht_1_API_Version_0 = new TestBackend_Version_0();
             if (apiVersions.Contains(1)) Schicht_1_API_Version_1 = new API_Version_1_Adapter(backend, onError, log, _disposegroup);
             if (apiVersions.Contains(3)) Schicht_1_API_Version_3 = new API_Version_3_Adapter(backend, onError, log, _disposegroup);
+            if (apiVersions.Contains(4)) Schicht_1_API_Version_4 = new API_Version_4_Adapter(backend, onError, log, _disposegroup);
 
-            var router = new API_Router(log, backend.AuswahllistenVersion, authentifizierung, Schicht_1_API_Version_0, Schicht_1_API_Version_1, Schicht_1_API_Version_3, _disposegroup);
+            var router = new API_Router(log, backend.AuswahllistenVersion, authentifizierung, Schicht_1_API_Version_0, Schicht_1_API_Version_1, Schicht_1_API_Version_3, Schicht_1_API_Version_4, _disposegroup);
             Schicht_2_Service = router;
             Schicht_2_Data = router;
 

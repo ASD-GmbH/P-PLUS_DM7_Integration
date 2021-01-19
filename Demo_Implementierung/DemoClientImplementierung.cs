@@ -48,17 +48,35 @@ namespace Demo_Implementierung
         static void Main(string [] args)
         {
             var log = new ConsoleLogger();
-
             var url = (args.Length > 0) ? args[0] : DEMO_URL;
-
             var credentials = (args.Length > 1) ? args[1] : "anonymous";
 
+            demo_Dienste_abfragen(url, credentials, log);
+            // demo_Mitarbeiter_abfragen(url, credentials, log)
+            Thread.Sleep(2000);
+        }
+
+        static void demo_Dienste_abfragen(string url, string credentials, ConsoleLogger log)
+        {
+            // Rückgabe von Connect muss Disposed werden, um alle Verbindungen zu schließen
+            using (var api = PPLUS.Connect(url, credentials, log, CancellationToken.None).Result)
+            {
+                Console.Out.WriteLine($"- Auswahlliste: {api.Auswahllisten_Version}");
+                var dienste = api.Dienste_abrufen().Result;
+            
+                Dienste_ausgeben(dienste);
+
+                Console.Out.WriteLine("- Press any key to quit.");
+                Console.ReadKey();
+            }
+        }
+        
+        static void demo_Mitarbeiter_abfragen(string url, string credentials, ConsoleLogger log)
+        {
             var api = Connect_mit_Abbruchmoeglichkeit(url, credentials, log);
-            //var api = Einfaches_Connect_ohne_Abbruchmoeglichkeit(url, credentials, log);
 
             if (api != null)
             {
-
                 // Rückgabe von Connect muss Disposed werden, um alle Verbindungen zu schließen
                 using (api)
                 {
@@ -80,19 +98,27 @@ namespace Demo_Implementierung
                         Console.Out.WriteLine("- Press any key to quit.");
                         Console.ReadKey();
                     }
-
                 }
             }
             else
             {
                 Console.Out.WriteLine("Verbindungsaufbau wurde abgebrochen.");
             }
+        }
 
-            Thread.Sleep(2000);
+        private static void Dienste_ausgeben(IEnumerable<Dienst> dienste)
+        {
+            string Uhrzeit_als_Text(Uhrzeit uhrzeit) => $"{uhrzeit.Stunden:00}:{uhrzeit.Minuten:00}";
+            string Datum_als_Text(Datum datum) => $"{datum.Tag:00}.{datum.Monat:00}.{datum.Jahr:0000}";
+            string Checkbox(bool check) => check ? "[x]" : "[ ]";
+
+            string Gültigkeit_als_Text(Dienst_Gültigkeit gültigkeit) => $"Mo: {Checkbox(gültigkeit.Montag)}, Di: {Checkbox(gültigkeit.Dienstag)}, Mi: {Checkbox(gültigkeit.Mittwoch)}, Do: {Checkbox(gültigkeit.Donnerstag)}, Fr: {Checkbox(gültigkeit.Freitag)}, Sa: {Checkbox(gültigkeit.Samstag)}, So: {Checkbox(gültigkeit.Sonntag)}, Fei: {Checkbox(gültigkeit.Feiertags)}";
+            string Dienst_als_Text(Dienst dienst) => $"- {dienst.Bezeichnung} ({dienst.Kurzbezeichnung})\n\t- ID: {dienst.Id}\n\t- Mandant: {dienst.Mandant}\n\t- Gültig ab: {Datum_als_Text(dienst.Gültig_ab)}\n\t- Gültig bis: {(dienst.Gültig_bis.HasValue ? Datum_als_Text(dienst.Gültig_bis.Value) : "Ende offen")}\n\t- Dienstbeginn: {Uhrzeit_als_Text(dienst.Beginn)}\n\t- Gültig an {Gültigkeit_als_Text(dienst.Gültig_an)}\n\t- Gelöscht: {Checkbox(dienst.Gelöscht)}";
+            Console.WriteLine($"Definierte Dienste\n---\n{string.Join("\n", dienste.Select(Dienst_als_Text))}");
         }
 
         // ReSharper disable once UnusedMember.Local
-        private static DM7_PPLUS_API Einfaches_Connect_ohne_Abbruchmoeglichkeit(string url, string credentials, Log log)
+        private static DM7_PPLUS_API Connect(string url, string credentials, Log log)
         {
             return PPLUS.Connect(url, credentials, log, CancellationToken.None).Result;
         }

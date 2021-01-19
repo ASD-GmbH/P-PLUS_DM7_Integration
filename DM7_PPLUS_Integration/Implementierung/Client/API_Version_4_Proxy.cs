@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Daten;
@@ -9,11 +8,11 @@ using DM7_PPLUS_Integration.Implementierung.Shared;
 namespace DM7_PPLUS_Integration.Implementierung.Client
 {
     /// <summary>
-    /// Implementiert die API version 1 und übersetzt die Anfragen in API-Version-unabhängige Nachrichten
+    /// Implementiert die API version 4 und übersetzt die Anfragen in API-Version-unabhängige Nachrichten
     /// </summary>
-    internal class API_Version_1_Proxy : DisposeGroupMember, DM7_PPLUS_API
+    internal class API_Version_4_Proxy : DisposeGroupMember, DM7_PPLUS_API
     {
-        private const int API_VERSION = 1;
+        private const int API_VERSION = 4;
 
         private readonly string _credentials;
         private readonly Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung _schicht_2_Proxy;
@@ -21,9 +20,9 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         private Guid _session;
 
         /// <summary>
-        /// Implementiert die API version 1 und übersetzt die Anfragen in API-Version-unabhängige Nachrichten
+        /// Implementiert die API version 2 und übersetzt die Anfragen in API-Version-unabhängige Nachrichten
         /// </summary>
-        public API_Version_1_Proxy(string credentials, Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung schicht2Proxy, int auswahllistenversion, Log log, DisposeGroup disposegroup) : base(disposegroup)
+        public API_Version_4_Proxy(string credentials, Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung schicht2Proxy, int auswahllistenversion, Log log, DisposeGroup disposegroup) : base(disposegroup)
         {
             _credentials = credentials;
             _schicht_2_Proxy = schicht2Proxy;
@@ -36,7 +35,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             Auswahllisten_Version = auswahllistenversion;
 
             var standMitarbeiterdaten = new Subject<Stand>();
-
             var subscription = schicht2Proxy.Notifications.Subscribe(new Observer<Notification>(
                 no =>
                 {
@@ -87,7 +85,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                         {
                             if (task.Result is QueryResult result)
                             {
-                                var mitarbeiterdatensaetze = Deserialisiere_Mitarbeiterdatensaetze(result.Data);
+                                var mitarbeiterdatensaetze = Deserialize.Deserialisiere_Mitarbeiterdatensaetze(result.Data);
                                 _log.Debug($"Mitarbeiterdaten empfangen ({mitarbeiterdatensaetze.Mitarbeiter.Count} Mitarbeiter, {mitarbeiterdatensaetze.Fotos.Count} Bilder, @{mitarbeiterdatensaetze.Stand}, {(mitarbeiterdatensaetze.Teilmenge?"teildaten":"vollständig")})");
                                 return mitarbeiterdatensaetze;
                             }
@@ -96,6 +94,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                                 if (failed.Reason == QueryFailure.Internal_Server_Error)
                                 {
                                     throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterdaten_abrufen' ist auf dem Server fehlgeschlagen: {failed.Info}.");
+                                }
+                                if (failed.Reason == QueryFailure.Unauthorized)
+                                {
+                                    throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterdaten_abrufen' ist fehlgeschlagen: {failed.Info}.");
                                 }
                                 if (failed.Reason == QueryFailure.Unknown_reason)
                                 {
@@ -108,74 +110,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     );
         }
 
-        private Mitarbeiterdatensaetze Deserialisiere_Mitarbeiterdatensaetze(byte[] resultData)
-        {
-            var guidbuffer = new byte[16];
-
-            var position = 0;
-
-            Array.Copy(resultData, guidbuffer, 16);
-            var session = new Guid(guidbuffer);
-            position += 16;
-            var version = BitConverter.ToInt64(resultData, position);
-            position += 8;
-
-            var teildaten = resultData[position] == 1;
-            position += 1;
-
-            var anzahl_Mitarbeiterdatensaetze = BitConverter.ToInt32(resultData, position);
-            position += 4;
-
-            var mitarbeiter = new List<Mitarbeiterdatensatz>();
-
-            for (var i = 0; i < anzahl_Mitarbeiterdatensaetze; i++)
-            {
-                var laenge_nachname = BitConverter.ToInt32(resultData, position);
-                position += 4;
-                var laenge_vorname = BitConverter.ToInt32(resultData, position);
-                position += 4;
-
-                var nachname = System.Text.Encoding.UTF8.GetString(resultData, position, laenge_nachname);
-                position += laenge_nachname;
-
-                var vorname = System.Text.Encoding.UTF8.GetString(resultData, position, laenge_vorname);
-                position += laenge_vorname;
-
-                var ma =
-                    new Mitarbeiterdatensatz(
-                        Guid.NewGuid().ToString(),
-                        Guid.NewGuid().ToString(),
-                        Guid.NewGuid().ToString(),
-                        1,
-                        Guid.Empty.ToString(),
-                        Guid.Empty,
-                        vorname,
-                        nachname,
-                        null,
-                        null,
-                        Guid.Empty,
-                        Guid.Empty,
-                        new Datum(1, 1, 2017),
-                        null,
-                        new ReadOnlyCollection<Qualifikation>(new List<Qualifikation>()),
-                        "",
-                        "1",
-                        Guid.Empty,
-                        new ReadOnlyCollection<Kontakt>(new List<Kontakt>()));
-
-                mitarbeiter.Add(ma);
-            }
-
-            return
-                new Mitarbeiterdatensaetze(
-                    teildaten,
-                    new VersionsStand(
-                        session,
-                        version),
-                    new ReadOnlyCollection<Mitarbeiterdatensatz>(mitarbeiter),
-                    new ReadOnlyCollection<Mitarbeiterfoto>(new List<Mitarbeiterfoto>()));
-        }
-
         public Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen()
         {
             var stand = VersionsStand.AbInitio();
@@ -184,7 +118,35 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         public Task<ReadOnlyCollection<Dienst>> Dienste_abrufen()
         {
-            throw new NotSupportedException();
+            _log.Debug("Dienste werden abgerufen ...");
+            return _schicht_2_Proxy
+                .Query_Dienste(_credentials, API_VERSION, _session)
+                .ContinueWith(task =>
+                {
+                    if (task.Result is QueryResult result)
+                    {
+                        var dienste = Deserialize.Deserialisiere_Dienste(result.Data);
+                        _log.Debug($"{dienste.Count} Dienste empfangen");
+                        return dienste;
+                    }
+                    if (task.Result is QueryFailed failed)
+                    {
+                        if (failed.Reason == QueryFailure.Internal_Server_Error)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist auf dem Server fehlgeschlagen: {failed.Info}.");
+                        }
+                        if (failed.Reason == QueryFailure.Unauthorized)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist fehlgeschlagen: {failed.Info}.");
+                        }
+                        if (failed.Reason == QueryFailure.Unknown_reason)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist fehlgeschlagen: {failed.Info}.");
+                        }
+                    }
+
+                    throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist fehlgeschlagen: Unbekanntes Protokoll ({task.Result.GetType().Name}).");
+                });
         }
     }
 }

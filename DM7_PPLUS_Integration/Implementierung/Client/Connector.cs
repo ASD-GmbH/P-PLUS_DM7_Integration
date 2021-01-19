@@ -66,6 +66,29 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         }
 
 
+        public static Task<DM7_PPLUS_API> Instance_API_Version_4(string networkAddress, string credentials, Log log, CancellationToken cancellationToken_Verbindung, Schicht_2_Proxy_Factory factory = null)
+        {
+
+            var client_min_api_version_request = networkAddress == "test://0" ? 0 : 1;
+            var client_max_api_version_request = 4;
+
+            var disposegroup = new DisposeGroup();
+            disposegroup.With(() => { log.Info("DM7/P-PLUS Schnittstelle geschlossen."); });
+            return
+                Verbindungsaufbau(networkAddress, credentials, client_min_api_version_request, client_max_api_version_request, factory, log, disposegroup, cancellationToken_Verbindung)
+                    .ContinueWith(task =>
+                    {
+                        DM7_PPLUS_API api = null;
+                        if (task.Result.Item2 == 0) api = new Version_1_upgrade_Test_Proxy(task.Result.Item1);
+                        if (task.Result.Item2 == 1) api = new API_Version_1_Proxy(credentials, task.Result.Item1, task.Result.Item3, log, disposegroup);
+                        if (task.Result.Item2 == 3) api = new API_Version_3_Proxy(credentials, task.Result.Item1, task.Result.Item3, log, disposegroup);
+                        if (task.Result.Item2 == 4) api = new API_Version_4_Proxy(credentials, task.Result.Item1, task.Result.Item3, log, disposegroup);
+                        if (api == null) throw new UnsupportedVersionException($"Vereinbartes API Version entspricht nicht den Rahmenbedingungen: {task.Result.Item2}");
+                        return api;
+                    }, cancellationToken_Verbindung);
+        }
+
+
         private static Task<Tuple<Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung, int, int>> Verbindungsaufbau(string networkaddress, string credentials, int client_min_api_version_request, int client_max_api_version_request, Schicht_2_Proxy_Factory factory, Log log, DisposeGroup disposegroup, CancellationToken cancellationToken_Verbindung)
         {
             log.Info("DM7/P-PLUS Integrationsschnittstelle - " + Version.VersionString);

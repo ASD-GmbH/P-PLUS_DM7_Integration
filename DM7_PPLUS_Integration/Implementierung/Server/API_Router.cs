@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Daten;
@@ -21,6 +20,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     {
         private readonly DM7_PPLUS_API _backendVersion1;
         private readonly DM7_PPLUS_API _backendVersion3;
+        private readonly DM7_PPLUS_API _backendVersion4;
         private readonly HashSet<int> _apiVersion = new HashSet<int>();
         private readonly int _auswahllistenversion;
         private readonly PPLUS_Authentifizierung _authentifizierung;
@@ -37,6 +37,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             Version_0_Test_API backend_version_0,
             DM7_PPLUS_API backend_version_1,
             DM7_PPLUS_API backend_version_3,
+            DM7_PPLUS_API backend_version_4,
             DisposeGroup disposegroup) : base(disposegroup)
         {
             _log = log;
@@ -47,16 +48,18 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             if (backend_version_0 != null) _apiVersion.Add(0);
             if (backend_version_1 != null) _apiVersion.Add(1);
             if (backend_version_3 != null) _apiVersion.Add(3);
+            if (backend_version_4 != null) _apiVersion.Add(4);
 
             _backendVersion1 = backend_version_1;
             _backendVersion3 = backend_version_3;
+            _backendVersion4 = backend_version_4;
 
             _versionen =
                 _apiVersion.Count==1
                     ? "Version " + _apiVersion.Single()
-                    : "Versionen " + String.Join(", ", (_apiVersion.OrderByDescending(_ => _).Select(_ => _.ToString())));
+                    : "Versionen " + string.Join(", ", (_apiVersion.OrderByDescending(_ => _).Select(_ => _.ToString())));
 
-            log.Info(string.Format("DM7 Schittstelle mit API {0} bereitgestellt.", _versionen));
+            log.Info($"DM7 Schittstelle mit API {_versionen} bereitgestellt.");
 
             disposegroup.With(() => log.Debug("API Router beendet."));
 
@@ -126,7 +129,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         }
 
 
-        private Notification Map(Stand stand, int datenquelle)
+        private static Notification Map(Stand stand, int datenquelle)
         {
             var s = (VersionsStand)stand;
             return new NotificationData(s.Session, datenquelle, s.Version);
@@ -146,7 +149,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 return Task.FromResult((QueryResponse)new QueryFailed(QueryFailure.Unauthorized, "Unzureichende Zugriffsberechtigung"));
             }
 
-            if (api_version == 1 || api_version==3)
+            if (api_version == 1 || api_version==3 || api_version==4)
             {
                 var mitarbeiter =
                     (_backendVersion3?? _backendVersion1).Mitarbeiterdaten_abrufen(new VersionsStand(session, von),
@@ -185,6 +188,32 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             }
         }
 
+        public Task<QueryResponse> Query_Dienste(string credentials, int api_version, Guid session)
+        {
+            var autorisierung = _authentifizierung.Authentifizieren(credentials);
+
+            if (autorisierung == null)
+            {
+                return Task.FromResult((QueryResponse)new QueryFailed(QueryFailure.Unauthorized, "Ungültige oder abgelaufene Zugriffsberechtigung"));
+            }
+
+            if (!(autorisierung is StammdatenZugriff))
+            {
+                return Task.FromResult((QueryResponse)new QueryFailed(QueryFailure.Unauthorized, "Unzureichende Zugriffsberechtigung"));
+            }
+
+            if (api_version == 4)
+            {
+                return _backendVersion4
+                    .Dienste_abrufen()
+                    .ContinueWith(task => (QueryResponse)new QueryResult(Serializer.Serialize(task.Result, Serializer.Serialize)));
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public IObservable<Notification> Notifications { get; }
     }
 
@@ -213,6 +242,27 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             yield return Serialize(mitarbeiter.Kontakte);
         }
 
+        public static byte[] Serialize(Dienst dienst)
+        {
+            return Serialize(dienst.Id)
+                .Concat(Serialize(dienst.Mandant))
+                .Concat(Serialize(dienst.Kurzbezeichnung))
+                .Concat(Serialize(dienst.Bezeichnung))
+                .Concat(Serialize(dienst.Gültig_ab))
+                .Concat(Serialize(dienst.Gültig_bis))
+                .Concat(Serialize(dienst.Beginn))
+                .Concat(Serialize(dienst.Gültig_an))
+                .Concat(Serialize(dienst.Gelöscht))
+                .ToArray();
+        }
+
+        internal static byte[] Serialize<T>(ReadOnlyCollection<T> collection, Func<T, byte[]> serialize)
+        {
+            return BitConverter.GetBytes(collection.Count)
+                .Concat(collection.SelectMany(serialize))
+                .ToArray();
+        }
+
         private static byte[] Serialize(Postanschrift? anschrift)
         {
             if (anschrift.HasValue)
@@ -234,8 +284,22 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             }
         }
 
+        private static byte[] Serialize(Dienst_Gültigkeit gültigkeit)
+        {
+            return Serialize(gültigkeit.Montag)
+                .Concat(Serialize(gültigkeit.Dienstag))
+                .Concat(Serialize(gültigkeit.Mittwoch))
+                .Concat(Serialize(gültigkeit.Donnerstag))
+                .Concat(Serialize(gültigkeit.Freitag))
+                .Concat(Serialize(gültigkeit.Samstag))
+                .Concat(Serialize(gültigkeit.Sonntag))
+                .Concat(Serialize(gültigkeit.Feiertags))
+                .ToArray();
+        }
+
         private static byte[] Serialize(Guid id) => id.ToByteArray();
         private static byte[] Serialize(int value) => BitConverter.GetBytes(value);
+        private static byte[] Serialize(bool value) => BitConverter.GetBytes(value);
         private static byte[] Serialize(string text) => PrependLength(Encoding.UTF8.GetBytes(text));
         private static byte[] Serialize(ReadOnlyCollection<int> mandanten) => BitConverter.GetBytes(mandanten.Count).Concat(mandanten.SelectMany(BitConverter.GetBytes)).ToArray();
         private static byte[] Serialize(ReadOnlyCollection<Kontakt> kontakte)
@@ -275,11 +339,13 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             PrependLength(
                 Encoding.UTF8.GetBytes(
                     datum.HasValue
-                        ? $"{datum.Value.Jahr.ToString("0000")}{datum.Value.Monat.ToString("00")}{datum.Value.Tag.ToString("00")}"
+                        ? $"{datum.Value.Jahr:0000}{datum.Value.Monat:00}{datum.Value.Tag:00}"
                         : ""));
         private static byte[] Serialize(Datum datum) =>
-            PrependLength(
-                Encoding.UTF8.GetBytes($"{datum.Jahr.ToString("0000")}{datum.Monat.ToString("00")}{datum.Tag.ToString("00")}"));
+            PrependLength(Encoding.UTF8.GetBytes($"{datum.Jahr:0000}{datum.Monat:00}{datum.Tag:00}"));
+
+        private static byte[] Serialize(Uhrzeit uhrzeit) =>
+            Serialize(uhrzeit.Stunden).Concat(Serialize(uhrzeit.Minuten)).ToArray();
         private static byte[] PrependLength(byte[] b) => BitConverter.GetBytes(b.Length).Concat(b).ToArray();
     }
 }

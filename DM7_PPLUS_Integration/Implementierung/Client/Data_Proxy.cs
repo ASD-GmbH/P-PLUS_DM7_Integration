@@ -65,6 +65,22 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 .ContinueWith(task => (QueryResponse) new QueryResult(task.Result));
         }
 
+        public Task<QueryResponse> Query_Dienste(string credentials, int api_version, Guid session)
+        {
+            var credentialsBuffer = System.Text.Encoding.UTF8.GetBytes(credentials);
+            var query = new List<byte[]>
+            {
+                BitConverter.GetBytes(credentialsBuffer.Length),
+                credentialsBuffer,
+                session.ToByteArray(),
+                BitConverter.GetBytes(api_version)
+            };
+
+            return _proxy
+                .Request_Dienste(query.Concat())
+                .ContinueWith(task => (QueryResponse)new QueryResult(task.Result));
+        }
+
         public IObservable<Notification> Notifications { get; }
     }
 }

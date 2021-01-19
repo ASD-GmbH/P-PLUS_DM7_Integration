@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
@@ -24,6 +25,11 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
         }
 
         public Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen()
+        {
+            return null;
+        }
+
+        public Task<ReadOnlyCollection<Dienst>> Dienste_abrufen()
         {
             return null;
         }
