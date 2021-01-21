@@ -122,7 +122,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         public Task<byte[]> Request_Dienste(byte[] request)
         {
-            return Task(Constants.CHANNEL_2_DATA, request);
+            return Task(Constants.CHANNEL_2_DATA_DIENSTE, request);
         }
 
         private Task<byte[]> Task(byte channel, byte[] request)

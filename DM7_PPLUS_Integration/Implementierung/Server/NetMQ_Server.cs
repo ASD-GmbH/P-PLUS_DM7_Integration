@@ -141,6 +141,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                             Handle(e, aes, frames, "Data Request", _backend.Request);
                             break;
 
+                        case Constants.CHANNEL_2_DATA_DIENSTE:
+                            Handle(e, aes, frames, "Data Request", _backend.Request_Dienste);
+                            break;
+
                         default:
                             throw new ConnectionErrorException($"Unbekannter NetMQ Server Kanal: {data[0].ToString()}");
                     }

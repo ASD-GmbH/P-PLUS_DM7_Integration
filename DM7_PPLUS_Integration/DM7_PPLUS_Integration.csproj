@@ -61,6 +61,7 @@
     <Compile Include="Implementierung\Server\API_Version_4_Adapter.cs" />
     <Compile Include="Implementierung\Server\Constants.cs" />
     <Compile Include="Implementierung\Server\CryptoService.cs" />
+    <Compile Include="Implementierung\Server\Test_Server.cs" />
     <Compile Include="Implementierung\Server\DM7_PPLUS_Host.cs" />
     <Compile Include="Implementierung\Client\NetMQ_Client.cs" />
     <Compile Include="Implementierung\Server\PPLUS_Authentifizierung.cs" />
