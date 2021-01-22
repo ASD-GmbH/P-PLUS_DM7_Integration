@@ -71,6 +71,7 @@
     <Compile Include="Implementierung\Shared\StreamReaderExtension.cs" />
     <Compile Include="Implementierung\Testing\TestBackend_Version_0.cs" />
     <Compile Include="Implementierung\Testing\TestConnector.cs" />
+    <Compile Include="Implementierung\V2\DRAFT.cs" />
     <Compile Include="Properties\Assemblyinfo.gen.cs" />
     <Compile Include="Public\Daten\Postanschrift.cs" />
     <Compile Include="Public\Daten\Bildformat.cs" />
@@ -122,6 +123,7 @@
   <ItemGroup>
     <Content Include="Version.cs.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
