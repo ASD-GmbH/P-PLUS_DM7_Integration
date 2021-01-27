@@ -230,7 +230,7 @@ namespace DM7_PPLUS_Integration.Implementierung.V2.Protokoll
         {
             return Task.Run(async () =>
             {
-                var answer = await Send_Message(new What_are_your_Capabilities());
+                var answer = await Send_Message(new What_are_your_Capabilities()); // TODO: Seperater Kanal für Server Verbindung Msgs
                 switch (answer)
                 {
                     case These_are_my_Capabilities msg:
@@ -284,7 +284,7 @@ namespace DM7_PPLUS_Integration.Implementierung.V2.Protokoll
 
         private static Server_Answer_Message Decode_Answer(NetMQSocket socket)
         {
-            // TODO: Serializing + Encryption
+            // TODO: Deserializing + Decryption
             // socket.ReceiveFrameBytes()
             return new Sorry_I_could_not_understand_you();
         }
@@ -314,9 +314,20 @@ namespace DM7_PPLUS_Integration.Implementierung.V2.Protokoll
         {
             var uri = new Uri(address);
             if (uri.Scheme == "demo") return Initialize_DemoClient(credentials);
+            else if (uri.Scheme == "tcp") 
 
             var result = Authenticated(uri, credentials);
+            if (result is ConnectionEstablished s)
+            {
+                Benötigte_Capabilities_auswerten(s.Server.Capabilities());
+                return new Client(s.Server);
+            }
             return null;
+        }
+
+        private static void Benötigte_Capabilities_auswerten(Task<List<Capability>> capabilities)
+        {
+            
         }
 
         private static ConnectionResult Authenticated(Uri uri, string credentials)
@@ -332,7 +343,12 @@ namespace DM7_PPLUS_Integration.Implementierung.V2.Protokoll
 
     public class Client : DM7_PPLUS_API
     {
-        private Server _server;
+        private readonly Server _server;
+
+        public Client(Server server)
+        {
+            _server = server;
+        }
 
         public void Dispose()
         {
@@ -386,7 +402,8 @@ namespace DM7_PPLUS_Integration.Implementierung.V2.Protokoll
     {
         public static readonly Capability Legacy_V1 = Capability.Repräsentiert_als(1);
         public static readonly Capability Legacy_V3 = Capability.Repräsentiert_als(2);
-        public static readonly Capability Dienste_Abfrage = Capability.Repräsentiert_als(3);
+        public static readonly Capability Dienste_Abfrage_V1 = Capability.Repräsentiert_als(3);
+        public static readonly Capability Dienste_Abfrage_V2 = Capability.Repräsentiert_als(4);
     }
 
     public readonly struct Capability
