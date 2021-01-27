@@ -135,6 +135,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             _backend.Dienste_setzen(dienste);
         }
 
+        public List<Dienst> Dienste() => _backend.Dienste_abrufen().ToList();
+
         public void Dispose()
         {
             _host?.Dispose();
