@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Threading;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Daten;
@@ -19,7 +17,7 @@ namespace Demo_Implementierung
         /// <summary>
         /// Repräsentiert die lokale Persistenz, z.B. die HVP Datenbank
         /// </summary>
-        private static readonly Dictionary<string, Mitarbeiterdatensatz> _mitarbeiter_datensaetze = new Dictionary<string, Mitarbeiterdatensatz>();
+        private static readonly Dictionary<Guid, Mitarbeiter> _mitarbeiter_datensaetze = new Dictionary<Guid, Mitarbeiter>();
 
         private static readonly object _lock = new object();
 
@@ -254,13 +252,13 @@ namespace Demo_Implementierung
 
                 foreach (var datensatz in daten.Mitarbeiter)
                 {
-                    if (!_mitarbeiter_datensaetze.ContainsKey(datensatz.DatensatzId))
+                    if (!_mitarbeiter_datensaetze.ContainsKey(datensatz.PPLUS_Id))
                     {
-                        _mitarbeiter_datensaetze.Add(datensatz.DatensatzId, datensatz);
+                        _mitarbeiter_datensaetze.Add(datensatz.PPLUS_Id, datensatz);
                     }
                     else
                     {
-                        _mitarbeiter_datensaetze[datensatz.DatensatzId] = datensatz;
+                        _mitarbeiter_datensaetze[datensatz.PPLUS_Id] = datensatz;
                     }
                 }
 
@@ -271,7 +269,7 @@ namespace Demo_Implementierung
             Console.Out.WriteLine($"- {(daten.Teilmenge ? "Neu oder geändert" : "Vollständige Liste")} in Stand {daten.Stand}:");
             foreach (var mitarbeiter in daten.Mitarbeiter)
             {
-                Console.Out.WriteLine($"- Mitarbeiter {mitarbeiter.Personalnummer}: {mitarbeiter.Vorname}, {mitarbeiter.Nachname}. Mandant ({mitarbeiter.Mandant})");
+                Console.Out.WriteLine($"- Mitarbeiter {mitarbeiter.Personalnummer}: {mitarbeiter.Vorname}, {mitarbeiter.Nachname}. Mandant ({mitarbeiter.PPLUS_Id})");
             }
         }
     }

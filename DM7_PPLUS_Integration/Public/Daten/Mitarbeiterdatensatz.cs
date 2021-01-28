@@ -1,64 +1,57 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace DM7_PPLUS_Integration.Daten
 {
     /// <summary>
     /// Mitarbeiter für die Kommunikation zwischen ASD P-PLUS und DM7
     /// </summary>
-    public struct Mitarbeiterdatensatz
+    public struct Mitarbeiter // bisher Mitarbeiterdatensatz
     {
-
-        public Mitarbeiterdatensatz(string datensatzId, string personId, string arbeitsverhaeltnisId, int mandant, string struktur, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, Datum? geburtstag, Guid familienstand, Guid konfession, Datum gueltigAb, Datum? gueltigBis, ReadOnlyCollection<Qualifikation> qualifikation, string handzeichen, string personalnummer, Guid geschlecht, ReadOnlyCollection<Kontakt> kontakte)
+        public Mitarbeiter(Guid mitarbeiterId, ReadOnlyCollection<DM7_Mandantenzugehörigkeiten> mandantenzugehörigkeiten, string personalnummer, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, string handzeichen, Datum? geburtstag, Guid geschlecht, Guid konfession, Guid familienstand, ReadOnlyCollection<Qualifikation> qualifikation, ReadOnlyCollection<Kontakt> kontakte)
         {
-            DatensatzId = datensatzId;
-            PersonId = personId;
-            ArbeitsverhaeltnisId = arbeitsverhaeltnisId;
-            Mandant = mandant;
-            Struktur = struktur;
+            Guard_Pflichtfelder(mandantenzugehörigkeiten, nachname, handzeichen, geschlecht);
+
+            PPLUS_Id = mitarbeiterId; 
+            DM7_Mandantenzugehörigkeiten = mandantenzugehörigkeiten; // Mindestens ein Eintrag vorhanden (ohne Typsicherheit)
+            Personalnummer = personalnummer;
             Titel = titel;
             Vorname = vorname;
-            Nachname = nachname;
+            Nachname = nachname; // pflicht
             Postanschrift = postanschrift;
+            Handzeichen = handzeichen; // pflicht
+            Kontakte = kontakte; 
             Geburtstag = geburtstag;
-            Familienstand = familienstand;
+            Geschlecht = geschlecht; // pflicht
             Konfession = konfession;
-            GueltigAb = gueltigAb;
-            GueltigBis = gueltigBis;
-            Qualifikation = qualifikation;
-            Handzeichen = handzeichen;
-            Personalnummer = personalnummer;
-            Geschlecht = geschlecht;
-            Kontakte = kontakte;
+            Familienstand = familienstand;
+            Qualifikation = qualifikation; // Klären, wer die Datenhoheit hat
+        }
+
+        private static void Guard_Pflichtfelder(ReadOnlyCollection<DM7_Mandantenzugehörigkeiten> mandantenzugehörigkeiten, string nachname, string handzeichen, Guid geschlecht)
+        {
+            if (!mandantenzugehörigkeiten.Any()
+                || string.IsNullOrWhiteSpace(nachname)
+                || string.IsNullOrWhiteSpace(handzeichen)
+                || geschlecht == Guid.Empty)
+            {
+                throw new ArgumentException("Pflichtfelder nicht eingehalten.");
+            }
         }
 
         /// <summary>
         /// Primärschlüssel
         /// </summary>
-        public readonly string DatensatzId;
-
-        /// <summary>
-        /// Id des Mitarbeiters (P-PLUS Entität Person)
-        /// </summary>
-        public readonly string PersonId;
-
-        /// <summary>
-        /// Id des Arbeitsverhältnisses (P-PLUS Entität Mitarbeiter)
-        /// </summary>
-        public readonly string ArbeitsverhaeltnisId;
+        public readonly Guid PPLUS_Id;
 
         /// <summary>
         /// DM7 Mandanten, in P-PLUS repräsentiert als Strukturen auf denen der Mitarbeiter arbeitet.
         /// </summary>
-        public readonly int Mandant;
+        public readonly ReadOnlyCollection<DM7_Mandantenzugehörigkeiten> DM7_Mandantenzugehörigkeiten;
 
         /// <summary>
-        /// Id der Struktur, für die der Datensatz gültig ist
-        /// </summary>
-        public readonly string Struktur;
-
-        /// <summary>
-        /// Titel des Mitarbeiters, muss ggf. in DM7 als Auswahllisteneintrag gepflegt werden
+        /// Titel des Mitarbeiters, ergibt mit Geschlecht zusammen die Anrede
         /// </summary>
         public readonly Guid Titel;
 
@@ -91,16 +84,6 @@ namespace DM7_PPLUS_Integration.Daten
         /// Konfession des Mitarbeiters, muss ggf. in DM7 als Auswahllisteneintrag gepflegt werden
         /// </summary>
         public readonly Guid Konfession;
-
-        /// <summary>
-        /// Eintrittsdatum des Mitarbeiters
-        /// </summary>
-        public readonly Datum GueltigAb;
-
-        /// <summary>
-        /// Austrittsdatum des Mitarbeiters
-        /// </summary>
-        public readonly Datum? GueltigBis;
 
         /// <summary>
         /// Qualifikation des Mitarbeiters, muss ggf. in DM7 als Auswahllisteneintrag gepflegt werden

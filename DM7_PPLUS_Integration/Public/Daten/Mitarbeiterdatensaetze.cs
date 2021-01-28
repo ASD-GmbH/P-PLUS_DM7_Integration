@@ -4,7 +4,7 @@ namespace DM7_PPLUS_Integration.Daten
 {
     public struct Mitarbeiterdatensaetze
     {
-        public Mitarbeiterdatensaetze(bool teilmenge, Stand stand, ReadOnlyCollection<Mitarbeiterdatensatz> mitarbeiter, ReadOnlyCollection<Mitarbeiterfoto> fotos)
+        public Mitarbeiterdatensaetze(bool teilmenge, Stand stand, ReadOnlyCollection<Mitarbeiter> mitarbeiter, ReadOnlyCollection<Mitarbeiterfoto> fotos)
         {
             Teilmenge = teilmenge;
             Stand = stand;
@@ -25,7 +25,7 @@ namespace DM7_PPLUS_Integration.Daten
         /// <summary>
         /// Mitarbeiterdatensätze, (falls Teilmenge==true: die sich zwischen den angeforderten Aktualisierungsständen geändert haben; falls Teilmenge==false: alle Mitarbeiterdatensätze)
         /// </summary>
-        public readonly ReadOnlyCollection<Mitarbeiterdatensatz> Mitarbeiter;
+        public readonly ReadOnlyCollection<Mitarbeiter> Mitarbeiter;
 
         /// <summary>
         /// Fotos der Mitarbeiter, (falls Teilmenge==true: die sich zwischen den angeforderten Aktualisierungsständen geändert haben; falls Teilmenge==false: alle Mitarbeiterfotos)

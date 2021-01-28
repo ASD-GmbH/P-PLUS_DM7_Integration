@@ -79,6 +79,7 @@
     <Compile Include="Implementierung\Testing\TestConnector.cs" />
     <Compile Include="Properties\Assemblyinfo.gen.cs" />
     <Compile Include="Public\Daten\Dienst.cs" />
+    <Compile Include="Public\Daten\Mandantzugehörigkeit.cs" />
     <Compile Include="Public\Daten\Postanschrift.cs" />
     <Compile Include="Public\Daten\Bildformat.cs" />
     <Compile Include="Public\Daten\Datum.cs" />
