@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Timers;
 using DM7_PPLUS_Integration.Auswahllisten;
 using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung.Server;
-using DM7_PPLUS_Integration.Implementierung.Shared;
+
 
 namespace DM7_PPLUS_Integration.Implementierung.Testing
 {
@@ -15,9 +14,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
         private readonly Log _log;
         private readonly Random random = new Random();
         private readonly List<Mitarbeiter> mitarbeiter;
-        private readonly Subject<IEnumerable<string>> _subject = new Subject<IEnumerable<string>>();
-        private readonly Timer _timer;
-        private int changeCounter;
 
         public Demo_Datenserver(Log log, TimeSpan interval)
         {
@@ -27,79 +23,25 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
                     .Select(_ =>
                         Neuer_Mitarbeiter())
                     .ToList();
-            Aenderungen_an_Mitarbeiterstammdaten = _subject;
-
-            _timer = new Timer(interval.TotalMilliseconds);
-            _timer.Start();
-            _timer.Elapsed += (s, e) =>
-            {
-                if (changeCounter++ <= 3)
-                {
-                    var selected = random.Next(0, mitarbeiter.Count - 1);
-                    var ma_alt = mitarbeiter[selected];
-
-                    var ma_neu = new Mitarbeiter(
-                        ma_alt.DatensatzId,
-                        ma_alt.PersonId,
-                        ma_alt.ArbeitsverhaeltnisId,
-                        ma_alt.Mandant,
-                        ma_alt.Struktur,
-                        ma_alt.Titel,
-                        ma_alt.Vorname,
-                        Nachname(),
-                        ma_alt.Postanschrift,
-                        ma_alt.Geburtstag,
-                        ma_alt.Familienstand,
-                        ma_alt.Konfession,
-                        ma_alt.GueltigAb,
-                        ma_alt.GueltigBis,
-                        ma_alt.Qualifikation,
-                        ma_alt.Handzeichen,
-                        ma_alt.Personalnummer,
-                        ma_alt.Geschlecht,
-                        ma_alt.Kontakte);
-
-                    _log.Debug($" - Geänderter Mitarbeiter im DemoServer: {ma_neu.Nachname}, {ma_neu.Vorname} (vormals: {ma_alt.Nachname}, {ma_neu.Vorname}) ({ma_neu.Personalnummer})");
-
-                    mitarbeiter[selected] = ma_neu;
-                    _subject.Next(new List<string> {ma_alt.DatensatzId});
-                }
-                else
-                {
-                    changeCounter = 0;
-                    Trigger_Neue_Mitarbeiter();
-                }
-            };
         }
 
-        private void Trigger_Neue_Mitarbeiter()
-        {
-            var neue_mitarbeiter = Enumerable.Range(0, random.Next(1,5)).Select(_ => Neuer_Mitarbeiter()).ToList();
-            mitarbeiter.AddRange(neue_mitarbeiter);
-            _subject.Next(neue_mitarbeiter.Select(_ => _.DatensatzId));
-        }
 
-        private Mitarbeiterdatensatz Neuer_Mitarbeiter()
+        private Mitarbeiter Neuer_Mitarbeiter()
         {
-            var neuerMitarbeiter = new Mitarbeiterdatensatz(
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
-                1,
-                Guid.NewGuid().ToString(),
+            var neuerMitarbeiter = new Mitarbeiter(
+                Guid.NewGuid(),
+                new ReadOnlyCollection<DM7_Mandantenzugehörigkeiten>(new List<DM7_Mandantenzugehörigkeiten> { new DM7_Mandantenzugehörigkeiten(1, Zufaelliges_Datum(2014, 2016), null)}),
+                Personalnummer(),
                 Auswahllisten_0.Titel.Kein,
                 Vorname(),
                 Nachname(),
                 null,
-                null,
-                Auswahllisten_0.Familienstand.Unbekannt,
-                Auswahllisten_0.Konfession.Keine,
+                "HEI",
                 Zufaelliges_Datum(2000, 2015),
-                null,
-                new ReadOnlyCollection<Qualifikation>(new List<Qualifikation>()),
-                "",
-                Personalnummer(),
                 Auswahllisten_0.Geschlecht.Maennlich,
+                Auswahllisten_0.Konfession.Keine,
+                Auswahllisten_0.Familienstand.Unbekannt,
+                new ReadOnlyCollection<Qualifikation>(new List<Qualifikation>()),
                 new ReadOnlyCollection<Kontakt>(new List<Kontakt>()));
             _log.Debug($" - Neuer Mitarbeiter im DemoServer: {neuerMitarbeiter.Nachname}, {neuerMitarbeiter.Vorname} ({neuerMitarbeiter.Personalnummer})");
             return
@@ -128,11 +70,47 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
 
         public IEnumerable<string> Alle_Mitarbeiterdatensaetze()
         {
-            return mitarbeiter.Select(_ => _.DatensatzId);
+            return mitarbeiter.Select(_ => _.PPLUS_Id.ToString());
         }
 
-        public IEnumerable<Mitarbeiterdatensatz> Mitarbeiterdatensaetze_abrufen(IEnumerable<string> datensatz_ids) =>
-            mitarbeiter.Where(_ => datensatz_ids.Contains(_.DatensatzId));
+
+        IEnumerable<Mitarbeiter> PPLUS_Backend.Mitarbeiterdatensaetze_abrufen(IEnumerable<string> datensatz_ids)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Stammdaten<Mitarbeiter> Mitarbeiter_abrufen()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Stammdaten<Mitarbeiterfoto> Mitarbeiterfotos_abrufen()
+        {
+            throw new NotImplementedException();
+        }
+
+        Stammdaten<Dienst> PPLUS_Backend.Dienste_abrufen()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Stammdaten<Mitarbeiter> Mitarbeiter_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Stammdaten<Mitarbeiterfoto> Mitarbeiterfotos_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Stammdaten<Dienst> Dienste_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<Mitarbeiter> Mitarbeiterdatensaetze_abrufen(IEnumerable<Guid> pplus_ids) =>
+            mitarbeiter.Where(_ => pplus_ids.Contains(_.PPLUS_Id));
 
         public IEnumerable<Dienst> Dienste_abrufen()
         {
@@ -193,11 +171,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
                     ("Z", "Pflege Zwischendienst")
                 };
             return bezeichnungen[random.Next(0, bezeichnungen.Length)];
-        }
-
-        public void Dispose()
-        {
-            _timer?.Dispose();
         }
     }
 }
