@@ -188,7 +188,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             }
         }
 
-        public Task<QueryResponse> Query_Dienste(string credentials, int api_version, Guid session)
+        public Task<QueryResponse> Query_Mitarbeiter(string credentials, int api_version, Guid session, Datenstand? stand)
         {
             var autorisierung = _authentifizierung.Authentifizieren(credentials);
 
@@ -204,6 +204,79 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
             if (api_version == 4)
             {
+                if (stand.HasValue)
+                {
+                    return _backendVersion4
+                        .Mitarbeiter_abrufen_ab(stand.Value)
+                        .ContinueWith(task => (QueryResponse)new QueryResult(Serializer.Serialize(task.Result, Serializer.Serialize_Mitarbeiter)));
+                }
+
+                return _backendVersion4
+                    .Mitarbeiter_abrufen()
+                    .ContinueWith(task => (QueryResponse)new QueryResult(Serializer.Serialize(task.Result, Serializer.Serialize_Mitarbeiter)));
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public Task<QueryResponse> Query_Mitarbeiterfotos(string credentials, int api_version, Guid session, Datenstand? stand)
+        {
+            var autorisierung = _authentifizierung.Authentifizieren(credentials);
+
+            if (autorisierung == null)
+            {
+                return Task.FromResult((QueryResponse)new QueryFailed(QueryFailure.Unauthorized, "Ungültige oder abgelaufene Zugriffsberechtigung"));
+            }
+
+            if (!(autorisierung is StammdatenZugriff))
+            {
+                return Task.FromResult((QueryResponse)new QueryFailed(QueryFailure.Unauthorized, "Unzureichende Zugriffsberechtigung"));
+            }
+
+            if (api_version == 4)
+            {
+                if (stand.HasValue)
+                {
+                    return _backendVersion4
+                        .Mitarbeiterfotos_abrufen_ab(stand.Value)
+                        .ContinueWith(task => (QueryResponse)new QueryResult(Serializer.Serialize(task.Result, Serializer.Serialize)));
+                }
+
+                return _backendVersion4
+                    .Mitarbeiterfotos_abrufen()
+                    .ContinueWith(task => (QueryResponse)new QueryResult(Serializer.Serialize(task.Result, Serializer.Serialize)));
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public Task<QueryResponse> Query_Dienste(string credentials, int api_version, Guid session, Datenstand? stand)
+        {
+            var autorisierung = _authentifizierung.Authentifizieren(credentials);
+
+            if (autorisierung == null)
+            {
+                return Task.FromResult((QueryResponse)new QueryFailed(QueryFailure.Unauthorized, "Ungültige oder abgelaufene Zugriffsberechtigung"));
+            }
+
+            if (!(autorisierung is StammdatenZugriff))
+            {
+                return Task.FromResult((QueryResponse)new QueryFailed(QueryFailure.Unauthorized, "Unzureichende Zugriffsberechtigung"));
+            }
+
+            if (api_version == 4)
+            {
+                if (stand.HasValue)
+                {
+                    return _backendVersion4
+                        .Dienste_abrufen_ab(stand.Value)
+                        .ContinueWith(task => (QueryResponse)new QueryResult(Serializer.Serialize(task.Result, Serializer.Serialize)));
+                }
+
                 return _backendVersion4
                     .Dienste_abrufen()
                     .ContinueWith(task => (QueryResponse)new QueryResult(Serializer.Serialize(task.Result, Serializer.Serialize)));
@@ -219,27 +292,53 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
     internal static class Serializer
     {
-        internal static IEnumerable<byte[]> Serialize(Mitarbeiterdatensatz mitarbeiter)
+        internal static byte[] Serialize<T>(Stammdaten<T> daten, Func<T, byte[]> serializer)
         {
-            yield return Serialize(mitarbeiter.DatensatzId);
-            yield return Serialize(mitarbeiter.PersonId);
-            yield return Serialize(mitarbeiter.ArbeitsverhaeltnisId);
-            yield return Serialize(mitarbeiter.Mandant);
-            yield return Serialize(mitarbeiter.Struktur);
+            return Serialize_list(daten, serializer)
+                .Concat(BitConverter.GetBytes(daten.Stand.Value))
+                .ToArray();
+        }
+
+        internal static byte[] Serialize_Mitarbeiter(Mitarbeiter mitarbeiter)
+        {
+            var result = new List<byte>();
+            foreach (var d in Serialize(mitarbeiter)) result.AddRange(d);
+            return result.ToArray();
+        }
+
+        internal static byte[] Serialize(Mitarbeiterfoto foto)
+        {
+            return Serialize(foto.Mitarbeiter)
+                .Concat(Serialize(foto.Format))
+                .Concat(Serialize(foto.Foto.Length))
+                .Concat(foto.Foto)
+                .ToArray();
+        }
+
+        internal static IEnumerable<byte[]> Serialize(Mitarbeiter mitarbeiter)
+        {
+            yield return Serialize(mitarbeiter.PPLUS_Id);
+            yield return Serialize_list(mitarbeiter.DM7_Mandantenzugehörigkeiten, Serialize);
+            yield return Serialize(mitarbeiter.Personalnummer);
             yield return Serialize(mitarbeiter.Titel);
             yield return Serialize(mitarbeiter.Vorname);
             yield return Serialize(mitarbeiter.Nachname);
             yield return Serialize(mitarbeiter.Postanschrift);
-            yield return Serialize(mitarbeiter.Geburtstag);
-            yield return Serialize(mitarbeiter.Familienstand);
-            yield return Serialize(mitarbeiter.Konfession);
-            yield return Serialize(mitarbeiter.GueltigAb);
-            yield return Serialize(mitarbeiter.GueltigBis);
-            yield return Serialize(mitarbeiter.Qualifikation);
             yield return Serialize(mitarbeiter.Handzeichen);
-            yield return Serialize(mitarbeiter.Personalnummer);
-            yield return Serialize(mitarbeiter.Geschlecht);
             yield return Serialize(mitarbeiter.Kontakte);
+            yield return Serialize(mitarbeiter.Geburtstag);
+            yield return Serialize(mitarbeiter.Geschlecht);
+            yield return Serialize(mitarbeiter.Konfession);
+            yield return Serialize(mitarbeiter.Familienstand);
+            yield return Serialize(mitarbeiter.Qualifikation);
+        }
+
+        private static byte[] Serialize(DM7_Mandantenzugehörigkeiten mandantenzugehörigkeiten)
+        {
+            return Serialize(mandantenzugehörigkeiten.MandantId)
+                .Concat(Serialize(mandantenzugehörigkeiten.GueltigAb))
+                .Concat(Serialize(mandantenzugehörigkeiten.GueltigBis))
+                .ToArray();
         }
 
         public static byte[] Serialize(Dienst dienst)
@@ -256,7 +355,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 .ToArray();
         }
 
-        internal static byte[] Serialize<T>(ReadOnlyCollection<T> collection, Func<T, byte[]> serialize)
+        internal static byte[] Serialize_list<T>(ReadOnlyCollection<T> collection, Func<T, byte[]> serialize)
         {
             return BitConverter.GetBytes(collection.Count)
                 .Concat(collection.SelectMany(serialize))

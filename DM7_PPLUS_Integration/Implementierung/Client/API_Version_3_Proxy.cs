@@ -71,6 +71,35 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         }
 
         public int Auswahllisten_Version { get; }
+        public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Dienst>> Dienste_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<Stammdaten<Dienst>> DM7_PPLUS_API.Dienste_abrufen()
+        {
+            throw new NotImplementedException();
+        }
 
         public IObservable<Stand> Stand_Mitarbeiterdaten { get; }
 
@@ -118,11 +147,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var stand = VersionsStand.AbInitio();
             return Mitarbeiterdaten_abrufen(stand, stand);
         }
-
-        public Task<ReadOnlyCollection<Dienst>> Dienste_abrufen()
-        {
-            throw new NotSupportedException();
-        }
     }
 
     internal static class Deserialize
@@ -135,32 +159,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var version = Deserialize_Longint(data, ref position);
             var teildaten = Deserialize_Bool(data, ref position);
 
-            var anzahl_Mitarbeiterdatensaetze = Deserialize_Int(data, ref position);
-            var mitarbeiter = new List<Mitarbeiterdatensatz>();
-
-            for (var i = 0; i < anzahl_Mitarbeiterdatensaetze; i++)
-            {
-                mitarbeiter.Add(new Mitarbeiterdatensatz(
-                    Deserialize_String(data, ref position),
-                    Deserialize_String(data, ref position),
-                    Deserialize_String(data, ref position),
-                    Deserialize_Int(data, ref position),
-                    Deserialize_String(data, ref position),
-                    Deserialize_Guid(data, ref position),
-                    Deserialize_String(data, ref position),
-                    Deserialize_String(data, ref position),
-                    Deserialize_Postanschrift(data, ref position),
-                    Deserialize_Nullable_Datum(data, ref position),
-                    Deserialize_Guid(data, ref position),
-                    Deserialize_Guid(data, ref position),
-                    Deserialize_Datum(data, ref position),
-                    Deserialize_Nullable_Datum(data, ref position),
-                    Deserialize_Qualifikationen(data, ref position),
-                    Deserialize_String(data, ref position),
-                    Deserialize_String(data, ref position),
-                    Deserialize_Guid(data, ref position),
-                    Deserialize_Kontakte(data, ref position)));
-            }
+            var mitarbeiter = new List<Mitarbeiter>();
 
             return
                 new Mitarbeiterdatensaetze(
@@ -168,16 +167,15 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     new VersionsStand(
                         session,
                         version),
-                    new ReadOnlyCollection<Mitarbeiterdatensatz>(mitarbeiter),
+                    new ReadOnlyCollection<Mitarbeiter>(mitarbeiter),
                     new ReadOnlyCollection<Mitarbeiterfoto>(new List<Mitarbeiterfoto>()));
         }
 
-        internal static ReadOnlyCollection<Dienst> Deserialisiere_Dienste(byte[] data)
+        internal static Stammdaten<Dienst> Deserialisiere_Dienste(byte[] data)
         {
             var position = 0;
-
             var anzahl_datensätze = Deserialize_Int(data, ref position);
-            return new ReadOnlyCollection<Dienst>(
+            return new Stammdaten<Dienst>(
                 Enumerable.Range(0, anzahl_datensätze)
                     .Select(_ => new Dienst(
                         Deserialize_Int(data, ref position),
@@ -190,8 +188,16 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                         Deserialize_Dienst_Gültigkeit(data, ref position),
                         Deserialize_Bool(data, ref position)
                     ))
-                    .ToList()
+                    .ToList(),
+                new Datenstand(Deserialize_ULong(data, ref position))
             );
+        }
+
+        private static ulong Deserialize_ULong(byte[] data, ref int position)
+        {
+            var value = BitConverter.ToUInt64(data, position);
+            position += 8;
+            return value;
         }
 
         private static ReadOnlyCollection<Kontakt> Deserialize_Kontakte(byte[] data, ref int position)
@@ -227,18 +233,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         private static ReadOnlyCollection<Qualifikation> Deserialize_Qualifikationen(byte[] data, ref int position)
         {
-            var anzahl = Deserialize_Int(data, ref position);
-
-            var result = new List<Qualifikation>();
-
-            for (int i = 0; i < anzahl; i++)
-            {
-                var stufe = Deserialize_Int(data, ref position);
-                var beschreibung = Deserialize_String(data, ref position);
-                result.Add(new Qualifikation(stufe, beschreibung));
-            }
-
-            return new ReadOnlyCollection<Qualifikation>(result);
+            throw new NotImplementedException();
         }
 
         private static Datum? Deserialize_Nullable_Datum(byte[] data, ref int position)
@@ -339,6 +334,74 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             Array.Copy(data.Skip(position).ToArray(), guidbuffer, 16);
             position += 16;
             return new Guid(guidbuffer);
+        }
+
+        public static Stammdaten<Mitarbeiterfoto> Deserialisiere_Mitarbeiterfotos(byte[] data)
+        {
+            var position = 0;
+            var anzahl_datensätze = Deserialize_Int(data, ref position);
+            return new Stammdaten<Mitarbeiterfoto>(
+                Enumerable.Range(0, anzahl_datensätze)
+                    .Select(_ => new Mitarbeiterfoto(
+                        Deserialize_Guid(data, ref position),
+                        Deserialize_Guid(data, ref position),
+                        Deserialize_Data(data, ref position)
+                    ))
+                    .ToList(),
+                new Datenstand(Deserialize_ULong(data, ref position))
+            );
+        }
+
+        private static byte[] Deserialize_Data(byte[] data, ref int position)
+        {
+            var länge = Deserialize_Int(data, ref position);
+            var result = data.Skip(position).Take(länge).ToArray();
+            position += länge;
+            return result;
+        }
+
+        private static ReadOnlyCollection<DM7_Mandantenzugehörigkeiten> Deserialize_Mandantenzugehörigkeit(byte[] data, ref int position)
+        {
+            var anzahl_datensätze = Deserialize_Int(data, ref position);
+            var tmpPosition = position;
+            var res = new ReadOnlyCollection<DM7_Mandantenzugehörigkeiten>(
+                Enumerable.Range(0, anzahl_datensätze)
+                    .Select(_ => new DM7_Mandantenzugehörigkeiten(
+                        Deserialize_Int(data, ref tmpPosition),
+                        Deserialize_Datum(data, ref tmpPosition),
+                        Deserialize_Nullable_Datum(data, ref tmpPosition)
+                    ))
+                    .ToList()
+            );
+            position = tmpPosition;
+            return res;
+        }
+
+        public static Stammdaten<Mitarbeiter> Deserialisiere_Mitarbeiter(byte[] data)
+        {
+            var position = 0;
+            var anzahl_datensätze = Deserialize_Int(data, ref position);
+            return new Stammdaten<Mitarbeiter>(
+                Enumerable.Range(0, anzahl_datensätze)
+                    .Select(_ => new Mitarbeiter(
+                        Deserialize_Guid(data, ref position),
+                        Deserialize_Mandantenzugehörigkeit(data, ref position),
+                        Deserialize_String(data, ref position),
+                        Deserialize_Guid(data, ref position),
+                        Deserialize_String(data, ref position),
+                        Deserialize_String(data, ref position),
+                        Deserialize_Postanschrift(data, ref position),
+                        Deserialize_String(data, ref position),
+                        Deserialize_Nullable_Datum(data, ref position),
+                        Deserialize_Guid(data, ref position),
+                        Deserialize_Guid(data, ref position),
+                        Deserialize_Guid(data, ref position),
+                        Deserialize_Qualifikationen(data, ref position),
+                        Deserialize_Kontakte(data, ref position)
+                    ))
+                    .ToList(),
+                new Datenstand(Deserialize_ULong(data, ref position))
+            );
         }
     }
 

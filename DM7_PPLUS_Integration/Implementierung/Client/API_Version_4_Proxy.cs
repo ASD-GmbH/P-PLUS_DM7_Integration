@@ -1,5 +1,4 @@
 using System;
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
@@ -68,6 +67,203 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         }
 
         public int Auswahllisten_Version { get; }
+        public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen()
+        {
+            _log.Debug("Mitarbeiter werden abgerufen ...");
+            return _schicht_2_Proxy
+                .Query_Mitarbeiter(_credentials, API_VERSION, _session, null)
+                .ContinueWith(task =>
+                {
+                    if (task.Result is QueryResult result)
+                    {
+                        var mitarbeiter = Deserialize.Deserialisiere_Mitarbeiter(result.Data);
+                        _log.Debug($"{mitarbeiter.Count} Mitarbeiter empfangen");
+                        return mitarbeiter;
+                    }
+                    if (task.Result is QueryFailed failed)
+                    {
+                        if (failed.Reason == QueryFailure.Internal_Server_Error)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiter_abrufen' ist auf dem Server fehlgeschlagen: {failed.Info}.");
+                        }
+                        if (failed.Reason == QueryFailure.Unauthorized)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiter_abrufen' ist fehlgeschlagen: {failed.Info}.");
+                        }
+                        if (failed.Reason == QueryFailure.Unknown_reason)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiter_abrufen' ist fehlgeschlagen: {failed.Info}.");
+                        }
+                    }
+
+                    throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiter_abrufen' ist fehlgeschlagen: Unbekanntes Protokoll ({task.Result.GetType().Name}).");
+                });
+        }
+
+        public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen_ab(Datenstand stand)
+        {
+            _log.Debug("Mitarbeiter für Datenstand werden abgerufen ...");
+            return _schicht_2_Proxy
+                .Query_Mitarbeiter(_credentials, API_VERSION, _session, stand)
+                .ContinueWith(task =>
+                {
+                    if (task.Result is QueryResult result)
+                    {
+                        var mitarbeiter = Deserialize.Deserialisiere_Mitarbeiter(result.Data);
+                        _log.Debug($"{mitarbeiter.Count} Mitarbeiter empfangen");
+                        return mitarbeiter;
+                    }
+                    if (task.Result is QueryFailed failed)
+                    {
+                        if (failed.Reason == QueryFailure.Internal_Server_Error)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiter_abrufen_ab' ist auf dem Server fehlgeschlagen: {failed.Info}.");
+                        }
+                        if (failed.Reason == QueryFailure.Unauthorized)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiter_abrufen_ab' ist fehlgeschlagen: {failed.Info}.");
+                        }
+                        if (failed.Reason == QueryFailure.Unknown_reason)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiter_abrufen_ab' ist fehlgeschlagen: {failed.Info}.");
+                        }
+                    }
+
+                    throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiter_abrufen_ab' ist fehlgeschlagen: Unbekanntes Protokoll ({task.Result.GetType().Name}).");
+                });
+        }
+
+        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen()
+        {
+            _log.Debug("Mitarbeiterfotos werden abgerufen ...");
+            return _schicht_2_Proxy
+                .Query_Mitarbeiterfotos(_credentials, API_VERSION, _session, null)
+                .ContinueWith(task =>
+                {
+                    if (task.Result is QueryResult result)
+                    {
+                        var fotos = Deserialize.Deserialisiere_Mitarbeiterfotos(result.Data);
+                        _log.Debug($"{fotos.Count} Mitarbeiterfotos empfangen");
+                        return fotos;
+                    }
+                    if (task.Result is QueryFailed failed)
+                    {
+                        if (failed.Reason == QueryFailure.Internal_Server_Error)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterfotos_abrufen' ist auf dem Server fehlgeschlagen: {failed.Info}.");
+                        }
+                        if (failed.Reason == QueryFailure.Unauthorized)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterfotos_abrufen' ist fehlgeschlagen: {failed.Info}.");
+                        }
+                        if (failed.Reason == QueryFailure.Unknown_reason)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterfotos_abrufen' ist fehlgeschlagen: {failed.Info}.");
+                        }
+                    }
+
+                    throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterfotos_abrufen' ist fehlgeschlagen: Unbekanntes Protokoll ({task.Result.GetType().Name}).");
+                });
+        }
+
+        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen_ab(Datenstand stand)
+        {
+            _log.Debug("Mitarbeiterfotos für Datenstand werden abgerufen ...");
+            return _schicht_2_Proxy
+                .Query_Mitarbeiterfotos(_credentials, API_VERSION, _session, stand)
+                .ContinueWith(task =>
+                {
+                    if (task.Result is QueryResult result)
+                    {
+                        var fotos = Deserialize.Deserialisiere_Mitarbeiterfotos(result.Data);
+                        _log.Debug($"{fotos.Count} Mitarbeiterfotos empfangen");
+                        return fotos;
+                    }
+                    if (task.Result is QueryFailed failed)
+                    {
+                        if (failed.Reason == QueryFailure.Internal_Server_Error)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterfotos_abrufen_ab' ist auf dem Server fehlgeschlagen: {failed.Info}.");
+                        }
+                        if (failed.Reason == QueryFailure.Unauthorized)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterfotos_abrufen_ab' ist fehlgeschlagen: {failed.Info}.");
+                        }
+                        if (failed.Reason == QueryFailure.Unknown_reason)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterfotos_abrufen_ab' ist fehlgeschlagen: {failed.Info}.");
+                        }
+                    }
+
+                    throw new ConnectionErrorException($"Die Datenabfrage 'Mitarbeiterfotos_abrufen_ab' ist fehlgeschlagen: Unbekanntes Protokoll ({task.Result.GetType().Name}).");
+                });
+        }
+
+        public Task<Stammdaten<Dienst>> Dienste_abrufen_ab(Datenstand stand)
+        {
+            _log.Debug("Dienste für Datenstand werden abgerufen ...");
+            return _schicht_2_Proxy
+                .Query_Dienste(_credentials, API_VERSION, _session, stand)
+                .ContinueWith(task =>
+                {
+                    if (task.Result is QueryResult result)
+                    {
+                        var dienste = Deserialize.Deserialisiere_Dienste(result.Data);
+                        _log.Debug($"{dienste.Count} Dienste empfangen");
+                        return dienste;
+                    }
+                    if (task.Result is QueryFailed failed)
+                    {
+                        if (failed.Reason == QueryFailure.Internal_Server_Error)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist auf dem Server fehlgeschlagen: {failed.Info}.");
+                        }
+                        if (failed.Reason == QueryFailure.Unauthorized)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist fehlgeschlagen: {failed.Info}.");
+                        }
+                        if (failed.Reason == QueryFailure.Unknown_reason)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist fehlgeschlagen: {failed.Info}.");
+                        }
+                    }
+
+                    throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist fehlgeschlagen: Unbekanntes Protokoll ({task.Result.GetType().Name}).");
+                });
+        }
+
+        Task<Stammdaten<Dienst>> DM7_PPLUS_API.Dienste_abrufen()
+        {
+            _log.Debug("Dienste werden abgerufen ...");
+            return _schicht_2_Proxy
+                .Query_Dienste(_credentials, API_VERSION, _session, null)
+                .ContinueWith(task =>
+                {
+                    if (task.Result is QueryResult result)
+                    {
+                        var dienste = Deserialize.Deserialisiere_Dienste(result.Data);
+                        _log.Debug($"{dienste.Count} Dienste empfangen");
+                        return dienste;
+                    }
+                    if (task.Result is QueryFailed failed)
+                    {
+                        if (failed.Reason == QueryFailure.Internal_Server_Error)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist auf dem Server fehlgeschlagen: {failed.Info}.");
+                        }
+                        if (failed.Reason == QueryFailure.Unauthorized)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist fehlgeschlagen: {failed.Info}.");
+                        }
+                        if (failed.Reason == QueryFailure.Unknown_reason)
+                        {
+                            throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist fehlgeschlagen: {failed.Info}.");
+                        }
+                    }
+
+                    throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist fehlgeschlagen: Unbekanntes Protokoll ({task.Result.GetType().Name}).");
+                });
+        }
 
         public IObservable<Stand> Stand_Mitarbeiterdaten { get; }
 
@@ -114,39 +310,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         {
             var stand = VersionsStand.AbInitio();
             return Mitarbeiterdaten_abrufen(stand, stand);
-        }
-
-        public Task<ReadOnlyCollection<Dienst>> Dienste_abrufen()
-        {
-            _log.Debug("Dienste werden abgerufen ...");
-            return _schicht_2_Proxy
-                .Query_Dienste(_credentials, API_VERSION, _session)
-                .ContinueWith(task =>
-                {
-                    if (task.Result is QueryResult result)
-                    {
-                        var dienste = Deserialize.Deserialisiere_Dienste(result.Data);
-                        _log.Debug($"{dienste.Count} Dienste empfangen");
-                        return dienste;
-                    }
-                    if (task.Result is QueryFailed failed)
-                    {
-                        if (failed.Reason == QueryFailure.Internal_Server_Error)
-                        {
-                            throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist auf dem Server fehlgeschlagen: {failed.Info}.");
-                        }
-                        if (failed.Reason == QueryFailure.Unauthorized)
-                        {
-                            throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist fehlgeschlagen: {failed.Info}.");
-                        }
-                        if (failed.Reason == QueryFailure.Unknown_reason)
-                        {
-                            throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist fehlgeschlagen: {failed.Info}.");
-                        }
-                    }
-
-                    throw new ConnectionErrorException($"Die Datenabfrage 'Dienste_abrufen' ist fehlgeschlagen: Unbekanntes Protokoll ({task.Result.GetType().Name}).");
-                });
         }
     }
 }
