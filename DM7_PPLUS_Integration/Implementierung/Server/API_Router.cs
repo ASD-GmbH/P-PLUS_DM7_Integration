@@ -135,7 +135,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             return new NotificationData(s.Session, datenquelle, s.Version);
         }
 
-        public Task<QueryResponse> Query(string credentials, int api_version, Guid session, int datenquelle, long von, long bis)
+        public Task<QueryResponse> Query_Mitarbeiterdatensätze(string credentials, int api_version, Guid session, int datenquelle, long von, long bis)
         {
             var autorisierung = _authentifizierung.Authentifizieren(credentials);
 
@@ -149,7 +149,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                 return Task.FromResult((QueryResponse)new QueryFailed(QueryFailure.Unauthorized, "Unzureichende Zugriffsberechtigung"));
             }
 
-            if (api_version == 1 || api_version==3 || api_version==4)
+            if (api_version == 1 || api_version==3)
             {
                 var mitarbeiter =
                     (_backendVersion3?? _backendVersion1).Mitarbeiterdaten_abrufen(new VersionsStand(session, von),

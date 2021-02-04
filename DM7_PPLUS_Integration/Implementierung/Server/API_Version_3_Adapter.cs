@@ -41,6 +41,35 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         }
 
         public int Auswahllisten_Version => _backend.AuswahllistenVersion;
+        public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Dienst>> Dienste_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<Stammdaten<Dienst>> DM7_PPLUS_API.Dienste_abrufen()
+        {
+            throw new NotImplementedException();
+        }
 
         public IObservable<Stand> Stand_Mitarbeiterdaten { get; }
 
@@ -68,8 +97,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             var task = new Task<Mitarbeiterdatensaetze>(() => new Mitarbeiterdatensaetze(
                 teilmenge,
                 new VersionsStand(_session, _stand),
-                new ReadOnlyCollection<Mitarbeiterdatensatz>(_backend.Mitarbeiterdatensaetze_abrufen(mitarbeiter)
-                    .ToList()),
+                new ReadOnlyCollection<Mitarbeiter>(_backend.Mitarbeiterdatensaetze_abrufen(mitarbeiter).ToList()),
                 new ReadOnlyCollection<Mitarbeiterfoto>(new List<Mitarbeiterfoto>())));
             task.RunSynchronously();
             return task;
@@ -78,11 +106,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         public Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen()
         {
             return Mitarbeiterdaten_abrufen(Ab_Initio, Aktueller_Stand);
-        }
-
-        public Task<ReadOnlyCollection<Dienst>> Dienste_abrufen()
-        {
-            throw new NotSupportedException();
         }
 
         public void Announce()

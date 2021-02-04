@@ -14,7 +14,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
     {
         private readonly Log _log;
         private readonly Random random = new Random();
-        private readonly List<Mitarbeiterdatensatz> mitarbeiter;
+        private readonly List<Mitarbeiter> mitarbeiter;
         private readonly Subject<IEnumerable<string>> _subject = new Subject<IEnumerable<string>>();
         private readonly Timer _timer;
         private int changeCounter;
@@ -38,7 +38,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
                     var selected = random.Next(0, mitarbeiter.Count - 1);
                     var ma_alt = mitarbeiter[selected];
 
-                    var ma_neu = new Mitarbeiterdatensatz(
+                    var ma_neu = new Mitarbeiter(
                         ma_alt.DatensatzId,
                         ma_alt.PersonId,
                         ma_alt.ArbeitsverhaeltnisId,

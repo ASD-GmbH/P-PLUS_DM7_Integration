@@ -46,7 +46,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             return new NotificationData(session,datenquelle,version);
         }
 
-        public Task<QueryResponse> Query(string credentials, int api_version, Guid session, int datenquelle, long von, long bis)
+        public Task<QueryResponse> Query_Mitarbeiterdatensätze(string credentials, int api_version, Guid session, int datenquelle, long von, long bis)
         {
             var credentialsBuffer = System.Text.Encoding.UTF8.GetBytes(credentials);
             var query = new List<byte[]>

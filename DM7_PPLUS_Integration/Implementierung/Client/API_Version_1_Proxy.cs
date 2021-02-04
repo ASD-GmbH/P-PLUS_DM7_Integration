@@ -70,6 +70,35 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         }
 
         public int Auswahllisten_Version { get; }
+        public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Dienst>> Dienste_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<Stammdaten<Dienst>> DM7_PPLUS_API.Dienste_abrufen()
+        {
+            throw new NotImplementedException();
+        }
 
         public IObservable<Stand> Stand_Mitarbeiterdaten { get; }
 
@@ -81,7 +110,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
             return
                 _schicht_2_Proxy
-                    .Query(_credentials, API_VERSION, vvon.Session, Datenquellen.Mitarbeiter, vvon.Version, vbis.Version)
+                    .Query_Mitarbeiterdatensätze(_credentials, API_VERSION, vvon.Session, Datenquellen.Mitarbeiter, vvon.Version, vbis.Version)
                     .ContinueWith(
                         task =>
                         {
@@ -123,48 +152,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var teildaten = resultData[position] == 1;
             position += 1;
 
-            var anzahl_Mitarbeiterdatensaetze = BitConverter.ToInt32(resultData, position);
-            position += 4;
-
-            var mitarbeiter = new List<Mitarbeiterdatensatz>();
-
-            for (var i = 0; i < anzahl_Mitarbeiterdatensaetze; i++)
-            {
-                var laenge_nachname = BitConverter.ToInt32(resultData, position);
-                position += 4;
-                var laenge_vorname = BitConverter.ToInt32(resultData, position);
-                position += 4;
-
-                var nachname = System.Text.Encoding.UTF8.GetString(resultData, position, laenge_nachname);
-                position += laenge_nachname;
-
-                var vorname = System.Text.Encoding.UTF8.GetString(resultData, position, laenge_vorname);
-                position += laenge_vorname;
-
-                var ma =
-                    new Mitarbeiterdatensatz(
-                        Guid.NewGuid().ToString(),
-                        Guid.NewGuid().ToString(),
-                        Guid.NewGuid().ToString(),
-                        1,
-                        Guid.Empty.ToString(),
-                        Guid.Empty,
-                        vorname,
-                        nachname,
-                        null,
-                        null,
-                        Guid.Empty,
-                        Guid.Empty,
-                        new Datum(1, 1, 2017),
-                        null,
-                        new ReadOnlyCollection<Qualifikation>(new List<Qualifikation>()),
-                        "",
-                        "1",
-                        Guid.Empty,
-                        new ReadOnlyCollection<Kontakt>(new List<Kontakt>()));
-
-                mitarbeiter.Add(ma);
-            }
+            var mitarbeiter = new List<Mitarbeiter>();
 
             return
                 new Mitarbeiterdatensaetze(
@@ -172,7 +160,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     new VersionsStand(
                         session,
                         version),
-                    new ReadOnlyCollection<Mitarbeiterdatensatz>(mitarbeiter),
+                    new ReadOnlyCollection<Mitarbeiter>(mitarbeiter),
                     new ReadOnlyCollection<Mitarbeiterfoto>(new List<Mitarbeiterfoto>()));
         }
 
@@ -180,11 +168,6 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         {
             var stand = VersionsStand.AbInitio();
             return Mitarbeiterdaten_abrufen(stand, stand);
-        }
-
-        public Task<ReadOnlyCollection<Dienst>> Dienste_abrufen()
-        {
-            throw new NotSupportedException();
         }
     }
 }

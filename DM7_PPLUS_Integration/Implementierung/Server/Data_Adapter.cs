@@ -67,7 +67,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
             return
                 _backend
-                    .Query(credentials, api_version, session, datenquelle, von, bis)
+                    .Query_Mitarbeiterdatensätze(credentials, api_version, session, datenquelle, von, bis)
                     .ContinueWith(task => Serialize_QueryResponse(task.Result));
         }
 

@@ -79,7 +79,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
             return
                 _schicht_2_Proxy
-                    .Query(_credentials, API_VERSION, vvon.Session, Datenquellen.Mitarbeiter, vvon.Version, vbis.Version)
+                    .Query_Mitarbeiterdatensätze(_credentials, API_VERSION, vvon.Session, Datenquellen.Mitarbeiter, vvon.Version, vbis.Version)
                     .ContinueWith(
                         task =>
                         {
