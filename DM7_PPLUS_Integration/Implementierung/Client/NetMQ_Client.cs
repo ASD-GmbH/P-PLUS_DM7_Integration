@@ -120,6 +120,16 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             return Task(Constants.CHANNEL_2_DATA, request);
         }
 
+        public Task<byte[]> Request_Mitarbeiter(byte[] request)
+        {
+            return Task(Constants.CHANNEL_2_DATA_MITARBEITER, request);
+        }
+
+        public Task<byte[]> Request_Mitarbeiterfotos(byte[] request)
+        {
+            return Task(Constants.CHANNEL_2_DATA_MITARBEITERFOTOS, request);
+        }
+
         public Task<byte[]> Request_Dienste(byte[] request)
         {
             return Task(Constants.CHANNEL_2_DATA_DIENSTE, request);

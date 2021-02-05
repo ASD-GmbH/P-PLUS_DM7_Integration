@@ -65,7 +65,6 @@ namespace PPLUS_Demo_Server
             sub.Dispose();
             log.Info("Demoserver wird beendet...");
             host.Dispose();
-            backend.Dispose();
             log.Info("Demoserver wurde beendet.");
             Thread.Sleep(2000);
         }

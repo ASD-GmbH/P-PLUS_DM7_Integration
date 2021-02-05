@@ -13,8 +13,8 @@ namespace DumpData
     {
         private const string DEMO_URL = "demo://60";
 
-        private static readonly Dictionary<string, Mitarbeiterdatensatz> _mitarbeiter_datensaetze =
-            new Dictionary<string, Mitarbeiterdatensatz>();
+        private static readonly Dictionary<string, Mitarbeiter> _mitarbeiter_datensaetze =
+            new Dictionary<string, Mitarbeiter>();
 
         private static readonly object _lock = new object();
 
@@ -171,13 +171,13 @@ namespace DumpData
 
                 foreach (var datensatz in daten.Mitarbeiter)
                 {
-                    if (!_mitarbeiter_datensaetze.ContainsKey(datensatz.DatensatzId))
+                    if (!_mitarbeiter_datensaetze.ContainsKey(datensatz.PPLUS_Id.ToString()))
                     {
-                        _mitarbeiter_datensaetze.Add(datensatz.DatensatzId, datensatz);
+                        _mitarbeiter_datensaetze.Add(datensatz.PPLUS_Id.ToString(), datensatz);
                     }
                     else
                     {
-                        _mitarbeiter_datensaetze[datensatz.DatensatzId] = datensatz;
+                        _mitarbeiter_datensaetze[datensatz.PPLUS_Id.ToString()] = datensatz;
                     }
                 }
 
@@ -197,10 +197,10 @@ namespace DumpData
         /// Gibt einen Infoblock für einen Mitarbeiter auf der Konsole aus
         /// </summary>
         /// <param name="mitarbeiter"></param>
-        private static void AusgabeMitarbeiter(Mitarbeiterdatensatz mitarbeiter)
+        private static void AusgabeMitarbeiter(Mitarbeiter mitarbeiter)
         {
-            var eintrittsdatum = $"{mitarbeiter.GueltigAb.Tag}.{mitarbeiter.GueltigAb.Monat}.{mitarbeiter.GueltigAb.Jahr}";
-            var austrittsdatum = mitarbeiter.GueltigBis.HasValue ? $"{mitarbeiter.GueltigBis.Value.Tag}.{mitarbeiter.GueltigBis.Value.Monat}.{mitarbeiter.GueltigBis.Value.Jahr}" : "---";
+            //var eintrittsdatum = $"{mitarbeiter.GueltigAb.Tag}.{mitarbeiter.GueltigAb.Monat}.{mitarbeiter.GueltigAb.Jahr}";
+            //var austrittsdatum = mitarbeiter.GueltigBis.HasValue ? $"{mitarbeiter.GueltigBis.Value.Tag}.{mitarbeiter.GueltigBis.Value.Monat}.{mitarbeiter.GueltigBis.Value.Jahr}" : "---";
             var geburtstag = mitarbeiter.Geburtstag.HasValue ? $"{mitarbeiter.Geburtstag.Value.Tag}.{mitarbeiter.Geburtstag.Value.Monat}.{mitarbeiter.Geburtstag.Value.Jahr}" : "???";
             var geschlecht = Bezeichnung_aus_Auswahlliste(typeof(Auswahllisten_1.Geschlecht), mitarbeiter.Geschlecht);
             var titel = Bezeichnung_aus_Auswahlliste(typeof(Auswahllisten_1.Titel), mitarbeiter.Titel);
@@ -211,9 +211,9 @@ namespace DumpData
             Console.ForegroundColor = ConsoleColor.Green;
             Console.Out.Write($"\t{mitarbeiter.Nachname}, {mitarbeiter.Vorname}");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.Out.Write($" - {mitarbeiter.DatensatzId}");
+            //Console.Out.Write($" - {mitarbeiter.DatensatzId}");
 
-            Console.Out.Write($"\n\tPersID: {mitarbeiter.PersonId}");
+            //Console.Out.Write($"\n\tPersID: {mitarbeiter.PersonId}");
             Console.Out.Write($", Titel: {titel}");
             Console.Out.Write($", Geschlecht: {geschlecht}");
 
@@ -231,12 +231,12 @@ namespace DumpData
 
             Console.Out.Write($"\n\tPersonalNr.: {(mitarbeiter.Personalnummer != "" ? mitarbeiter.Personalnummer : "---")}");
             Console.Out.Write($", Handzeichen: {(mitarbeiter.Handzeichen != "" ? mitarbeiter.Handzeichen : "---")}");
-            Console.Out.Write($", AVID: {mitarbeiter.ArbeitsverhaeltnisId}");
-            Console.Out.Write($", Mandant: { mitarbeiter.Mandant}");
+            //Console.Out.Write($", AVID: {mitarbeiter.ArbeitsverhaeltnisId}");
+            //Console.Out.Write($", Mandant: { mitarbeiter.Mandant}");
 
-            Console.Out.Write($"\n\tStruktur: {mitarbeiter.Struktur}");
-            Console.Out.Write($", Eintritt: {eintrittsdatum}");
-            Console.Out.Write($", Austritt: {austrittsdatum}");
+            //Console.Out.Write($"\n\tStruktur: {mitarbeiter.Struktur}");
+            //Console.Out.Write($", Eintritt: {eintrittsdatum}");
+            //Console.Out.Write($", Austritt: {austrittsdatum}");
             Console.Out.WriteLine();
 
 

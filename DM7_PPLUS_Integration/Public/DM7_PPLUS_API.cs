@@ -21,8 +21,11 @@ namespace DM7_PPLUS_Integration
     /// </summary>
     public interface DM7_PPLUS_API : IDisposable
     {
+        [Obsolete]
         IObservable<Stand> Stand_Mitarbeiterdaten { get; }
+        [Obsolete]
         Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen(Stand von, Stand bis);
+        [Obsolete]
         Task<Mitarbeiterdatensaetze> Mitarbeiterdaten_abrufen();
 
         // ^^^^^^^^^^

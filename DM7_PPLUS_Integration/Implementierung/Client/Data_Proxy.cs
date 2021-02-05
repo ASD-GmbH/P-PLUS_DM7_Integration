@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Implementierung.Protokoll;
 using DM7_PPLUS_Integration.Implementierung.Shared;
@@ -65,7 +66,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 .ContinueWith(task => (QueryResponse) new QueryResult(task.Result));
         }
 
-        public Task<QueryResponse> Query_Dienste(string credentials, int api_version, Guid session)
+        public Task<QueryResponse> Query_Mitarbeiter(string credentials, int api_version, Guid session, Datenstand? stand)
         {
             var credentialsBuffer = System.Text.Encoding.UTF8.GetBytes(credentials);
             var query = new List<byte[]>
@@ -73,7 +74,48 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 BitConverter.GetBytes(credentialsBuffer.Length),
                 credentialsBuffer,
                 session.ToByteArray(),
-                BitConverter.GetBytes(api_version)
+                BitConverter.GetBytes(api_version),
+                stand.HasValue
+                    ? new byte[] { 1 }.Concat(BitConverter.GetBytes(stand.Value.Value)).ToArray()
+                    : new byte[] { 0 }
+            };
+
+            return _proxy
+                .Request_Mitarbeiter(query.Concat())
+                .ContinueWith(task => (QueryResponse)new QueryResult(task.Result));
+        }
+
+        public Task<QueryResponse> Query_Mitarbeiterfotos(string credentials, int api_version, Guid session, Datenstand? stand)
+        {
+            var credentialsBuffer = System.Text.Encoding.UTF8.GetBytes(credentials);
+            var query = new List<byte[]>
+            {
+                BitConverter.GetBytes(credentialsBuffer.Length),
+                credentialsBuffer,
+                session.ToByteArray(),
+                BitConverter.GetBytes(api_version),
+                stand.HasValue
+                    ? new byte[] { 1 }.Concat(BitConverter.GetBytes(stand.Value.Value)).ToArray()
+                    : new byte[] { 0 }
+            };
+
+            return _proxy
+                .Request_Mitarbeiterfotos(query.Concat())
+                .ContinueWith(task => (QueryResponse)new QueryResult(task.Result));
+        }
+
+        public Task<QueryResponse> Query_Dienste(string credentials, int api_version, Guid session, Datenstand? stand)
+        {
+            var credentialsBuffer = System.Text.Encoding.UTF8.GetBytes(credentials);
+            var query = new List<byte[]>
+            {
+                BitConverter.GetBytes(credentialsBuffer.Length),
+                credentialsBuffer,
+                session.ToByteArray(),
+                BitConverter.GetBytes(api_version),
+                stand.HasValue
+                    ? new byte[] { 1 }.Concat(BitConverter.GetBytes(stand.Value.Value)).ToArray()
+                    : new byte[] { 0 }
             };
 
             return _proxy

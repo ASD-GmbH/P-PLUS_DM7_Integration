@@ -71,6 +71,64 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
                     .ContinueWith(task => Serialize_QueryResponse(task.Result));
         }
 
+        public Task<byte[]> Request_Mitarbeiter(byte[] request)
+        {
+            var guidbuffer = new byte[16];
+            var position = 0;
+
+            var credentialsbufferlength = BitConverter.ToInt32(request, position);
+            position += 4;
+            var credentials = System.Text.Encoding.UTF8.GetString(request, position, credentialsbufferlength);
+            position += credentialsbufferlength;
+
+            Array.Copy(request, position, guidbuffer, 0, 16);
+            var session = new Guid(guidbuffer);
+            position += 16;
+
+            var api_version = BitConverter.ToInt32(request, position);
+            position += 8;
+
+            var mitStand = BitConverter.ToBoolean(request, position);
+            position += 1;
+
+            Datenstand? stand = null;
+            if (mitStand) stand = new Datenstand(BitConverter.ToUInt64(request, position));
+
+            return
+                _backend
+                    .Query_Mitarbeiter(credentials, api_version, session, stand)
+                    .ContinueWith(task => Serialize_QueryResponse(task.Result));
+        }
+
+        public Task<byte[]> Request_Mitarbeiterfotos(byte[] request)
+        {
+            var guidbuffer = new byte[16];
+            var position = 0;
+
+            var credentialsbufferlength = BitConverter.ToInt32(request, position);
+            position += 4;
+            var credentials = System.Text.Encoding.UTF8.GetString(request, position, credentialsbufferlength);
+            position += credentialsbufferlength;
+
+            Array.Copy(request, position, guidbuffer, 0, 16);
+            var session = new Guid(guidbuffer);
+            position += 16;
+
+            var api_version = BitConverter.ToInt32(request, position);
+            position += 8;
+
+            var mitStand = BitConverter.ToBoolean(request, position);
+            position += 1;
+
+            Datenstand? stand = null;
+            if (mitStand) stand = new Datenstand(BitConverter.ToUInt64(request, position));
+
+            return
+                _backend
+                    .Query_Mitarbeiterfotos(credentials, api_version, session, stand)
+                    .ContinueWith(task => Serialize_QueryResponse(task.Result));
+        }
+
         // empfängt serialisierte Nachrichten und gibt sie als API-Version-unabhängige Nachrichten an das Backend weiter
 
         public Task<byte[]> Request_Dienste(byte[] request)
@@ -88,10 +146,17 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             position += 16;
 
             var api_version = BitConverter.ToInt32(request, position);
+            position += 4;
+
+            var mitStand = BitConverter.ToBoolean(request, position);
+            position += 1;
+
+            Datenstand? stand = null;
+            if (mitStand) stand = new Datenstand(BitConverter.ToUInt64(request, position));
 
             return
                 _backend
-                    .Query_Dienste(credentials, api_version, session)
+                    .Query_Dienste(credentials, api_version, session, stand)
                     .ContinueWith(task => Serialize_QueryResponse(task.Result));
         }
 

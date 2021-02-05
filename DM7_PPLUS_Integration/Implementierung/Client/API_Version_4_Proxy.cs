@@ -32,37 +32,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
             _log = log;
             Auswahllisten_Version = auswahllistenversion;
-
-            var standMitarbeiterdaten = new Subject<Stand>();
-            var subscription = schicht2Proxy.Notifications.Subscribe(new Observer<Notification>(
-                no =>
-                {
-                    if (no is NotificationData data)
-                    {
-                        if (data.Session != _session)
-                        {
-                            _log.Info("P-PLUS Server wurde neu verbunden.");
-                            _session = data.Session;
-                            standMitarbeiterdaten.Next(new VersionsStand(data.Session, data.Version));
-                        }
-                        else
-                        {
-                            if (data.Datenquelle == Datenquellen.Mitarbeiter)
-                            {
-                                _log.Debug($"Mitarbeiterdaten aktualisiert (@{data.Version}))");
-                                standMitarbeiterdaten.Next(new VersionsStand(data.Session, data.Version));
-                            }
-                        }
-                    }
-                    else if (no is NotificationsClosed) { standMitarbeiterdaten.Completed(); }
-                    else standMitarbeiterdaten.Error(new ConnectionErrorException($"Interner Fehler im Notificationstream. Unbekannte Nachricht: {no.GetType().Name}"));
-                },
-                ex => throw new ConnectionErrorException($"Interner Fehler im Notificationstream: {ex.Message}", ex)));
-            Stand_Mitarbeiterdaten = standMitarbeiterdaten;
+            Stand_Mitarbeiterdaten = new Subject<Stand>();
             disposegroup.With(() =>
             {
                 log.Debug("Subscription wird geschlossen...");
-                subscription.Dispose();
             });
         }
 

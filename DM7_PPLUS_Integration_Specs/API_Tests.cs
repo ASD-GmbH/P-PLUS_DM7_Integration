@@ -232,7 +232,7 @@ namespace DM7_PPLUS_Integration_Specs
             data.Mitarbeiter.Single().ShouldBeEquivalentTo(Einziger_Mitarbeiterdatensatz_auf_dem_Server());
         }
 
-        private Mitarbeiterdatensatz Einziger_Mitarbeiterdatensatz_auf_dem_Server()
+        private Mitarbeiter Einziger_Mitarbeiterdatensatz_auf_dem_Server()
         {
             return _server.Mitarbeiterdatensaetze_abrufen(_server.Alle_Mitarbeiterdatensaetze()).Single();
         }

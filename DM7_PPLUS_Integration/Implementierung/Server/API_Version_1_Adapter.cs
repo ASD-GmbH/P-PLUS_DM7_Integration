@@ -68,8 +68,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             var task = new Task<Mitarbeiterdatensaetze>(() => new Mitarbeiterdatensaetze(
                 teilmenge,
                 new VersionsStand(_session, _stand),
-                new ReadOnlyCollection<Mitarbeiterdatensatz>(_backend.Mitarbeiterdatensaetze_abrufen(mitarbeiter)
-                    .ToList()),
+                new ReadOnlyCollection<Mitarbeiter>(_backend.Mitarbeiterdatensaetze_abrufen(mitarbeiter).ToList()),
                 new ReadOnlyCollection<Mitarbeiterfoto>(new List<Mitarbeiterfoto>())));
             task.RunSynchronously();
             return task;
@@ -88,6 +87,36 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         public void Announce()
         {
             ((Subject<Stand>)Stand_Mitarbeiterdaten).Next(new VersionsStand(_session, _stand));
+        }
+
+        public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stammdaten<Dienst>> Dienste_abrufen_ab(Datenstand stand)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<Stammdaten<Dienst>> DM7_PPLUS_API.Dienste_abrufen()
+        {
+            throw new NotImplementedException();
         }
     }
 }

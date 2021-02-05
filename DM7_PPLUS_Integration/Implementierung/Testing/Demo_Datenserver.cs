@@ -9,7 +9,7 @@ using DM7_PPLUS_Integration.Implementierung.Server;
 
 namespace DM7_PPLUS_Integration.Implementierung.Testing
 {
-    public class Demo_Datenserver : PPLUS_Backend, IDisposable
+    public class Demo_Datenserver : PPLUS_Backend
     {
         private readonly Log _log;
         private readonly Random random = new Random();

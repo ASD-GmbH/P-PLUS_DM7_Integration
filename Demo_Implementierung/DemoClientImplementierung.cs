@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Daten;
+using DM7_PPLUS_Integration.Implementierung.Server;
 
 namespace Demo_Implementierung
 {
@@ -56,8 +58,16 @@ namespace Demo_Implementierung
 
         static void demo_Dienste_abfragen(string url, string credentials, ConsoleLogger log)
         {
+
+            var test = Test_Server.Instanz()
+                .Mit_Diensten(new Dienst(1, Guid.NewGuid(), "Test", "Testdienst", new Datum(01, 01, 2020), null,
+                    Uhrzeit.HHMM(15, 00), new Dienst_Gültigkeit(true, true, true, true, true, true, true, false),
+                    false))
+                .Start("tcp://127.0.0.1", 8000, log, out var publicKey);
+
             // Rückgabe von Connect muss Disposed werden, um alle Verbindungen zu schließen
-            using (var api = PPLUS.Connect(url, credentials, log, CancellationToken.None).Result)
+            //using (var api = PPLUS.Connect(url, credentials, log, CancellationToken.None).Result)
+            using (var api = PPLUS.Connect($"tcp://127.0.0.1:8000|{publicKey}", credentials, log, CancellationToken.None).Result)
             {
                 Console.Out.WriteLine($"- Auswahlliste: {api.Auswahllisten_Version}");
                 var dienste = api.Dienste_abrufen().Result;

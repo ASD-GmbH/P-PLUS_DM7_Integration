@@ -8,6 +8,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         public const int CHANNEL_1_SERVICE = 1;
         public const int CHANNEL_2_DATA = 2;
         public const int CHANNEL_2_DATA_DIENSTE = 3;
+        public const int CHANNEL_2_DATA_MITARBEITER = 4;
+        public const int CHANNEL_2_DATA_MITARBEITERFOTOS = 5;
 
         public const int CONNECTION_RESPONSE_OK = 1;
         public const int CONNECTION_RESPONSE_FAILURE = 2;
