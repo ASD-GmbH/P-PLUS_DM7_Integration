@@ -30,7 +30,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
         {
             var neuerMitarbeiter = new Mitarbeiter(
                 Guid.NewGuid(),
-                new ReadOnlyCollection<DM7_Mandantenzugehörigkeiten>(new List<DM7_Mandantenzugehörigkeiten> { new DM7_Mandantenzugehörigkeiten(1, Zufaelliges_Datum(2014, 2016), null)}),
+                new ReadOnlyCollection<DM7_Mandantenzugehörigkeiten>(new List<DM7_Mandantenzugehörigkeiten> { new DM7_Mandantenzugehörigkeiten(Guid.NewGuid(), Zufaelliges_Datum(2014, 2016), null)}),
                 Personalnummer(),
                 Auswahllisten_0.Titel.Kein,
                 Vorname(),

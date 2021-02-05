@@ -294,9 +294,10 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     {
         internal static byte[] Serialize<T>(Stammdaten<T> daten, Func<T, byte[]> serializer)
         {
-            return Serialize_list(daten, serializer)
+            var res =Serialize_list(daten, serializer)
                 .Concat(BitConverter.GetBytes(daten.Stand.Value))
                 .ToArray();
+            return res;
         }
 
         internal static byte[] Serialize_Mitarbeiter(Mitarbeiter mitarbeiter)
@@ -325,12 +326,12 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             yield return Serialize(mitarbeiter.Nachname);
             yield return Serialize(mitarbeiter.Postanschrift);
             yield return Serialize(mitarbeiter.Handzeichen);
-            yield return Serialize(mitarbeiter.Kontakte);
             yield return Serialize(mitarbeiter.Geburtstag);
             yield return Serialize(mitarbeiter.Geschlecht);
             yield return Serialize(mitarbeiter.Konfession);
             yield return Serialize(mitarbeiter.Familienstand);
             yield return Serialize(mitarbeiter.Qualifikation);
+            yield return Serialize(mitarbeiter.Kontakte);
         }
 
         private static byte[] Serialize(DM7_Mandantenzugehörigkeiten mandantenzugehörigkeiten)
@@ -420,18 +421,16 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         private static byte[] Serialize(ReadOnlyCollection<Qualifikation> qualifikationen)
         {
-            using (var stream = new MemoryStream())
-            {
-                stream.Write(BitConverter.GetBytes(qualifikationen.Count), 0, 4);
+            return Serialize_list(qualifikationen, Serialize);
+        }
 
-                foreach (var quali in qualifikationen)
-                {
-                    stream.Write(BitConverter.GetBytes(quali.Stufe), 0, 4);
-                    stream.WriteStringWithLengthPrefix(quali.Bezeichnung);
-                }
-
-                return stream.ToArray();
-            }
+        private static byte[] Serialize(Qualifikation qualifikation)
+        {
+            return Serialize(qualifikation.Stufe)
+                .Concat(Serialize(qualifikation.Bezeichnung))
+                .Concat(Serialize(qualifikation.GueltigAb))
+                .Concat(Serialize(qualifikation.GueltigBis))
+                .ToArray();
         }
 
         private static byte[] Serialize(Datum? datum) =>

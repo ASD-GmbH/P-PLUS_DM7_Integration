@@ -233,7 +233,13 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
 
         private static ReadOnlyCollection<Qualifikation> Deserialize_Qualifikationen(byte[] data, ref int position)
         {
-            throw new NotImplementedException();
+            var result = new List<Qualifikation>();
+            var anzahl = Deserialize_Int(data, ref position);
+            for (var i = 0; i < anzahl; i++)
+            {
+                result.Add(new Qualifikation(Deserialize_Int(data, ref position), Deserialize_String(data, ref position), Deserialize_Datum(data, ref position), Deserialize_Nullable_Datum(data, ref position)));
+            }
+            return new ReadOnlyCollection<Qualifikation>(result);
         }
 
         private static Datum? Deserialize_Nullable_Datum(byte[] data, ref int position)
@@ -367,7 +373,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
             var res = new ReadOnlyCollection<DM7_Mandantenzugehörigkeiten>(
                 Enumerable.Range(0, anzahl_datensätze)
                     .Select(_ => new DM7_Mandantenzugehörigkeiten(
-                        Deserialize_Int(data, ref tmpPosition),
+                        Deserialize_Guid(data, ref tmpPosition),
                         Deserialize_Datum(data, ref tmpPosition),
                         Deserialize_Nullable_Datum(data, ref tmpPosition)
                     ))

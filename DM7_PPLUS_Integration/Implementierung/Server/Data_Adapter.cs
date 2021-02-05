@@ -86,7 +86,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             position += 16;
 
             var api_version = BitConverter.ToInt32(request, position);
-            position += 8;
+            position += 4;
 
             var mitStand = BitConverter.ToBoolean(request, position);
             position += 1;
@@ -115,7 +115,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             position += 16;
 
             var api_version = BitConverter.ToInt32(request, position);
-            position += 8;
+            position += 4;
 
             var mitStand = BitConverter.ToBoolean(request, position);
             position += 1;
