@@ -316,6 +316,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         }
 
         public List<Dienst> Dienste() => _backend.Dienste_abrufen().ToList();
+        public List<Mitarbeiter> Mitarbeiter() => _backend.Mitarbeiter_abrufen().ToList();
+        public List<Mitarbeiterfoto> Mitarbeiterfotos() => _backend.Mitarbeiterfotos_abrufen().ToList();
 
         public void Dispose()
         {
