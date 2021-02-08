@@ -318,7 +318,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
 
         internal static IEnumerable<byte[]> Serialize(Mitarbeiter mitarbeiter)
         {
-            yield return Serialize(mitarbeiter.PPLUS_Id);
+            yield return Serialize(mitarbeiter.Id);
             yield return Serialize_list(mitarbeiter.DM7_Mandantenzugehörigkeiten, Serialize);
             yield return Serialize(mitarbeiter.Personalnummer);
             yield return Serialize(mitarbeiter.Titel);

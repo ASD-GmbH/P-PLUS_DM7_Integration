@@ -70,7 +70,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
 
         public IEnumerable<string> Alle_Mitarbeiterdatensaetze()
         {
-            return mitarbeiter.Select(_ => _.PPLUS_Id.ToString());
+            return mitarbeiter.Select(_ => _.Id.ToString());
         }
 
 
@@ -110,7 +110,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Testing
         }
 
         public IEnumerable<Mitarbeiter> Mitarbeiterdatensaetze_abrufen(IEnumerable<Guid> pplus_ids) =>
-            mitarbeiter.Where(_ => pplus_ids.Contains(_.PPLUS_Id));
+            mitarbeiter.Where(_ => pplus_ids.Contains(_.Id));
 
         public IEnumerable<Dienst> Dienste_abrufen()
         {

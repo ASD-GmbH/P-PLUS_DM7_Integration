@@ -13,7 +13,7 @@ namespace DM7_PPLUS_Integration.Daten
         {
             Guard_Pflichtfelder(mandantenzugehörigkeiten, nachname, handzeichen, geschlecht);
 
-            PPLUS_Id = mitarbeiterId; 
+            Id = mitarbeiterId; 
             DM7_Mandantenzugehörigkeiten = mandantenzugehörigkeiten; // Mindestens ein Eintrag vorhanden (ohne Typsicherheit)
             Personalnummer = personalnummer;
             Titel = titel;
@@ -43,7 +43,7 @@ namespace DM7_PPLUS_Integration.Daten
         /// <summary>
         /// Primärschlüssel
         /// </summary>
-        public readonly Guid PPLUS_Id;
+        public readonly Guid Id;
 
         /// <summary>
         /// DM7 Mandanten, in P-PLUS repräsentiert als Strukturen auf denen der Mitarbeiter arbeitet.

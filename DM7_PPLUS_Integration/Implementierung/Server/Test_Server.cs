@@ -151,7 +151,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             var neue_Mitarbeiter =
                 _mitarbeiter
                     .Select(_ =>
-                        _.Data.PPLUS_Id == mitarbeiter
+                        _.Data.Id == mitarbeiter
                             ? new Daten_mit_Version<Mitarbeiter>(
                                 Mit_Mandantenzugehörigkeit_bis_zum(austrittsdatum, _.Data), nächste_Version)
                             : _)
@@ -164,7 +164,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
         private static Mitarbeiter Mit_Mandantenzugehörigkeit_bis_zum(Datum austrittsdatum, Mitarbeiter mitarbeiter)
         {
             return new Mitarbeiter(
-                mitarbeiter.PPLUS_Id,
+                mitarbeiter.Id,
                 new ReadOnlyCollection<DM7_Mandantenzugehörigkeiten>(
                     mitarbeiter.DM7_Mandantenzugehörigkeiten
                         .Select(_ => new DM7_Mandantenzugehörigkeiten(_.MandantId, _.GueltigAb, austrittsdatum))

@@ -258,13 +258,13 @@ namespace Demo_Implementierung
 
                 foreach (var datensatz in daten.Mitarbeiter)
                 {
-                    if (!_mitarbeiter_datensaetze.ContainsKey(datensatz.PPLUS_Id))
+                    if (!_mitarbeiter_datensaetze.ContainsKey(datensatz.Id))
                     {
-                        _mitarbeiter_datensaetze.Add(datensatz.PPLUS_Id, datensatz);
+                        _mitarbeiter_datensaetze.Add(datensatz.Id, datensatz);
                     }
                     else
                     {
-                        _mitarbeiter_datensaetze[datensatz.PPLUS_Id] = datensatz;
+                        _mitarbeiter_datensaetze[datensatz.Id] = datensatz;
                     }
                 }
 
@@ -275,7 +275,7 @@ namespace Demo_Implementierung
             Console.Out.WriteLine($"- {(daten.Teilmenge ? "Neu oder geändert" : "Vollständige Liste")} in Stand {daten.Stand}:");
             foreach (var mitarbeiter in daten.Mitarbeiter)
             {
-                Console.Out.WriteLine($"- Mitarbeiter {mitarbeiter.Personalnummer}: {mitarbeiter.Vorname}, {mitarbeiter.Nachname}. Mandant ({mitarbeiter.PPLUS_Id})");
+                Console.Out.WriteLine($"- Mitarbeiter {mitarbeiter.Personalnummer}: {mitarbeiter.Vorname}, {mitarbeiter.Nachname}. Mandant ({mitarbeiter.Id})");
             }
         }
     }

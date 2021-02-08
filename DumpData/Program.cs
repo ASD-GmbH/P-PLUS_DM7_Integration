@@ -171,13 +171,13 @@ namespace DumpData
 
                 foreach (var datensatz in daten.Mitarbeiter)
                 {
-                    if (!_mitarbeiter_datensaetze.ContainsKey(datensatz.PPLUS_Id.ToString()))
+                    if (!_mitarbeiter_datensaetze.ContainsKey(datensatz.Id.ToString()))
                     {
-                        _mitarbeiter_datensaetze.Add(datensatz.PPLUS_Id.ToString(), datensatz);
+                        _mitarbeiter_datensaetze.Add(datensatz.Id.ToString(), datensatz);
                     }
                     else
                     {
-                        _mitarbeiter_datensaetze[datensatz.PPLUS_Id.ToString()] = datensatz;
+                        _mitarbeiter_datensaetze[datensatz.Id.ToString()] = datensatz;
                     }
                 }
 
