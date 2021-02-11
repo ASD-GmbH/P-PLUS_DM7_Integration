@@ -11,7 +11,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
     /// <summary>
     /// Implementiert die API version 1 und übersetzt die Anfragen in API-Version-unabhängige Nachrichten
     /// </summary>
-    internal class API_Version_1_Proxy : DisposeGroupMember, DM7_PPLUS_API
+    internal class API_Version_1_Proxy : DisposeGroupMember, Legacy_DM7_PPLUS_API
     {
         private const int API_VERSION = 1;
 

@@ -5,7 +5,7 @@ using DM7_PPLUS_Integration.Implementierung.Protokoll;
 
 namespace DM7_PPLUS_Integration.Implementierung.Testing
 {
-    internal class Version_1_upgrade_Test_Proxy : DM7_PPLUS_API
+    internal class Version_1_upgrade_Test_Proxy : Legacy_DM7_PPLUS_API
     {
         public Version_1_upgrade_Test_Proxy(Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung resultItem1)
         {

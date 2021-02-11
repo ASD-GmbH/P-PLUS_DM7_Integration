@@ -11,7 +11,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     /// <summary>
     /// Stellt die Version 2 der API zur Verfügung und erfüllt Anfragen nach Daten und Notifications
     /// </summary>
-    internal sealed class API_Version_3_Adapter : DisposeGroupMember, DM7_PPLUS_API
+    internal sealed class API_Version_3_Adapter : DisposeGroupMember, Legacy_DM7_PPLUS_API
     {
         private readonly PPLUS_Backend _backend;
         private readonly Guid _session;

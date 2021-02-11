@@ -14,7 +14,7 @@ namespace DM7_PPLUS_Integration
         /// <param name="log">Adapter für Statusmeldungen der DM7_PPLUS_Integrationsschnittstelle</param>
         /// <param name="cancellationToken_Verbindung">Token zum kontrollierten Abbruch während des Verbindens mit dem Server</param>
         /// <returns>Instanz der DM7_PPLUS_Integrationsschnittstelle</returns>
-        public static Task<DM7_PPLUS_API> Connect(string network_address, string credentials, Log log, CancellationToken cancellationToken_Verbindung)
+        public static Task<Legacy_DM7_PPLUS_API> Connect(string network_address, string credentials, Log log, CancellationToken cancellationToken_Verbindung)
         {
             return Connector.Instance_API_Version_3(network_address, credentials, log, cancellationToken_Verbindung);
         }

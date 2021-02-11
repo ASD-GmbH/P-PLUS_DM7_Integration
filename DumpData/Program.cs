@@ -80,7 +80,7 @@ namespace DumpData
             Thread.Sleep(2000);
         }
 
-        private static DM7_PPLUS_API Connect_mit_Abbruchmoeglichkeit(string url, string credentials, Log log)
+        private static Legacy_DM7_PPLUS_API Connect_mit_Abbruchmoeglichkeit(string url, string credentials, Log log)
         {
             Console.TreatControlCAsInput = true;
             var cancellationTokenSource = new CancellationTokenSource();
@@ -88,7 +88,7 @@ namespace DumpData
 
             try
             {
-                DM7_PPLUS_API result = null;
+                Legacy_DM7_PPLUS_API result = null;
 
                 var task = PPLUS.Connect(url, credentials, log, cancellationToken_Verbindung);
 
@@ -126,13 +126,13 @@ namespace DumpData
             }
         }
 
-        private static void Neuen_Stand_vermerken(DM7_PPLUS_API api, Stand neuer_stand)
+        private static void Neuen_Stand_vermerken(Legacy_DM7_PPLUS_API api, Stand neuer_stand)
         {
             lock (_lock) _verfuegbarer_Stand = neuer_stand;
             Neue_Daten_abrufen_falls_erforderlich_und_moeglich(api);
         }
 
-        private static void Neue_Daten_abrufen_falls_erforderlich_und_moeglich(DM7_PPLUS_API api)
+        private static void Neue_Daten_abrufen_falls_erforderlich_und_moeglich(Legacy_DM7_PPLUS_API api)
         {
             Action query = null;
 
@@ -153,7 +153,7 @@ namespace DumpData
             if (query != null) query();
         }
 
-        private static void Aktualisierung_anfordern(DM7_PPLUS_API api, Stand von, Stand bis)
+        private static void Aktualisierung_anfordern(Legacy_DM7_PPLUS_API api, Stand von, Stand bis)
         {
             api.Mitarbeiterdaten_abrufen(von, bis)
                 .ContinueWith(task =>

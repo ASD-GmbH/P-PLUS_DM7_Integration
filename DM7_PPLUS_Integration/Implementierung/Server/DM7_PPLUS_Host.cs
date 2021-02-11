@@ -11,8 +11,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     public class DM7_PPLUS_Host : IDisposable
     {
         public Version_0_Test_API Schicht_1_API_Version_0 { get; }
-        public DM7_PPLUS_API Schicht_1_API_Version_1 { get; }
-        public DM7_PPLUS_API Schicht_1_API_Version_3 { get; }
+        public Legacy_DM7_PPLUS_API Schicht_1_API_Version_1 { get; }
+        public Legacy_DM7_PPLUS_API Schicht_1_API_Version_3 { get; }
 
         public Schicht_2_Protokoll__Verbindungsaufbau Schicht_2_Service { get; }
         public Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung Schicht_2_Data { get; }

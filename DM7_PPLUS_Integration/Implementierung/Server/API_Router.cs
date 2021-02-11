@@ -19,8 +19,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
     /// </summary>
     internal class API_Router : DisposeGroupMember, Schicht_2_Protokoll__Verbindungsaufbau, Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung
     {
-        private readonly DM7_PPLUS_API _backendVersion1;
-        private readonly DM7_PPLUS_API _backendVersion3;
+        private readonly Legacy_DM7_PPLUS_API _backendVersion1;
+        private readonly Legacy_DM7_PPLUS_API _backendVersion3;
         private readonly HashSet<int> _apiVersion = new HashSet<int>();
         private readonly int _auswahllistenversion;
         private readonly PPLUS_Authentifizierung _authentifizierung;
@@ -35,8 +35,8 @@ namespace DM7_PPLUS_Integration.Implementierung.Server
             int auswahllisten_version,
             PPLUS_Authentifizierung authentifizierung,
             Version_0_Test_API backend_version_0,
-            DM7_PPLUS_API backend_version_1,
-            DM7_PPLUS_API backend_version_3,
+            Legacy_DM7_PPLUS_API backend_version_1,
+            Legacy_DM7_PPLUS_API backend_version_3,
             DisposeGroup disposegroup) : base(disposegroup)
         {
             _log = log;

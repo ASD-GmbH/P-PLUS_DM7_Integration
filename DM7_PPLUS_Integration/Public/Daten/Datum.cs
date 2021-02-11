@@ -1,6 +1,6 @@
 ﻿namespace DM7_PPLUS_Integration.Daten
 {
-    public struct Datum
+    public readonly struct Datum
     {
         public Datum(int tag, int monat, int jahr)
         {

@@ -23,7 +23,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                     .ContinueWith(task => (Version_0_Test_API)new Version_0_Test_Proxy(task.Result.Item1), cancellationToken_Verbindung);
         }
 
-        public static Task<DM7_PPLUS_API> Instance_API_Version_1(string networkAddress, string credentials, Log log, CancellationToken cancellationToken_Verbindung, Schicht_2_Proxy_Factory factory = null)
+        public static Task<Legacy_DM7_PPLUS_API> Instance_API_Version_1(string networkAddress, string credentials, Log log, CancellationToken cancellationToken_Verbindung, Schicht_2_Proxy_Factory factory = null)
         {
 
             var client_min_api_version_request = networkAddress == "test://0" ? 0 : 1;
@@ -35,7 +35,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 Verbindungsaufbau(networkAddress, credentials, client_min_api_version_request, client_max_api_version_request, factory, log, disposegroup, cancellationToken_Verbindung)
                     .ContinueWith(task =>
                     {
-                        DM7_PPLUS_API api = null;
+                        Legacy_DM7_PPLUS_API api = null;
                         if (task.Result.Item2 == 0) api = new Version_1_upgrade_Test_Proxy(task.Result.Item1);
                         if (task.Result.Item2 == 1) api = new API_Version_1_Proxy(credentials, task.Result.Item1, task.Result.Item3, log, disposegroup);
                         if (api == null) throw new UnsupportedVersionException($"Vereinbartes API Version entspricht nicht den Rahmenbedingungen: {task.Result.Item2}");
@@ -44,7 +44,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
         }
 
 
-        public static Task<DM7_PPLUS_API> Instance_API_Version_3(string networkAddress, string credentials, Log log, CancellationToken cancellationToken_Verbindung, Schicht_2_Proxy_Factory factory = null)
+        public static Task<Legacy_DM7_PPLUS_API> Instance_API_Version_3(string networkAddress, string credentials, Log log, CancellationToken cancellationToken_Verbindung, Schicht_2_Proxy_Factory factory = null)
         {
 
             var client_min_api_version_request = networkAddress == "test://0" ? 0 : 1;
@@ -56,7 +56,7 @@ namespace DM7_PPLUS_Integration.Implementierung.Client
                 Verbindungsaufbau(networkAddress, credentials, client_min_api_version_request, client_max_api_version_request, factory, log, disposegroup, cancellationToken_Verbindung)
                     .ContinueWith(task =>
                     {
-                        DM7_PPLUS_API api = null;
+                        Legacy_DM7_PPLUS_API api = null;
                         if (task.Result.Item2 == 0) api = new Version_1_upgrade_Test_Proxy(task.Result.Item1);
                         if (task.Result.Item2 == 1) api = new API_Version_1_Proxy(credentials, task.Result.Item1, task.Result.Item3, log, disposegroup);
                         if (task.Result.Item2 == 3) api = new API_Version_3_Proxy(credentials, task.Result.Item1, task.Result.Item3, log, disposegroup);
