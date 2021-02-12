@@ -1,11 +1,96 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 11.02.2021 15:11 //
+// Generated code by BareNET - 12.02.2021 11:20 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
 using System.Collections.Generic;
 namespace Bare.Msg
 {
+	public readonly struct Authentication_Request
+	{
+		public readonly string User;
+		public readonly string Password;
+	
+		public Authentication_Request(string user, string password)
+		{
+			User = user;
+			Password = password;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_string(User)
+				.Concat(BareNET.Bare.Encode_string(Password))
+				.ToArray();
+		}
+	
+		public static Authentication_Request Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Authentication_Request, byte[]> Decode(byte[] data)
+		{
+			var user = BareNET.Bare.Decode_string(data);
+			var password = BareNET.Bare.Decode_string(user.Item2);
+			return new ValueTuple<Authentication_Request, byte[]>(
+				new Authentication_Request(user.Item1, password.Item1),
+				password.Item2);
+		}
+	}
+
+	public readonly struct Authentication_Result
+	{
+		public readonly int? Token;
+	
+		public Authentication_Result(int? token)
+		{
+			Token = token;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_optional<int>(Token, TokenOpt => BareNET.Bare.Encode_i32(TokenOpt));
+		}
+	
+		public static Authentication_Result Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Authentication_Result, byte[]> Decode(byte[] data)
+		{
+			var token = BareNET.Bare.Decode_optional(data, dataOpt => BareNET.Bare.Decode_i32(dataOpt));
+			return new ValueTuple<Authentication_Result, byte[]>(
+				new Authentication_Result(token.Item1),
+				token.Item2);
+		}
+	}
+
+	public readonly struct Query_Message
+	{
+		public readonly int Token;
+		public readonly Query Query;
+	
+		public Query_Message(int token, Query query)
+		{
+			Token = token;
+			Query = query;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_i32(Token)
+				.Concat(Encoding.Query_Encoded(Query))
+				.ToArray();
+		}
+	
+		public static Query_Message Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Query_Message, byte[]> Decode(byte[] data)
+		{
+			var token = BareNET.Bare.Decode_i32(data);
+			var query = Encoding.Decode_Query(token.Item2);
+			return new ValueTuple<Query_Message, byte[]>(
+				new Query_Message(token.Item1, query.Item1),
+				query.Item2);
+		}
+	}
+
 	public interface Query { /* Base type of union */ }
 
 	public readonly struct Mitarbeiter_abrufen_V1 : Query

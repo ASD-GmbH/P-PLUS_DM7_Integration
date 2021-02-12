@@ -21,6 +21,8 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
         //private readonly List<Dienst> _dienste = new List<Dienst>();
         private readonly List<Mitarbeiter> _mitarbeiter = new List<Mitarbeiter>();
         private readonly List<Mitarbeiterfoto> _mitarbeiterfotos = new List<Mitarbeiterfoto>();
+        private string _user = "anonymous";
+        private string _password = "password";
 
         private Test_Server() { }
 
@@ -45,12 +47,19 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
             return this;
         }
 
-        public Test_Host Start(string adresse, int port, Log log, out string publickey)
+        public Test_Server Mit_Authentification(string user, string password)
         {
-            var backend = new Test_Backend(_mitarbeiter, _mitarbeiterfotos);
+            _user = user;
+            _password = password;
+            return this;
+        }
+
+        public Test_Host Start(string adresse, int port, out string publickey)
+        {
+            var backend = new Test_PPLUS_Handler(_user, _password, _mitarbeiter, _mitarbeiterfotos);
             var privatekey = CryptoService.GenerateRSAKeyPair();
             publickey = CryptoService.GetPublicKey(privatekey);
-            return new Test_Host(backend, adresse, port, privatekey, log);
+            return new Test_Host(backend, adresse, port, privatekey);
         }
     }
 
@@ -66,15 +75,20 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
         }
     }
 
-    internal class Test_Backend : Backend
+    internal class Test_PPLUS_Handler : PPLUS_Handler
     {
+        private readonly string _user;
+        private readonly string _password;
+        private Token? _token;
         private readonly List<Daten_mit_Version<Mitarbeiter>> _mitarbeiter;
 
         private readonly List<Daten_mit_Version<Mitarbeiterfoto>> _mitarbeiterfotos;
         //private readonly List<Daten_mit_Version<Dienst>> _dienste;
 
-        public Test_Backend(IEnumerable<Mitarbeiter> mitarbeiter, IEnumerable<Mitarbeiterfoto> fotos)
+        public Test_PPLUS_Handler(string user, string password, IEnumerable<Mitarbeiter> mitarbeiter, IEnumerable<Mitarbeiterfoto> fotos)
         {
+            _user = user;
+            _password = password;
             _mitarbeiter = mitarbeiter.Select(_ => new Daten_mit_Version<Mitarbeiter>(_, 1)).ToList();
             _mitarbeiterfotos = fotos.Select(_ => new Daten_mit_Version<Mitarbeiterfoto>(_, 1)).ToList();
             //_dienste = dienste.Select(_ => new Daten_mit_Version<Dienst>(_, 1)).ToList();
@@ -260,17 +274,38 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
         private static ulong Nächste_Version<T>(List<Daten_mit_Version<T>> daten) =>
             daten.Any() ? daten.Max(_ => _.Version) + 1 : 1;
 
-        public Task<Response> HandleQuery(Query query)
+        public void Revoke_Token()
+        {
+            _token = null;
+        }
+
+        public Task<Token?> Authenticate(string user, string password)
+        {
+            return Task.Run(() =>
+            {
+                if (user != _user || _password != password) return null;
+                
+                _token = new Token(69);
+                return _token;
+            });
+        }
+
+        public Task<Response> HandleQuery(Query_Message message)
         {
             return Task.Run<Response>(() =>
             {
-                switch (query)
+                if (_token.HasValue == false || _token.Value.Value != message.Token)
+                {
+                    return new Query_Failed("Unberechtigter Zugriff");
+                }
+
+                switch (message.Query)
                 {
                     case Mitarbeiter_abrufen_V1 _:
                         return Message_mapper.Mitarbeiterstammdaten_als_Message(Mitarbeiter_abrufen());
 
                     default:
-                        return new Query_Failed($"Query '{query}' nicht behandelt");
+                        return new Query_Failed($"Query '{message.Query.GetType()}' nicht behandelt");
                 }
             });
         }
@@ -279,48 +314,53 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
     public class Test_Host : IDisposable
     {
         private readonly Adapter _host;
-        private readonly Test_Backend _backend;
+        private readonly Test_PPLUS_Handler _pplusHandler;
         private readonly string _adresse;
         private readonly int _port;
 
-        internal Test_Host(Test_Backend backend, string adresse, int port, string privatekey, Log log)
+        internal Test_Host(Test_PPLUS_Handler pplusHandler, string adresse, int port, string privatekey)
         {
-            _backend = backend;
+            _pplusHandler = pplusHandler;
             _adresse = adresse;
             _port = port;
-            _host = new Adapter(adresse, port, _backend);
+            _host = new Adapter(adresse, port, _pplusHandler);
         }
 
         public string ConnectionString => $"tcp://{_adresse}:{_port}";
 
+        public void Revoke_Token()
+        {
+            _pplusHandler.Revoke_Token();
+        }
+
         public void Mitarbeiter_setzen(params Mitarbeiter[] mitarbeiter)
         {
-            _backend.Mitarbeiter_setzen(mitarbeiter);
+            _pplusHandler.Mitarbeiter_setzen(mitarbeiter);
         }
 
         public void Mitarbeiter_hinzufügen(params Mitarbeiter[] mitarbeiter)
         {
-            _backend.Mitarbeiter_hinzufügen(mitarbeiter);
+            _pplusHandler.Mitarbeiter_hinzufügen(mitarbeiter);
         }
 
         public void Mitarbeiter_austreten_zum(Datum austrittsdatum, Guid mitarbeiter)
         {
-            _backend.Mitarbeiter_austreten_zum(austrittsdatum, mitarbeiter);
+            _pplusHandler.Mitarbeiter_austreten_zum(austrittsdatum, mitarbeiter);
         }
 
         public void Mitarbeiterfotos_setzen(params Mitarbeiterfoto[] mitarbeiterfotos)
         {
-            _backend.Mitarbeiterfotos_setzen(mitarbeiterfotos);
+            _pplusHandler.Mitarbeiterfotos_setzen(mitarbeiterfotos);
         }
 
         public void Mitarbeiterfotos_hinzufügen(params Mitarbeiterfoto[] mitarbeiterfotos)
         {
-            _backend.Mitarbeiterfotos_hinzufügen(mitarbeiterfotos);
+            _pplusHandler.Mitarbeiterfotos_hinzufügen(mitarbeiterfotos);
         }
 
         public void Mitarbeiterfoto_löschen(Guid mitarbeiter)
         {
-            _backend.Mitarbeiterfoto_löschen(mitarbeiter);
+            _pplusHandler.Mitarbeiterfoto_löschen(mitarbeiter);
         }
 
         //public void Dienst_löschen(int dienstId)
@@ -339,8 +379,8 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
         //}
 
         //public List<Dienst> Dienste() => _backend.Dienste_abrufen().ToList();
-        public List<Mitarbeiter> Mitarbeiter() => _backend.Mitarbeiter_abrufen().ToList();
-        public List<Mitarbeiterfoto> Mitarbeiterfotos() => _backend.Mitarbeiterfotos_abrufen().ToList();
+        public List<Mitarbeiter> Mitarbeiter() => _pplusHandler.Mitarbeiter_abrufen().ToList();
+        public List<Mitarbeiterfoto> Mitarbeiterfotos() => _pplusHandler.Mitarbeiterfotos_abrufen().ToList();
 
         public void Dispose()
         {

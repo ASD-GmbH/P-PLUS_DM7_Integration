@@ -95,13 +95,14 @@
     <Compile Include="Implementierung\Testing\TestBackend_Version_0.cs" />
     <Compile Include="Implementierung\Testing\TestConnector.cs" />
     <Compile Include="Implementierung\V2\Adapter.cs" />
-    <Compile Include="Implementierung\V2\Demo_Backend.cs" />
+    <Compile Include="Implementierung\V2\Demo_PPLUS_Handler.cs" />
     <Compile Include="Implementierung\V2\Messages.cs" />
     <Compile Include="Implementierung\V2\Message_mapper.cs" />
     <Compile Include="Implementierung\V2\PPLUS.cs" />
-    <Compile Include="Implementierung\V2\Backend.cs" />
+    <Compile Include="Implementierung\V2\PPLUS_Handler.cs" />
     <Compile Include="Implementierung\V2\Port.cs" />
     <Compile Include="Implementierung\V2\Test_Server.cs" />
+    <Compile Include="Implementierung\V2\Token.cs" />
     <Compile Include="Public\Datenstand.cs" />
     <Compile Include="Public\Daten\Mitarbeiter.cs" />
     <Compile Include="Public\Daten\DM7_Mandantenzugehörigkeit.cs" />

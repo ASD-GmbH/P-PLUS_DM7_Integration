@@ -1,4 +1,16 @@
-﻿type Query (Mitarbeiter_abrufen_V1 | Mitarbeiter_abrufen_ab_V1)
+﻿type Authentication_Request {
+	user: string
+	password: string
+}
+
+type Authentication_Result { token: optional<i32> }
+
+type Query_Message {
+	token: i32
+	query: Query
+}
+
+type Query (Mitarbeiter_abrufen_V1 | Mitarbeiter_abrufen_ab_V1)
 
 type Mitarbeiter_abrufen_V1 void
 type Mitarbeiter_abrufen_ab_V1 Datenstand

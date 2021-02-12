@@ -10,7 +10,7 @@ using Datum = DM7_PPLUS_Integration.Daten.Datum;
 
 namespace DM7_PPLUS_Integration.Implementierung.V2
 {
-    public class Demo_Backend : Backend
+    public class Demo_PPLUS_Handler : PPLUS_Handler
     {
         private readonly Random random = new Random();
 
@@ -47,11 +47,11 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
             return namen[random.Next(0, namen.Length)];
         }
 
-        public Task<Response> HandleQuery(Query query)
+        public Task<Response> HandleQuery(Query_Message message)
         {
             return Task.Run<Response>(() =>
             {
-                switch (query)
+                switch (message.Query)
                 {
                     case Mitarbeiter_abrufen_V1 _:
                     {
@@ -68,8 +68,13 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
                     }
                 }
 
-                return new Query_Failed($"{query} wurde nicht behandelt");
+                return new Query_Failed($"'{message.Query.GetType()}' wurde nicht behandelt");
             });
+        }
+
+        public Task<Token?> Authenticate(string user, string password)
+        {
+            return Task.FromResult<Token?>(Token.Demo());
         }
     }
 }

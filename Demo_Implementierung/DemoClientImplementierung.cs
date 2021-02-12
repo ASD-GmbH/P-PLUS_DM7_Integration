@@ -26,17 +26,24 @@ namespace Demo_Implementierung
                 Helmig()
             };
 
-            var testServer = Test_Server.Instanz()
-                .Mit_Mitarbeitern(test_Mitarbeiter)
-                .Start("127.0.0.1", 2000, new ConsoleLogger(), out _);
+            var logger = new ConsoleLogger();
 
-            using (var api = DM7_PPLUS_Integration.Implementierung.V2.PPLUS.Connect(testServer.ConnectionString).Result)
+            var testServer = Test_Server.Instanz()
+                .Mit_Authentification("user", "password")
+                .Mit_Mitarbeitern(test_Mitarbeiter)
+                .Start("127.0.0.1", 2000, out _);
+
+            using (var api = DM7_PPLUS_Integration.Implementierung.V2.PPLUS.Connect(testServer.ConnectionString, "user", "password", logger).Result)
             {
                 Console.WriteLine("### Initiale Mitarbeiter");
                 Mitarbeiter_anzeigen(api);
 
                 testServer.Mitarbeiter_hinzufügen(Willenborg());
                 Console.WriteLine("\n### Mitarbeiter nach Hinzufügen");
+                Mitarbeiter_anzeigen(api);
+
+                testServer.Revoke_Token();
+                Console.WriteLine("\n### Token revoked");
                 Mitarbeiter_anzeigen(api);
             }
 
