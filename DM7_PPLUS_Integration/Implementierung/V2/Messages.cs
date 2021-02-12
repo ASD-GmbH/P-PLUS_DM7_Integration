@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 12.02.2021 11:20 //
+// Generated code by BareNET - 12.02.2021 16:19 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
@@ -125,6 +125,38 @@ namespace Bare.Msg
 		}
 	}
 
+	public readonly struct Mitarbeiterfotos_abrufen_V1 : Query
+	{
+		public byte[] Encoded() { return new byte[0]; }
+		public static Mitarbeiterfotos_abrufen_V1 Decoded(byte[] data) { return new Mitarbeiterfotos_abrufen_V1(); }
+		public static ValueTuple<Mitarbeiterfotos_abrufen_V1, byte[]> Decode(byte[] data) { return new ValueTuple<Mitarbeiterfotos_abrufen_V1, byte[]>(new Mitarbeiterfotos_abrufen_V1(), data); }
+	}
+
+	public readonly struct Mitarbeiterfotos_abrufen_ab_V1 : Query
+	{
+		public readonly Datenstand Value;
+	
+		public Mitarbeiterfotos_abrufen_ab_V1(Datenstand value)
+		{
+			Value = value;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Value.Encoded();
+		}
+	
+		public static Mitarbeiterfotos_abrufen_ab_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Mitarbeiterfotos_abrufen_ab_V1, byte[]> Decode(byte[] data)
+		{
+			var value = Datenstand.Decode(data);
+			return new ValueTuple<Mitarbeiterfotos_abrufen_ab_V1, byte[]>(
+				new Mitarbeiterfotos_abrufen_ab_V1(value.Item1),
+				value.Item2);
+		}
+	}
+
 	public interface Response { /* Base type of union */ }
 
 	public readonly struct Query_Failed : Response
@@ -178,6 +210,36 @@ namespace Bare.Msg
 			var stand = Datenstand.Decode(mitarbeiter.Item2);
 			return new ValueTuple<Mitarbeiterliste_V1, byte[]>(
 				new Mitarbeiterliste_V1(mitarbeiter.Item1.ToArray(), stand.Item1),
+				stand.Item2);
+		}
+	}
+
+	public readonly struct Mitarbeiterfotos_V1 : Response
+	{
+		public readonly Mitarbeiterfoto_V1[] Fotos;
+		public readonly Datenstand Stand;
+	
+		public Mitarbeiterfotos_V1(Mitarbeiterfoto_V1[] fotos, Datenstand stand)
+		{
+			Fotos = fotos;
+			Stand = stand;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_list(Fotos, FotosList => FotosList.Encoded())
+				.Concat(Stand.Encoded())
+				.ToArray();
+		}
+	
+		public static Mitarbeiterfotos_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Mitarbeiterfotos_V1, byte[]> Decode(byte[] data)
+		{
+			var fotos = BareNET.Bare.Decode_list(data, dataList => Mitarbeiterfoto_V1.Decode(dataList));
+			var stand = Datenstand.Decode(fotos.Item2);
+			return new ValueTuple<Mitarbeiterfotos_V1, byte[]>(
+				new Mitarbeiterfotos_V1(fotos.Item1.ToArray(), stand.Item1),
 				stand.Item2);
 		}
 	}
@@ -404,6 +466,36 @@ namespace Bare.Msg
 		}
 	}
 
+	public readonly struct Mitarbeiterfoto_V1
+	{
+		public readonly UUID Mitarbeiter;
+		public readonly byte[] Foto;
+	
+		public Mitarbeiterfoto_V1(UUID mitarbeiter, byte[] foto)
+		{
+			Mitarbeiter = mitarbeiter;
+			Foto = foto;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Mitarbeiter.Encoded()
+				.Concat(BareNET.Bare.Encode_data(Foto))
+				.ToArray();
+		}
+	
+		public static Mitarbeiterfoto_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Mitarbeiterfoto_V1, byte[]> Decode(byte[] data)
+		{
+			var mitarbeiter = UUID.Decode(data);
+			var foto = BareNET.Bare.Decode_data(mitarbeiter.Item2);
+			return new ValueTuple<Mitarbeiterfoto_V1, byte[]>(
+				new Mitarbeiterfoto_V1(mitarbeiter.Item1, foto.Item1),
+				foto.Item2);
+		}
+	}
+
 	public readonly struct UUID
 	{
 		public readonly byte[] Value;
@@ -494,7 +586,9 @@ namespace Bare.Msg
 		private static readonly BareNET.Union<Query> _Query =
 			BareNET.Union<Query>.Register()
 				.With_Case<Mitarbeiter_abrufen_V1>(v => ((Mitarbeiter_abrufen_V1) v).Encoded(), d => { var decoded = Mitarbeiter_abrufen_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
-				.With_Case<Mitarbeiter_abrufen_ab_V1>(v => ((Mitarbeiter_abrufen_ab_V1) v).Encoded(), d => { var decoded = Mitarbeiter_abrufen_ab_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); });
+				.With_Case<Mitarbeiter_abrufen_ab_V1>(v => ((Mitarbeiter_abrufen_ab_V1) v).Encoded(), d => { var decoded = Mitarbeiter_abrufen_ab_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Mitarbeiterfotos_abrufen_V1>(v => ((Mitarbeiterfotos_abrufen_V1) v).Encoded(), d => { var decoded = Mitarbeiterfotos_abrufen_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Mitarbeiterfotos_abrufen_ab_V1>(v => ((Mitarbeiterfotos_abrufen_ab_V1) v).Encoded(), d => { var decoded = Mitarbeiterfotos_abrufen_ab_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); });
 		
 		public static byte[] Query_Encoded(Query value)
 		{
@@ -515,6 +609,7 @@ namespace Bare.Msg
 		private static readonly BareNET.Union<Response> _Response =
 			BareNET.Union<Response>.Register()
 				.With_Case<Mitarbeiterliste_V1>(v => ((Mitarbeiterliste_V1) v).Encoded(), d => { var decoded = Mitarbeiterliste_V1.Decode(d); return new ValueTuple<Response, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Mitarbeiterfotos_V1>(v => ((Mitarbeiterfotos_V1) v).Encoded(), d => { var decoded = Mitarbeiterfotos_V1.Decode(d); return new ValueTuple<Response, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<Query_Failed>(v => ((Query_Failed) v).Encoded(), d => { var decoded = Query_Failed.Decode(d); return new ValueTuple<Response, byte[]>(decoded.Item1, decoded.Item2); });
 		
 		public static byte[] Response_Encoded(Response value)

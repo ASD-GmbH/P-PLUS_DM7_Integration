@@ -42,7 +42,7 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
                         return new PPLUS(authenticated.Handler, authenticated.Token);
 
                     case Not_Authenticated _:
-                        throw new AuthenticationException("Nicht authorisiert");
+                        throw new AuthenticationException("Nicht authentifiziert");
 
                     default:
                         throw new ArgumentOutOfRangeException();
@@ -69,7 +69,8 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
             _token = token;
         }
 
-        public int Auswahllisten_Version { get; }
+        public int Auswahllisten_Version => 1;
+
         public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen()
         {
             return Task.Run(() =>
@@ -85,6 +86,24 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
             {
                 var response = Handle_Query(new Mitarbeiter_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand))).Result;
                 return Handle_Response_Query_Result<Mitarbeiterliste_V1, Stammdaten<Mitarbeiter>>(response, Message_mapper.Mitarbeiterlist_als_Stammdaten);
+            });
+        }
+
+        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen()
+        {
+            return Task.Run(() =>
+            {
+                var response = Handle_Query(new Mitarbeiterfotos_abrufen_V1()).Result;
+                return Handle_Response_Query_Result<Mitarbeiterfotos_V1, Stammdaten<Mitarbeiterfoto>>(response, Message_mapper.Mitarbeiterfotos_als_Stammdaten);
+            });
+        }
+
+        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen_ab(Datenstand stand)
+        {
+            return Task.Run(() =>
+            {
+                var response = Handle_Query(new Mitarbeiterfotos_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand))).Result;
+                return Handle_Response_Query_Result<Mitarbeiterfotos_V1, Stammdaten<Mitarbeiterfoto>>(response, Message_mapper.Mitarbeiterfotos_als_Stammdaten);
             });
         }
 

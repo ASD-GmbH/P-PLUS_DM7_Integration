@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Auswahllisten;
 using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung.V2;
+using PPLUS = DM7_PPLUS_Integration.Implementierung.V2.PPLUS;
 
 namespace Demo_Implementierung
 {
@@ -31,23 +31,39 @@ namespace Demo_Implementierung
             var testServer = Test_Server.Instanz()
                 .Mit_Authentification("user", "password")
                 .Mit_Mitarbeitern(test_Mitarbeiter)
+                .Mit_Mitarbeiterfotos(Leeres_Foto_für(Heimeshoff().Id), Leeres_Foto_für(Helmig().Id))
                 .Start("127.0.0.1", 2000, out _);
 
-            using (var api = DM7_PPLUS_Integration.Implementierung.V2.PPLUS.Connect(testServer.ConnectionString, "user", "password", logger).Result)
+            using (var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", logger).Result)
             {
+                Console.WriteLine($"Daten arbeiten mit Auswahllisten Version {api.Auswahllisten_Version}");
+
                 Console.WriteLine("### Initiale Mitarbeiter");
-                Mitarbeiter_anzeigen(api);
+                var mitarbeiter = api.Mitarbeiter_abrufen().Result;
+                Mitarbeiter_anzeigen(mitarbeiter);
 
                 testServer.Mitarbeiter_hinzufügen(Willenborg());
                 Console.WriteLine("\n### Mitarbeiter nach Hinzufügen");
                 Mitarbeiter_anzeigen(api);
 
+                Console.WriteLine("\n### Nur Mitarbeiter seit neuen Stand");
+                Mitarbeiter_anzeigen(api.Mitarbeiter_abrufen_ab(mitarbeiter.Stand).Result);
+
+                Console.WriteLine("\n### Mitarbeiterfotos");
+                var fotos = api.Mitarbeiterfotos_abrufen().Result;
+                Mitarbeiter_mit_Fotos_anzeigen(fotos, api);
+
+                testServer.Mitarbeiterfotos_hinzufügen(Leeres_Foto_für(Willenborg().Id));
+                Console.WriteLine("\n### Neue Mitarbeiterfotos");
+                Mitarbeiter_mit_Fotos_anzeigen(api.Mitarbeiterfotos_abrufen_ab(fotos.Stand).Result, api);
+
                 testServer.Revoke_Token();
                 Console.WriteLine("\n### Token revoked");
-                Mitarbeiter_anzeigen(api);
+                try { Mitarbeiter_anzeigen(api); }
+                catch (Exception e) { Console.WriteLine(e.Message); }
             }
 
-            Thread.Sleep(2000);
+            Console.WriteLine("Beliebige Taste drücken zum Beenden...");
             Console.ReadKey();
             testServer.Dispose();
         }
@@ -55,6 +71,20 @@ namespace Demo_Implementierung
         private static void Mitarbeiter_anzeigen(DM7_PPLUS_API api)
         {
             var alle_Mitarbeiter = api.Mitarbeiter_abrufen().Result;
+            Mitarbeiter_anzeigen(alle_Mitarbeiter);
+        }
+
+        private static void Mitarbeiter_mit_Fotos_anzeigen(IEnumerable<Mitarbeiterfoto> fotos, DM7_PPLUS_API api)
+        {
+            var mitarbeiterbezeichnungen = api.Mitarbeiter_abrufen().Result.ToDictionary(_ => _.Id, _ => $"{_.Nachname}, {_.Vorname}");
+            foreach (var foto in fotos)
+            {
+                Console.WriteLine($" - Bild für {mitarbeiterbezeichnungen[foto.Mitarbeiter]}");
+            }
+        }
+
+        private static void Mitarbeiter_anzeigen(IEnumerable<Mitarbeiter> alle_Mitarbeiter)
+        {
             foreach (var mitarbeiter in alle_Mitarbeiter)
             {
                 var mandantenzugehörigkeit = mitarbeiter.DM7_Mandantenzugehörigkeiten.First();
@@ -135,6 +165,9 @@ namespace Demo_Implementierung
                 new ReadOnlyCollection<Kontakt>(new List<Kontakt>())
             );
 
+        private static Mitarbeiterfoto Leeres_Foto_für(Guid mitarbeiter) =>
+            new Mitarbeiterfoto(mitarbeiter, Guid.Empty, new byte[0]);
+
         private static Guid Mandant_1 => Guid.Parse("58B053FA-1501-4DC2-B575-88F20CD3EFE5");
         private static Guid Mandant_2 => Guid.Parse("19651D9E-7C12-49D4-8860-70E5C0CF0199");
     }
@@ -160,7 +193,6 @@ namespace Demo_Implementierung
 
         public void Debug(string text)
         {
-            //return;
             lock (_console)
             {
                 Console.ForegroundColor = ConsoleColor.Gray;
@@ -171,6 +203,19 @@ namespace Demo_Implementierung
             }
         }
 
-        private string Prefix => $"[{DateTime.Now:d-HH:mm:ss.fff}|{Thread.CurrentThread.ManagedThreadId.ToString().PadLeft(3)}] ";
+        private static string Prefix => $"[{DateTime.Now:d-HH:mm:ss.fff}] ";
+    }
+
+    internal class NoLogger : Log
+    {
+        public void Info(string text)
+        {
+            // Blank
+        }
+
+        public void Debug(string text)
+        {
+            // Blank
+        }
     }
 }

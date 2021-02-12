@@ -106,7 +106,6 @@
     <Compile Include="Public\Datenstand.cs" />
     <Compile Include="Public\Daten\Mitarbeiter.cs" />
     <Compile Include="Public\Daten\DM7_Mandantenzugehörigkeit.cs" />
-    <Compile Include="Implementierung\V2\DRAFT.cs" />
     <Compile Include="Properties\Assemblyinfo.gen.cs" />
     <Compile Include="Public\Daten\Postanschrift.cs" />
     <Compile Include="Public\Daten\Bildformat.cs" />

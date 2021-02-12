@@ -24,8 +24,22 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
                 Stand_aus(mitarbeiter.Stand));
         }
 
+        public static Mitarbeiterfotos_V1 Mitarbeiterfotos_als_Message(Stammdaten<Mitarbeiterfoto> fotos)
+        {
+            return new Mitarbeiterfotos_V1(
+                Liste_als_Message(fotos, Mitarbeiterfoto_als_Message),
+                Stand_als_Message(fotos.Stand));
+        }
+
+        public static Stammdaten<Mitarbeiterfoto> Mitarbeiterfotos_als_Stammdaten(Mitarbeiterfotos_V1 fotos)
+        {
+            return new Stammdaten<Mitarbeiterfoto>(
+                Liste_aus(fotos.Fotos, Mitarbeiterfoto_aus),
+                Stand_aus(fotos.Stand));
+        }
+
         public static Bare.Msg.Datenstand Stand_als_Message(Datenstand stand) => new Bare.Msg.Datenstand(stand.Value);
-        private static Datenstand Stand_aus(Bare.Msg.Datenstand stand) => new Datenstand(stand.Value);
+        public static Datenstand Stand_aus(Bare.Msg.Datenstand stand) => new Datenstand(stand.Value);
 
         private static Mitarbeiter_V1 Mitarbeiter_als_Message(Mitarbeiter mitarbeiter)
         {
@@ -107,6 +121,16 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
                 Guid_aus(mandantenzugehörigkeit.Mandantid),
                 Datum_aus(mandantenzugehörigkeit.Gültigab),
                 mandantenzugehörigkeit.Gültigbis.HasValue ? Datum_aus(mandantenzugehörigkeit.Gültigbis.Value) : (Datum?) null);
+        }
+
+        private static Mitarbeiterfoto_V1 Mitarbeiterfoto_als_Message(Mitarbeiterfoto foto)
+        {
+            return new Mitarbeiterfoto_V1(UUID_aus(foto.Mitarbeiter), foto.Foto);
+        }
+
+        private static Mitarbeiterfoto Mitarbeiterfoto_aus(Mitarbeiterfoto_V1 foto)
+        {
+            return new Mitarbeiterfoto(Guid_aus(foto.Mitarbeiter), Guid.Empty, foto.Foto);
         }
 
         private static Guid Guid_aus(UUID uuid) => new Guid(uuid.Value);

@@ -304,6 +304,15 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
                     case Mitarbeiter_abrufen_V1 _:
                         return Message_mapper.Mitarbeiterstammdaten_als_Message(Mitarbeiter_abrufen());
 
+                    case Mitarbeiter_abrufen_ab_V1 query:
+                        return Message_mapper.Mitarbeiterstammdaten_als_Message(Mitarbeiter_abrufen_ab(Message_mapper.Stand_aus(query.Value)));
+
+                    case Mitarbeiterfotos_abrufen_V1 _:
+                        return Message_mapper.Mitarbeiterfotos_als_Message(Mitarbeiterfotos_abrufen());
+
+                    case Mitarbeiterfotos_abrufen_ab_V1 query:
+                        return Message_mapper.Mitarbeiterfotos_als_Message(Mitarbeiterfotos_abrufen_ab(Message_mapper.Stand_aus(query.Value)));
+
                     default:
                         return new Query_Failed($"Query '{message.Query.GetType()}' nicht behandelt");
                 }
