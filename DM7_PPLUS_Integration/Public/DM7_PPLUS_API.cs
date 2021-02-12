@@ -31,5 +31,15 @@ namespace DM7_PPLUS_Integration
         /// Abruf nur der Mitarbeiterfotos mit Aktualisierungen seit dem angegebenen Datenstand
         /// </summary>
         Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen_ab(Datenstand stand);
+
+        /// <summary>
+        /// Abruf nur der Dienste mit Aktualisierungen seit dem angegebenen Datenstand
+        /// </summary>
+        Task<Stammdaten<Dienst>> Dienste_abrufen_ab(Datenstand stand);
+
+        /// <summary>
+        /// Abruf aller Dienste
+        /// </summary>
+        Task<Stammdaten<Dienst>> Dienste_abrufen();
     }
 }

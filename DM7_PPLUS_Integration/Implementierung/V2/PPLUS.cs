@@ -73,50 +73,52 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
 
         public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen()
         {
-            return Task.Run(() =>
-            {
-                var response = Handle_Query(new Mitarbeiter_abrufen_V1()).Result;
-                return Handle_Response_Query_Result<Mitarbeiterliste_V1, Stammdaten<Mitarbeiter>>(response, Message_mapper.Mitarbeiterlist_als_Stammdaten);
-            });
+            return Handle_Query<Mitarbeiterliste_V1, Stammdaten<Mitarbeiter>>(
+                new Mitarbeiter_abrufen_V1(),
+                Message_mapper.Mitarbeiterlist_als_Stammdaten);
         }
 
         public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen_ab(Datenstand stand)
         {
-            return Task.Run(() =>
-            {
-                var response = Handle_Query(new Mitarbeiter_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand))).Result;
-                return Handle_Response_Query_Result<Mitarbeiterliste_V1, Stammdaten<Mitarbeiter>>(response, Message_mapper.Mitarbeiterlist_als_Stammdaten);
-            });
+            return Handle_Query<Mitarbeiterliste_V1, Stammdaten<Mitarbeiter>>(
+                new Mitarbeiter_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand)),
+                Message_mapper.Mitarbeiterlist_als_Stammdaten);
         }
 
         public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen()
         {
-            return Task.Run(() =>
-            {
-                var response = Handle_Query(new Mitarbeiterfotos_abrufen_V1()).Result;
-                return Handle_Response_Query_Result<Mitarbeiterfotos_V1, Stammdaten<Mitarbeiterfoto>>(response, Message_mapper.Mitarbeiterfotos_als_Stammdaten);
-            });
+            return Handle_Query<Mitarbeiterfotos_V1, Stammdaten<Mitarbeiterfoto>>(
+                new Mitarbeiterfotos_abrufen_V1(),
+                Message_mapper.Mitarbeiterfotos_als_Stammdaten);
         }
 
         public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen_ab(Datenstand stand)
         {
-            return Task.Run(() =>
-            {
-                var response = Handle_Query(new Mitarbeiterfotos_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand))).Result;
-                return Handle_Response_Query_Result<Mitarbeiterfotos_V1, Stammdaten<Mitarbeiterfoto>>(response, Message_mapper.Mitarbeiterfotos_als_Stammdaten);
-            });
+            return Handle_Query<Mitarbeiterfotos_V1, Stammdaten<Mitarbeiterfoto>>(
+                new Mitarbeiterfotos_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand)),
+                Message_mapper.Mitarbeiterfotos_als_Stammdaten);
         }
 
-        private Task<Response> Handle_Query(Query query)
+        public Task<Stammdaten<Dienst>> Dienste_abrufen()
         {
-            return _pplusHandler.HandleQuery(new Query_Message(_token.Value, query));
+            return Handle_Query<Dienste_V1, Stammdaten<Dienst>>(
+                new Dienste_abrufen_V1(),
+                Message_mapper.Dienste_als_Stammdaten);
         }
 
-        private static TOut Handle_Response_Query_Result<T, TOut>(Response response, Func<T, TOut> handler)
+        public Task<Stammdaten<Dienst>> Dienste_abrufen_ab(Datenstand stand)
         {
+            return Handle_Query<Dienste_V1, Stammdaten<Dienst>>(
+                new Dienste_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand)),
+                Message_mapper.Dienste_als_Stammdaten);
+        }
+
+        private async Task<TResult> Handle_Query<TResponse, TResult>(Query query, Func<TResponse, TResult> handler)
+        {
+            var response = await _pplusHandler.HandleQuery(new Query_Message(_token.Value, query));
             switch (response)
             {
-                case T message:
+                case TResponse message:
                 {
                     return handler(message);
                 }

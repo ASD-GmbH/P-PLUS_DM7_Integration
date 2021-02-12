@@ -104,6 +104,8 @@
     <Compile Include="Implementierung\V2\Test_Server.cs" />
     <Compile Include="Implementierung\V2\Token.cs" />
     <Compile Include="Public\Datenstand.cs" />
+    <Compile Include="Public\Daten\Dienst.cs" />
+    <Compile Include="Public\Daten\Dienst_Gültigkeit.cs" />
     <Compile Include="Public\Daten\Mitarbeiter.cs" />
     <Compile Include="Public\Daten\DM7_Mandantenzugehörigkeit.cs" />
     <Compile Include="Properties\Assemblyinfo.gen.cs" />
@@ -114,6 +116,7 @@
     <Compile Include="Public\Daten\Mitarbeiterfoto.cs" />
     <Compile Include="Public\Daten\Qualifikation.cs" />
     <Compile Include="Implementierung\Server\API_Router.cs" />
+    <Compile Include="Public\Daten\Uhrzeit.cs" />
     <Compile Include="Public\DM7_PPLUS_API.cs" />
     <Compile Include="Implementierung\Protokoll\Datenquellen.cs" />
     <Compile Include="Implementierung\Protokoll\Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung.cs" />

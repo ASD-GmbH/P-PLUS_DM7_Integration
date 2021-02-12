@@ -32,6 +32,7 @@ namespace Demo_Implementierung
                 .Mit_Authentification("user", "password")
                 .Mit_Mitarbeitern(test_Mitarbeiter)
                 .Mit_Mitarbeiterfotos(Leeres_Foto_für(Heimeshoff().Id), Leeres_Foto_für(Helmig().Id))
+                .Mit_Diensten(Testdienst())
                 .Start("127.0.0.1", 2000, out _);
 
             using (var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", logger).Result)
@@ -49,7 +50,7 @@ namespace Demo_Implementierung
                 Console.WriteLine("\n### Nur Mitarbeiter seit neuen Stand");
                 Mitarbeiter_anzeigen(api.Mitarbeiter_abrufen_ab(mitarbeiter.Stand).Result);
 
-                Console.WriteLine("\n### Mitarbeiterfotos");
+                Console.WriteLine("\n### Initiale Mitarbeiterfotos");
                 var fotos = api.Mitarbeiterfotos_abrufen().Result;
                 Mitarbeiter_mit_Fotos_anzeigen(fotos, api);
 
@@ -57,10 +58,17 @@ namespace Demo_Implementierung
                 Console.WriteLine("\n### Neue Mitarbeiterfotos");
                 Mitarbeiter_mit_Fotos_anzeigen(api.Mitarbeiterfotos_abrufen_ab(fotos.Stand).Result, api);
 
+                Console.WriteLine("\n### Initiale Dienste");
+                Dienste_anzeigen(api);
+
+                testServer.Dienste_anlegen(Frühtour());
+                Console.WriteLine("\n### Dienste nach Neuanlage");
+                Dienste_anzeigen(api);
+
                 testServer.Revoke_Token();
                 Console.WriteLine("\n### Token revoked");
                 try { Mitarbeiter_anzeigen(api); }
-                catch (Exception e) { Console.WriteLine(e.Message); }
+                catch (AggregateException e) { Console.WriteLine(e.InnerExceptions.First().Message); }
             }
 
             Console.WriteLine("Beliebige Taste drücken zum Beenden...");
@@ -89,6 +97,15 @@ namespace Demo_Implementierung
             {
                 var mandantenzugehörigkeit = mitarbeiter.DM7_Mandantenzugehörigkeiten.First();
                 Console.WriteLine($" - {mitarbeiter.Nachname}, {mitarbeiter.Vorname} - Zugehörig ab {Datum_als_Text(mandantenzugehörigkeit.GueltigAb)} bis {Datum_als_Text(mandantenzugehörigkeit.GueltigBis)}");
+            }
+        }
+
+        private static void Dienste_anzeigen(DM7_PPLUS_API api)
+        {
+            var dienste = api.Dienste_abrufen().Result;
+            foreach (var dienst in dienste)
+            {
+                Console.WriteLine($" - {dienst.Bezeichnung} ({dienst.Kurzbezeichnung}){(dienst.Gelöscht ? " [Gelöscht]" : "")}");
             }
         }
 
@@ -167,6 +184,30 @@ namespace Demo_Implementierung
 
         private static Mitarbeiterfoto Leeres_Foto_für(Guid mitarbeiter) =>
             new Mitarbeiterfoto(mitarbeiter, Guid.Empty, new byte[0]);
+
+        private static Dienst Frühtour() =>
+            new Dienst(
+                2,
+                Guid.NewGuid(),
+                "F",
+                "Frühtour",
+                new Datum(21, 01, 2019),
+                new Datum(31, 12, 2021),
+                Uhrzeit.HHMM(05, 00),
+                new Dienst_Gültigkeit(true, true, true, true, true, false, false, true),
+                false);
+
+        private static Dienst Testdienst() =>
+            new Dienst(
+                1,
+                Guid.NewGuid(),
+                "Test",
+                "Testdienst",
+                new Datum(21, 01, 2020),
+                null,
+                Uhrzeit.HHMM(09, 30),
+                new Dienst_Gültigkeit(true, true, true, true, false, false, false, false),
+                false);
 
         private static Guid Mandant_1 => Guid.Parse("58B053FA-1501-4DC2-B575-88F20CD3EFE5");
         private static Guid Mandant_2 => Guid.Parse("19651D9E-7C12-49D4-8860-70E5C0CF0199");

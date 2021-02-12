@@ -5,6 +5,7 @@ using System.Linq;
 using Bare.Msg;
 using DM7_PPLUS_Integration.Daten;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
+using Uhrzeit = DM7_PPLUS_Integration.Daten.Uhrzeit;
 
 namespace DM7_PPLUS_Integration.Implementierung.V2
 {
@@ -36,6 +37,20 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
             return new Stammdaten<Mitarbeiterfoto>(
                 Liste_aus(fotos.Fotos, Mitarbeiterfoto_aus),
                 Stand_aus(fotos.Stand));
+        }
+
+        public static Dienste_V1 Dienste_als_Message(Stammdaten<Dienst> dienste)
+        {
+            return new Dienste_V1(
+                Liste_als_Message(dienste, Dienst_als_Message),
+                Stand_als_Message(dienste.Stand));
+        }
+
+        public static Stammdaten<Dienst> Dienste_als_Stammdaten(Dienste_V1 dienste)
+        {
+            return new Stammdaten<Dienst>(
+                Liste_aus(dienste.Dienste, Dienst_aus),
+                Stand_aus(dienste.Stand));
         }
 
         public static Bare.Msg.Datenstand Stand_als_Message(Datenstand stand) => new Bare.Msg.Datenstand(stand.Value);
@@ -133,10 +148,66 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
             return new Mitarbeiterfoto(Guid_aus(foto.Mitarbeiter), Guid.Empty, foto.Foto);
         }
 
+        private static Dienst_V1 Dienst_als_Message(Dienst dienst)
+        {
+            return new Dienst_V1(
+                (ulong) dienst.Id,
+                UUID_aus(dienst.Mandant),
+                dienst.Kurzbezeichnung,
+                dienst.Bezeichnung,
+                Datum_als_Message(dienst.Gültig_ab),
+                Option_Map(dienst.Gültig_bis, Datum_als_Message),
+                Uhrzeit_als_Message(dienst.Beginn),
+                Dienst_Gültigkeit_als_Message(dienst.Gültig_an),
+                dienst.Gelöscht);
+        }
+
+        private static Dienst Dienst_aus(Dienst_V1 dienst)
+        {
+            return new Dienst(
+                (int) dienst.Id,
+                Guid_aus(dienst.Mandant),
+                dienst.Kurzbezeichnung,
+                dienst.Bezeichnung,
+                Datum_aus(dienst.Gültigab),
+                Option_Map(dienst.Gültibbis, Datum_aus),
+                Uhrzeit_aus(dienst.Beginn),
+                Dienst_Gültigkeit_aus(dienst.Gültigan),
+                dienst.Gelöscht);
+        }
+
+        private static Dienst_Gültigkeit_V1 Dienst_Gültigkeit_als_Message(Dienst_Gültigkeit gültigkeit)
+        {
+            return new Dienst_Gültigkeit_V1(
+                gültigkeit.Montag,
+                gültigkeit.Dienstag,
+                gültigkeit.Mittwoch,
+                gültigkeit.Donnerstag,
+                gültigkeit.Freitag,
+                gültigkeit.Samstag,
+                gültigkeit.Sonntag,
+                gültigkeit.Feiertags);
+        }
+        private static Dienst_Gültigkeit Dienst_Gültigkeit_aus(Dienst_Gültigkeit_V1 gültigkeit)
+        {
+            return new Dienst_Gültigkeit(
+                gültigkeit.Montag,
+                gültigkeit.Dienstag,
+                gültigkeit.Mittwoch,
+                gültigkeit.Donnerstag,
+                gültigkeit.Freitag,
+                gültigkeit.Samstag,
+                gültigkeit.Sonntag,
+                gültigkeit.Feiertags);
+        }
+
         private static Guid Guid_aus(UUID uuid) => new Guid(uuid.Value);
         private static UUID UUID_aus(Guid guid) => new UUID(guid.ToByteArray());
         private static Datum Datum_aus(Bare.Msg.Datum datum) => new Datum(datum.Tag, datum.Monat, datum.Jahr);
         private static Bare.Msg.Datum Datum_als_Message(Datum datum) => new Bare.Msg.Datum((byte) datum.Tag, (byte) datum.Monat, (ushort) datum.Jahr);
+
+        private static Bare.Msg.Uhrzeit Uhrzeit_als_Message(Uhrzeit uhrzeit) => new Bare.Msg.Uhrzeit((byte) uhrzeit.Stunden, (byte) uhrzeit.Minuten);
+        private static Uhrzeit Uhrzeit_aus(Bare.Msg.Uhrzeit uhrzeit) => Uhrzeit.HHMM(uhrzeit.Stunden, uhrzeit.Minuten);
         private static ReadOnlyCollection<TOut> Liste_aus<TIn, TOut>(IEnumerable<TIn> daten, Func<TIn, TOut> mapper) => new ReadOnlyCollection<TOut>(daten.Select(mapper).ToList());
         private static TOut[] Liste_als_Message<TIn, TOut>(IEnumerable<TIn> daten, Func<TIn, TOut> mapper) => daten.Select(mapper).ToArray();
 

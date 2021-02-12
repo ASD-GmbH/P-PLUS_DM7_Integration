@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Bare.Msg;
 using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung.Server;
-using DM7_PPLUS_Integration.Implementierung.Shared;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
 
 namespace DM7_PPLUS_Integration.Implementierung.V2
@@ -18,7 +17,7 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
             return new Test_Server();
         }
 
-        //private readonly List<Dienst> _dienste = new List<Dienst>();
+        private readonly List<Dienst> _dienste = new List<Dienst>();
         private readonly List<Mitarbeiter> _mitarbeiter = new List<Mitarbeiter>();
         private readonly List<Mitarbeiterfoto> _mitarbeiterfotos = new List<Mitarbeiterfoto>();
         private string _user = "anonymous";
@@ -26,12 +25,12 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
 
         private Test_Server() { }
 
-        //public Test_Server Mit_Diensten(params Dienst[] dienste)
-        //{
-        //    _dienste.Clear();
-        //    _dienste.AddRange(dienste);
-        //    return this;
-        //}
+        public Test_Server Mit_Diensten(params Dienst[] dienste)
+        {
+            _dienste.Clear();
+            _dienste.AddRange(dienste);
+            return this;
+        }
 
         public Test_Server Mit_Mitarbeitern(params Mitarbeiter[] mitarbeiter)
         {
@@ -56,7 +55,7 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
 
         public Test_Host Start(string adresse, int port, out string publickey)
         {
-            var backend = new Test_PPLUS_Handler(_user, _password, _mitarbeiter, _mitarbeiterfotos);
+            var backend = new Test_PPLUS_Handler(_user, _password, _mitarbeiter, _mitarbeiterfotos, _dienste);
             var privatekey = CryptoService.GenerateRSAKeyPair();
             publickey = CryptoService.GetPublicKey(privatekey);
             return new Test_Host(backend, adresse, port, privatekey);
@@ -81,72 +80,56 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
         private readonly string _password;
         private Token? _token;
         private readonly List<Daten_mit_Version<Mitarbeiter>> _mitarbeiter;
-
         private readonly List<Daten_mit_Version<Mitarbeiterfoto>> _mitarbeiterfotos;
-        //private readonly List<Daten_mit_Version<Dienst>> _dienste;
+        private readonly List<Daten_mit_Version<Dienst>> _dienste;
 
-        public Test_PPLUS_Handler(string user, string password, IEnumerable<Mitarbeiter> mitarbeiter, IEnumerable<Mitarbeiterfoto> fotos)
+        public Test_PPLUS_Handler(string user, string password, IEnumerable<Mitarbeiter> mitarbeiter, IEnumerable<Mitarbeiterfoto> fotos, IEnumerable<Dienst> dienste)
         {
             _user = user;
             _password = password;
             _mitarbeiter = mitarbeiter.Select(_ => new Daten_mit_Version<Mitarbeiter>(_, 1)).ToList();
             _mitarbeiterfotos = fotos.Select(_ => new Daten_mit_Version<Mitarbeiterfoto>(_, 1)).ToList();
-            //_dienste = dienste.Select(_ => new Daten_mit_Version<Dienst>(_, 1)).ToList();
-            AuswahllistenVersion = 1;
-            Aenderungen_an_Mitarbeiterstammdaten = new Subject<IEnumerable<string>>();
+            _dienste = dienste.Select(_ => new Daten_mit_Version<Dienst>(_, 1)).ToList();
         }
 
-        public int AuswahllistenVersion { get; }
-        public IObservable<IEnumerable<string>> Aenderungen_an_Mitarbeiterstammdaten { get; }
-
-        public IEnumerable<string> Alle_Mitarbeiterdatensaetze()
+        public void Dienste_setzen(IEnumerable<Dienst> dienste)
         {
-            return new string[0];
+            var nächste_Version = Nächste_Version(_dienste);
+            _dienste.Clear();
+            _dienste.AddRange(dienste.Select(_ => new Daten_mit_Version<Dienst>(_, nächste_Version)));
         }
 
-        public IEnumerable<Mitarbeiter> Mitarbeiterdatensaetze_abrufen(IEnumerable<string> datensatz_ids)
+        public void Dienste_hinzufügen(IEnumerable<Dienst> dienste)
         {
-            return new Mitarbeiter[0];
+            var nächste_Version = Nächste_Version(_dienste);
+            _dienste.AddRange(dienste.Select(_ => new Daten_mit_Version<Dienst>(_, nächste_Version)));
         }
 
-        //public void Dienste_setzen(IEnumerable<Dienst> dienste)
-        //{
-        //    var nächste_Version = Nächste_Version(_dienste);
-        //    _dienste.Clear();
-        //    _dienste.AddRange(dienste.Select(_ => new Daten_mit_Version<Dienst>(_, nächste_Version)));
-        //}
+        public void Dienst_löschen(int dienst)
+        {
+            var nächste_Version = Nächste_Version(_dienste);
+            var neue_Dienste =
+                _dienste
+                    .Select(_ => _.Data.Id == dienst ? Dienst_als_gelöscht(_.Data) : _.Data)
+                    .ToList();
+            _dienste.Clear();
+            _dienste.AddRange(neue_Dienste.Select(_ => new Daten_mit_Version<Dienst>(_, nächste_Version)));
+        }
 
-        //public void Dienste_hinzufügen(IEnumerable<Dienst> dienste)
-        //{
-        //    var nächste_Version = Nächste_Version(_dienste);
-        //    _dienste.AddRange(dienste.Select(_ => new Daten_mit_Version<Dienst>(_, nächste_Version)));
-        //}
-
-        //public void Dienst_löschen(int dienst)
-        //{
-        //    var nächste_Version = Nächste_Version(_dienste);
-        //    var neue_Dienste =
-        //        _dienste
-        //            .Select(_ => _.Data.Id == dienst ? Dienst_als_gelöscht(_.Data) : _.Data)
-        //            .ToList();
-        //    _dienste.Clear();
-        //    _dienste.AddRange(neue_Dienste.Select(_ => new Daten_mit_Version<Dienst>(_, nächste_Version)));
-        //}
-
-        //private static Dienst Dienst_als_gelöscht(Dienst dienst)
-        //{
-        //    return new Dienst(
-        //        dienst.Id,
-        //        dienst.Mandant,
-        //        dienst.Kurzbezeichnung,
-        //        dienst.Bezeichnung,
-        //        dienst.Gültig_ab,
-        //        dienst.Gültig_bis,
-        //        dienst.Beginn,
-        //        dienst.Gültig_an,
-        //        true
-        //    );
-        //}
+        private static Dienst Dienst_als_gelöscht(Dienst dienst)
+        {
+            return new Dienst(
+                dienst.Id,
+                dienst.Mandant,
+                dienst.Kurzbezeichnung,
+                dienst.Bezeichnung,
+                dienst.Gültig_ab,
+                dienst.Gültig_bis,
+                dienst.Beginn,
+                dienst.Gültig_an,
+                true
+            );
+        }
 
         public void Mitarbeiter_setzen(IEnumerable<Mitarbeiter> mitarbeiter)
         {
@@ -253,20 +236,20 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
             return new Stammdaten<Mitarbeiterfoto>(fotos, Höchster_Datenstand(_mitarbeiterfotos));
         }
 
-        //public Stammdaten<Dienst> Dienste_abrufen()
-        //{
-        //    return new Stammdaten<Dienst>(_dienste.Select(_ => _.Data).ToList(), Höchster_Datenstand(_dienste));
-        //}
+        public Stammdaten<Dienst> Dienste_abrufen()
+        {
+            return new Stammdaten<Dienst>(_dienste.Select(_ => _.Data).ToList(), Höchster_Datenstand(_dienste));
+        }
 
-        //public Stammdaten<Dienst> Dienste_abrufen_ab(Datenstand stand)
-        //{
-        //    var dienste =
-        //        _dienste
-        //            .Where(_ => _.Version > stand.Value)
-        //            .Select(_ => _.Data)
-        //            .ToList();
-        //    return new Stammdaten<Dienst>(dienste, Höchster_Datenstand(_dienste));
-        //}
+        public Stammdaten<Dienst> Dienste_abrufen_ab(Datenstand stand)
+        {
+            var dienste =
+                _dienste
+                    .Where(_ => _.Version > stand.Value)
+                    .Select(_ => _.Data)
+                    .ToList();
+            return new Stammdaten<Dienst>(dienste, Höchster_Datenstand(_dienste));
+        }
 
         private static Datenstand Höchster_Datenstand<T>(List<Daten_mit_Version<T>> daten) =>
             daten.Any() ? new Datenstand(daten.Max(_ => _.Version)) : new Datenstand(0);
@@ -312,6 +295,12 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
 
                     case Mitarbeiterfotos_abrufen_ab_V1 query:
                         return Message_mapper.Mitarbeiterfotos_als_Message(Mitarbeiterfotos_abrufen_ab(Message_mapper.Stand_aus(query.Value)));
+
+                    case Dienste_abrufen_V1 _:
+                        return Message_mapper.Dienste_als_Message(Dienste_abrufen());
+
+                    case Dienste_abrufen_ab_V1 query:
+                        return Message_mapper.Dienste_als_Message(Dienste_abrufen_ab(Message_mapper.Stand_aus(query.Value)));
 
                     default:
                         return new Query_Failed($"Query '{message.Query.GetType()}' nicht behandelt");
@@ -372,22 +361,22 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
             _pplusHandler.Mitarbeiterfoto_löschen(mitarbeiter);
         }
 
-        //public void Dienst_löschen(int dienstId)
-        //{
-        //    _backend.Dienst_löschen(dienstId);
-        //}
+        public void Dienst_löschen(int dienstId)
+        {
+            _pplusHandler.Dienst_löschen(dienstId);
+        }
 
-        //public void Dienste_anlegen(params Dienst[] dienste)
-        //{
-        //    _backend.Dienste_hinzufügen(dienste);
-        //}
+        public void Dienste_anlegen(params Dienst[] dienste)
+        {
+            _pplusHandler.Dienste_hinzufügen(dienste);
+        }
 
-        //public void Dienste_setzen(params Dienst[] dienste)
-        //{
-        //    _backend.Dienste_setzen(dienste);
-        //}
+        public void Dienste_setzen(params Dienst[] dienste)
+        {
+            _pplusHandler.Dienste_setzen(dienste);
+        }
 
-        //public List<Dienst> Dienste() => _backend.Dienste_abrufen().ToList();
+        public List<Dienst> Dienste() => _pplusHandler.Dienste_abrufen().ToList();
         public List<Mitarbeiter> Mitarbeiter() => _pplusHandler.Mitarbeiter_abrufen().ToList();
         public List<Mitarbeiterfoto> Mitarbeiterfotos() => _pplusHandler.Mitarbeiterfotos_abrufen().ToList();
 
@@ -395,6 +384,5 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
         {
             _host?.Dispose();
         }
-
     }
 }
