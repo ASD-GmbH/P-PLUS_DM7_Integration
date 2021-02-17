@@ -156,7 +156,6 @@ Target "PackDeployables" (fun _ ->
   CleanDirs [pack_basedir@@"Quellcode";pack_basedir@@"Demo"]
   FileHelper.CopyFiles (pack_basedir@@"Demo") ["./README.MD";"./LICENSE"]
   FileHelper.CopyRecursive ("./Demo_Implementierung/Bin/Debug") (pack_basedir@@"Demo") true |> ignore
-  FileHelper.CopyRecursive ("./PPLUS_Demo_Server/Bin/Debug") (pack_basedir@@"Demo") true |> ignore
   FileHelper.DeleteFiles (!!((pack_basedir@@"Demo") @@ "*.xml"))
   FileHelper.DeleteFiles (!!((pack_basedir@@"Demo") @@ "*.pdb"))
   FileHelper.CopyFiles (pack_basedir@@"Quellcode") ["./README.MD";"./LICENSE";"./Demo_Implementierung/DemoClientImplementierung.cs"]
