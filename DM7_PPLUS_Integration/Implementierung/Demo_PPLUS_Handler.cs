@@ -8,7 +8,7 @@ using DM7_PPLUS_Integration.Daten;
 using Bare.Msg;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
 
-namespace DM7_PPLUS_Integration.Implementierung.V2
+namespace DM7_PPLUS_Integration.Implementierung
 {
     public class Demo_PPLUS_Handler : PPLUS_Handler
     {

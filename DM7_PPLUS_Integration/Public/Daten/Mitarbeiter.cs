@@ -7,26 +7,26 @@ namespace DM7_PPLUS_Integration.Daten
     /// <summary>
     /// Mitarbeiter für die Kommunikation zwischen ASD P-PLUS und DM7
     /// </summary>
-    public struct Mitarbeiter // bisher Mitarbeiterdatensatz
+    public readonly struct Mitarbeiter
     {
         public Mitarbeiter(Guid mitarbeiterId, ReadOnlyCollection<DM7_Mandantenzugehörigkeit> mandantenzugehörigkeiten, string personalnummer, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, string handzeichen, Datum? geburtstag, Guid geschlecht, Guid konfession, Guid familienstand, ReadOnlyCollection<Qualifikation> qualifikationen, ReadOnlyCollection<Kontakt> kontakte)
         {
             Guard_Pflichtfelder(mandantenzugehörigkeiten, nachname, handzeichen, geschlecht);
 
             Id = mitarbeiterId;
-            DM7_Mandantenzugehörigkeiten = mandantenzugehörigkeiten; // Mindestens ein Eintrag vorhanden (ohne Typsicherheit)
+            DM7_Mandantenzugehörigkeiten = mandantenzugehörigkeiten;
             Personalnummer = personalnummer;
             Titel = titel;
             Vorname = vorname;
-            Nachname = nachname; // pflicht
+            Nachname = nachname;
             Postanschrift = postanschrift;
-            Handzeichen = handzeichen; // pflicht
+            Handzeichen = handzeichen;
             Kontakte = kontakte;
             Geburtstag = geburtstag;
-            Geschlecht = geschlecht; // pflicht
+            Geschlecht = geschlecht;
             Konfession = konfession;
             Familienstand = familienstand;
-            Qualifikationen = qualifikationen; // Klären, wer die Datenhoheit hat
+            Qualifikationen = qualifikationen;
         }
 
         private static void Guard_Pflichtfelder(ReadOnlyCollection<DM7_Mandantenzugehörigkeit> mandantenzugehörigkeiten, string nachname, string handzeichen, Guid geschlecht)

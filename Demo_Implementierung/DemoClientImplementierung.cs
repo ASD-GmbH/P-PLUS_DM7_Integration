@@ -5,8 +5,7 @@ using System.Linq;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Auswahllisten;
 using DM7_PPLUS_Integration.Daten;
-using DM7_PPLUS_Integration.Implementierung.V2;
-using PPLUS = DM7_PPLUS_Integration.Implementierung.V2.PPLUS;
+using DM7_PPLUS_Integration.Implementierung;
 
 namespace Demo_Implementierung
 {

@@ -7,7 +7,7 @@ using DM7_PPLUS_Integration.Daten;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
 using Uhrzeit = DM7_PPLUS_Integration.Daten.Uhrzeit;
 
-namespace DM7_PPLUS_Integration.Implementierung.V2
+namespace DM7_PPLUS_Integration.Implementierung
 {
     public static class Message_mapper
     {

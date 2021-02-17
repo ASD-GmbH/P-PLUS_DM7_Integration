@@ -10,7 +10,6 @@
 #r @"_build_tools/FAKE/tools/FakeLib.dll"
 #r "System.Xml.Linq.dll"
 
-open System
 open Fake
 
 // ------------------------------------ vv Konfiguration
@@ -38,11 +37,6 @@ trace <| if releasing then "RELEASE CANDIDATE BUILD" else "TEST BUILD"
 // ------------------------------------ vv Helper
 
 let empty () = ()
-
-let solutionDir = System.IO.Directory.GetCurrentDirectory()
-
-let properties_for (configuration:string) (platform:string) =
-    (fun p -> [("SolutionDir",solutionDir); ("DeployOnBuild", "false"); ("Verbosity", "Quiet");("MaxCpuCount","4") ; ("BuildInParallel","true") ; ("DebugType","None") ; ("Configuration",configuration) ; ("Platform", platform)])
 
 let load_text_file (filename:string) =
     let reader = new System.IO.StreamReader(filename)
@@ -142,18 +136,6 @@ Target "Build" ( fun _ ->
     |> Log ""
 )
 
-let find_assembly_name (csproj:string) : string =
-    System.Xml.Linq.XDocument.Load(csproj).Element(xname "Project").Element(xname "PropertyGroup").Element(xname "AssemblyName").Value
-
-Target "Test" (fun _ ->
-
-    [ "./DM7_PPLUS_Integration_Specs/bin/debug/DM7_PPLUS_Integration_Specs.dll" ]
-    |> NUnit (fun p ->
-            {p with
-                DisableShadowCopy = true;
-                OutputFile = (deploy_basedir @@ "TestResults.xml")})
-)
-
 let do_zip sourcedir zipfile =
     !! (sourcedir @@ "**/*.*")
     |> Zip sourcedir zipfile
@@ -194,7 +176,6 @@ Target "Default" empty
   ==> "RestorePackages"  
   ==> "Clean"
   ==> "Build"
-  ==> "Test"
   ==> "PackDeployables"
   ==> "Default"
 

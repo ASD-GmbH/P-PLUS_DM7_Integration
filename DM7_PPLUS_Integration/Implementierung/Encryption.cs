@@ -2,7 +2,7 @@
 using System.IO;
 using System.Security.Cryptography;
 
-namespace DM7_PPLUS_Integration.Implementierung.V2
+namespace DM7_PPLUS_Integration.Implementierung
 {
     public class Encryption : IDisposable
     {

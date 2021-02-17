@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Bare.Msg;
 
-namespace DM7_PPLUS_Integration.Implementierung.V2
+namespace DM7_PPLUS_Integration.Implementierung
 {
     public interface PPLUS_Handler
     {

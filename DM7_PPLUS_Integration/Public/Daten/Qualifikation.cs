@@ -1,6 +1,6 @@
 ﻿namespace DM7_PPLUS_Integration.Daten
 {
-    public struct Qualifikation
+    public readonly struct Qualifikation
     {
         public Qualifikation(int stufe, string bezeichnung)
         {

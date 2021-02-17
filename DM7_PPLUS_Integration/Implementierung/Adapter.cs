@@ -5,7 +5,7 @@ using Bare.Msg;
 using NetMQ;
 using NetMQ.Sockets;
 
-namespace DM7_PPLUS_Integration.Implementierung.V2
+namespace DM7_PPLUS_Integration.Implementierung
 {
     public class Adapter : IDisposable
     {

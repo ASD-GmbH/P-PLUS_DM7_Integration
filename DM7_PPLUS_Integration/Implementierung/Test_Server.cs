@@ -7,7 +7,7 @@ using Bare.Msg;
 using DM7_PPLUS_Integration.Daten;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
 
-namespace DM7_PPLUS_Integration.Implementierung.V2
+namespace DM7_PPLUS_Integration.Implementierung
 {
     public class Test_Server
     {

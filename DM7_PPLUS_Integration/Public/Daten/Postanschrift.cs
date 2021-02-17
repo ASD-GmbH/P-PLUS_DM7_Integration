@@ -2,7 +2,7 @@
 
 namespace DM7_PPLUS_Integration.Daten
 {
-    public struct Postanschrift
+    public readonly struct Postanschrift
     {
         public Postanschrift(Guid id, string strasse, string postleitzahl, string ort, string land, string adresszusatz)
         {

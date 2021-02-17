@@ -1,4 +1,4 @@
-﻿namespace DM7_PPLUS_Integration.Implementierung.V2
+﻿namespace DM7_PPLUS_Integration.Implementierung
 {
     public readonly struct Token
     {
@@ -9,6 +9,21 @@
         public Token(int value)
         {
             Value = value;
+        }
+        
+        public bool Equals(Token other)
+        {
+            return Value == other.Value;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is Token other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return Value;
         }
 
         public static bool operator !=(Token a, Token b)
