@@ -1,0 +1,134 @@
+﻿type Authentication_Request {
+	user: string
+	password: string
+}
+
+type Authentication_Result (Authentication_Succeeded | Authentication_Failed)
+type Authentication_Succeeded { token: i32 }
+type Authentication_Failed { reason: string }
+
+type Query_Message {
+	token: i32
+	query: data # Verschlüsselte Query
+}
+
+type Response_Message (Query_Succeeded | Query_Failed)
+
+type Query_Succeeded data # Enthält verschlüsseltes Query_Result
+
+type Query_Failed {
+	reason: string
+}
+
+type Query (
+	Mitarbeiter_abrufen_V1
+	| Mitarbeiter_abrufen_ab_V1
+	| Mitarbeiterfotos_abrufen_V1
+	| Mitarbeiterfotos_abrufen_ab_V1
+	| Dienste_abrufen_V1
+	| Dienste_abrufen_ab_V1
+)
+
+type Mitarbeiter_abrufen_V1 void
+type Mitarbeiter_abrufen_ab_V1 Datenstand
+type Mitarbeiterfotos_abrufen_V1 void
+type Mitarbeiterfotos_abrufen_ab_V1 Datenstand
+type Dienste_abrufen_V1 void
+type Dienste_abrufen_ab_V1 Datenstand
+
+type Query_Result (Mitarbeiterliste_V1 | Mitarbeiterfotos_V1 | Dienste_V1 | IO_Fehler)
+
+type IO_Fehler {
+	reason: string
+}
+
+type Mitarbeiterliste_V1 {
+	mitarbeiter: []Mitarbeiter_V1
+	stand: Datenstand
+}
+
+type Mitarbeiterfotos_V1 {
+	fotos: []Mitarbeiterfoto_V1
+	stand: Datenstand
+}
+
+type Dienste_V1 {
+	dienste: []Dienst_V1
+	stand: Datenstand
+}
+
+type Mitarbeiter_V1 {
+	id: UUID
+	mandantenzugehörigkeiten: []DM7_Mandantenzugehörigkeit_V1
+	titel: UUID
+	vorname: string
+	nachname: string
+	postanschrift: optional<Postanschrift_V1>
+	geburtstag: optional<Datum>
+	familienstand: UUID
+	konfession: UUID
+	qualifikationen: []Qualifikation_V1
+	handzeichen: string
+	personalnummer: string
+	geschlecht: UUID
+	kontakte: []Kontakt_V1
+}
+
+type DM7_Mandantenzugehörigkeit_V1 {
+	mandantId: UUID
+	gültigAb: Datum
+	gültigBis: optional<Datum>
+}
+
+type Postanschrift_V1 {
+	id: UUID
+	strasse: string
+	postleitzahl: string
+	ort: string
+	land: string
+	adresszusatz: string
+}
+
+type Qualifikation_V1 {
+	stufe: u8
+	bezeichnung: string
+}
+
+type Kontakt_V1 {
+	art: UUID
+	form: UUID
+	eintrag: string
+}
+
+type Mitarbeiterfoto_V1 {
+	mitarbeiter: UUID
+	foto: data
+}
+
+type Dienst_V1 {
+	id: uint
+	mandant: UUID
+	kurzbezeichnung: string
+	bezeichnung: string
+	gültigAb: Datum
+	gültibBis: optional<Datum>
+	beginn: Uhrzeit
+	gültigAn: Dienst_Gültigkeit_V1
+	gelöscht: bool
+}
+
+type Dienst_Gültigkeit_V1 {
+	montag: bool
+	dienstag: bool
+	mittwoch: bool
+	donnerstag: bool
+	freitag: bool
+	samstag: bool
+	sonntag: bool
+	feiertags: bool
+}
+
+type UUID data<16>
+type Datum { tag: u8 monat: u8 jahr: u16 }
+type Uhrzeit { stunden: u8 minuten: u8 }
+type Datenstand u64

@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>DM7_PPLUS_Integration</RootNamespace>
     <AssemblyName>DM7_PPLUS_Integration</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -31,97 +31,81 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AsyncIO, Version=0.1.20.0, Culture=neutral, PublicKeyToken=44a94435bd6f33f8, processorArchitecture=MSIL">
-      <HintPath>..\packages\AsyncIO.0.1.20.0\lib\net40\AsyncIO.dll</HintPath>
+    <Reference Include="AsyncIO, Version=0.1.69.0, Culture=neutral, PublicKeyToken=44a94435bd6f33f8, processorArchitecture=MSIL">
+      <HintPath>..\packages\AsyncIO.0.1.69\lib\net40\AsyncIO.dll</HintPath>
     </Reference>
-    <Reference Include="NetMQ, Version=3.3.3.4, Culture=neutral, PublicKeyToken=a6decef4ddc58b3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\NetMQ.3.3.3.4\lib\net40\NetMQ.dll</HintPath>
+    <Reference Include="BareNET, Version=0.1.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\BareNET.0.1.1\lib\netstandard2.0\BareNET.dll</HintPath>
+    </Reference>
+    <Reference Include="NaCl, Version=0.1.13.0, Culture=neutral, PublicKeyToken=827c20e50a9775fa, processorArchitecture=MSIL">
+      <HintPath>..\packages\NaCl.Net.0.1.13\lib\net45\NaCl.dll</HintPath>
+    </Reference>
+    <Reference Include="NetMQ, Version=4.0.1.6, Culture=neutral, PublicKeyToken=a6decef4ddc58b3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\NetMQ.4.0.1.6\lib\net45\NetMQ.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+    </Reference>
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.5.0.0\lib\net45\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\portable-net45+win8+wp8+wpa81\System.Threading.Tasks.Extensions.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Auswahllisten\Auswahllisten_1.cs" />
     <Compile Include="Auswahllisten\Auswahllisten_0.cs" />
-    <Compile Include="Implementierung\Client\API_Version_1_Proxy.cs" />
-    <Compile Include="Implementierung\Client\API_Version_3_Proxy.cs" />
-    <Compile Include="Implementierung\Client\Schicht_2_Proxy_Factory.cs" />
-    <Compile Include="Implementierung\Client\LoopbackFactory.cs" />
-    <Compile Include="Implementierung\Server\API_Version_1_Adapter.cs" />
-    <Compile Include="Implementierung\Server\Constants.cs" />
-    <Compile Include="Implementierung\Server\CryptoService.cs" />
-    <Compile Include="Implementierung\Server\DM7_PPLUS_Host.cs" />
-    <Compile Include="Implementierung\Client\NetMQ_Client.cs" />
-    <Compile Include="Implementierung\Server\PPLUS_Authentifizierung.cs" />
-    <Compile Include="Implementierung\Server\Service_Adapter.cs" />
-    <Compile Include="Implementierung\Client\Service_Proxy.cs" />
-    <Compile Include="Implementierung\Protokoll\Schicht_3_Protokoll__Service.cs" />
-    <Compile Include="Implementierung\Protokoll\Nachrichten\ConnectionFailed.cs" />
-    <Compile Include="Implementierung\Protokoll\Nachrichten\ConnectionFailure.cs" />
-    <Compile Include="Implementierung\Protokoll\Nachrichten\ConnectionResult.cs" />
-    <Compile Include="Implementierung\Protokoll\Nachrichten\ConnectionSucceeded.cs" />
-    <Compile Include="Implementierung\Client\Connector.cs" />
-    <Compile Include="Implementierung\Shared\DisposeGroup.cs" />
-    <Compile Include="Implementierung\Shared\StreamReaderExtension.cs" />
-    <Compile Include="Implementierung\Testing\TestBackend_Version_0.cs" />
-    <Compile Include="Implementierung\Testing\TestConnector.cs" />
+    <Compile Include="Implementierung\Adapter.cs" />
+    <Compile Include="Implementierung\Demo_PPLUS_Handler.cs" />
+    <Compile Include="Implementierung\Encryption.cs" />
+    <Compile Include="Implementierung\Messages.cs" />
+    <Compile Include="Implementierung\Message_mapper.cs" />
+    <Compile Include="Public\PPLUS.cs" />
+    <Compile Include="Implementierung\PPLUS_Handler.cs" />
+    <Compile Include="Implementierung\Port.cs" />
+    <Compile Include="Implementierung\Test_Server.cs" />
+    <Compile Include="Implementierung\Token.cs" />
+    <Compile Include="Public\Datenstand.cs" />
+    <Compile Include="Public\Daten\Dienst.cs" />
+    <Compile Include="Public\Daten\Dienst_Gültigkeit.cs" />
+    <Compile Include="Public\Daten\Mitarbeiter.cs" />
+    <Compile Include="Public\Daten\DM7_Mandantenzugehörigkeit.cs" />
     <Compile Include="Properties\Assemblyinfo.gen.cs" />
     <Compile Include="Public\Daten\Postanschrift.cs" />
-    <Compile Include="Public\Daten\Bildformat.cs" />
     <Compile Include="Public\Daten\Datum.cs" />
     <Compile Include="Public\Daten\Kontakt.cs" />
     <Compile Include="Public\Daten\Mitarbeiterfoto.cs" />
     <Compile Include="Public\Daten\Qualifikation.cs" />
-    <Compile Include="Implementierung\Server\API_Router.cs" />
+    <Compile Include="Public\Daten\Uhrzeit.cs" />
     <Compile Include="Public\DM7_PPLUS_API.cs" />
-    <Compile Include="Implementierung\Protokoll\Datenquellen.cs" />
-    <Compile Include="Implementierung\Protokoll\Schicht_2_Protokoll__API_Version_unabhaengige_Uebertragung.cs" />
-    <Compile Include="Implementierung\Protokoll\Schicht_2_Protokoll__Verbindungsaufbau.cs" />
-    <Compile Include="Implementierung\Protokoll\Schicht_3_Protokoll__Data.cs" />
-    <Compile Include="Implementierung\Testing\Version_0_Test_API.cs" />
-    <Compile Include="Implementierung\Testing\Version_0_Test_Proxy.cs" />
-    <Compile Include="Implementierung\Testing\Version_1_upgrade_Test_Proxy.cs" />
-    <Compile Include="Implementierung\Client\NetMQ_Factory.cs" />
-    <Compile Include="Implementierung\Protokoll\Nachrichten\Notification.cs" />
-    <Compile Include="Implementierung\Protokoll\Nachrichten\NotificationClosedReason.cs" />
-    <Compile Include="Implementierung\Protokoll\Nachrichten\NotificationData.cs" />
-    <Compile Include="Implementierung\Protokoll\Nachrichten\NotificationsClosed.cs" />
-    <Compile Include="Implementierung\Shared\Observer.cs" />
-    <Compile Include="Implementierung\Protokoll\Nachrichten\QueryFailed.cs" />
-    <Compile Include="Implementierung\Protokoll\Nachrichten\QueryFailure.cs" />
-    <Compile Include="Implementierung\Protokoll\Nachrichten\QueryResponse.cs" />
-    <Compile Include="Implementierung\Protokoll\Nachrichten\QueryResult.cs" />
-    <Compile Include="Implementierung\Server\Data_Adapter.cs" />
-    <Compile Include="Implementierung\Client\Data_Proxy.cs" />
-    <Compile Include="Implementierung\Shared\Subject.cs" />
-    <Compile Include="Implementierung\Shared\ArrayExtensions.cs" />
-    <Compile Include="Implementierung\Shared\VersionsStand.cs" />
-    <Compile Include="Public\PPLUS.cs" />
     <Compile Include="Public\Log.cs" />
-    <Compile Include="Public\Daten\Mitarbeiterdatensatz.cs" />
-    <Compile Include="Public\Daten\Mitarbeiterdatensaetze.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Public\Exceptions.cs" />
-    <Compile Include="Implementierung\Testing\Demo_Datenserver.cs" />
-    <Compile Include="Implementierung\Server\API_Version_2_Adapter.cs" />
-    <Compile Include="Implementierung\Server\NetMQ_Server.cs" />
-    <Compile Include="Implementierung\Server\PPLUS_Backend.cs" />
+    <Compile Include="Public\Stammdaten.cs" />
     <Compile Include="Public\Stand.cs" />
     <Compile Include="Version.gen.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
+    <None Include="Implementierung\message_schema.bare" />
     <None Include="packages.config" />
     <None Include="Readme.md" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Version.cs.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

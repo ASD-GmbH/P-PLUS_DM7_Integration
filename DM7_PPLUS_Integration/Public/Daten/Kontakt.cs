@@ -5,7 +5,7 @@ namespace DM7_PPLUS_Integration.Daten
     /// <summary>
     /// Kontaktdaten einer Person oder Organisation
     /// </summary>
-    public struct Kontakt
+    public readonly struct Kontakt
     {
         public Kontakt(Guid kontaktart, Guid kontaktform, string eintrag)
         {

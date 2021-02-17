@@ -1,22 +1,141 @@
-using System.Threading;
+ï»¿using System;
+using System.Security.Authentication;
 using System.Threading.Tasks;
-using DM7_PPLUS_Integration.Implementierung.Client;
+using Bare.Msg;
+using DM7_PPLUS_Integration.Daten;
+using DM7_PPLUS_Integration.Implementierung;
 
 namespace DM7_PPLUS_Integration
 {
-    public static class PPLUS
+    internal interface Authentication_Result { }
+
+    internal readonly struct Authenticated : Authentication_Result
     {
-        /// <summary>
-        /// Herstellen der Verbindung mit einer P-PLUS Server Instanz
-        /// </summary>
-        /// <param name="network_address">Netzwerkadresse des P-PLUS DM7_PPLUS_Integrations Endpunktes</param>
-        /// <param name="credentials">Authentifizierungstoken für den Zugriff auf P-PLUS</param>
-        /// <param name="log">Adapter für Statusmeldungen der DM7_PPLUS_Integrationsschnittstelle</param>
-        /// <param name="cancellationToken_Verbindung">Token zum kontrollierten Abbruch während des Verbindens mit dem Server</param>
-        /// <returns>Instanz der DM7_PPLUS_Integrationsschnittstelle</returns>
-        public static Task<DM7_PPLUS_API> Connect(string network_address, string credentials, Log log, CancellationToken cancellationToken_Verbindung)
+        public readonly PPLUS_Handler Handler;
+        public readonly Token Token;
+
+        public Authenticated(PPLUS_Handler handler, Token token)
         {
-            return Connector.Instance_API_Version_3(network_address, credentials, log, cancellationToken_Verbindung);
+            Handler = handler;
+            Token = token;
+        }
+    }
+
+    internal readonly struct Not_Authenticated : Authentication_Result { }
+
+    public class PPLUS : DM7_PPLUS_API
+    {
+        public static Task<PPLUS> Connect(string address, string user, string password, string encryptionKey, Log log)
+        {
+            if (!Uri.TryCreate(address, UriKind.Absolute, out var uri)) throw new ArgumentException($"'{address}' ist keine gÃ¼ltige Addresse", nameof(address));
+
+            return Task.Run(() =>
+            {
+                if (uri.Scheme == "demo")
+                {
+                    return new PPLUS(new Demo_PPLUS_Handler(), Token.Demo());
+                }
+
+                log.Debug($"Verbinde mit Server {address}");
+                switch (Authenticate(uri, user, password, encryptionKey, log))
+                {
+                    case Authenticated authenticated:
+                        return new PPLUS(authenticated.Handler, authenticated.Token);
+
+                    case Not_Authenticated _:
+                        throw new AuthenticationException("Nicht authentifiziert");
+
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            });
+        }
+
+        private static Authentication_Result Authenticate(Uri uri, string user, string password, string encryptionKey, Log log)
+        {
+            var pplusHandler = new Port($"{uri.Scheme}://{uri.Host}", uri.Port, encryptionKey, log);
+            var token = pplusHandler.Authenticate(user, password).Result;
+
+            return token.HasValue
+                ? (Authentication_Result) new Authenticated(pplusHandler, token.Value)
+                : new Not_Authenticated();
+        }
+
+        private readonly PPLUS_Handler _pplusHandler;
+        private readonly Token _token;
+
+        private PPLUS(PPLUS_Handler pplusHandler, Token token)
+        {
+            _pplusHandler = pplusHandler;
+            _token = token;
+        }
+
+        public int Auswahllisten_Version => 1;
+
+        public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen()
+        {
+            return Handle_Query<Mitarbeiterliste_V1, Stammdaten<Mitarbeiter>>(
+                new Mitarbeiter_abrufen_V1(),
+                Message_mapper.Mitarbeiterlist_als_Stammdaten);
+        }
+
+        public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen_ab(Datenstand stand)
+        {
+            return Handle_Query<Mitarbeiterliste_V1, Stammdaten<Mitarbeiter>>(
+                new Mitarbeiter_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand)),
+                Message_mapper.Mitarbeiterlist_als_Stammdaten);
+        }
+
+        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen()
+        {
+            return Handle_Query<Mitarbeiterfotos_V1, Stammdaten<Mitarbeiterfoto>>(
+                new Mitarbeiterfotos_abrufen_V1(),
+                Message_mapper.Mitarbeiterfotos_als_Stammdaten);
+        }
+
+        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen_ab(Datenstand stand)
+        {
+            return Handle_Query<Mitarbeiterfotos_V1, Stammdaten<Mitarbeiterfoto>>(
+                new Mitarbeiterfotos_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand)),
+                Message_mapper.Mitarbeiterfotos_als_Stammdaten);
+        }
+
+        public Task<Stammdaten<Dienst>> Dienste_abrufen()
+        {
+            return Handle_Query<Dienste_V1, Stammdaten<Dienst>>(
+                new Dienste_abrufen_V1(),
+                Message_mapper.Dienste_als_Stammdaten);
+        }
+
+        public Task<Stammdaten<Dienst>> Dienste_abrufen_ab(Datenstand stand)
+        {
+            return Handle_Query<Dienste_V1, Stammdaten<Dienst>>(
+                new Dienste_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand)),
+                Message_mapper.Dienste_als_Stammdaten);
+        }
+
+        private async Task<TResult> Handle_Query<TResponse, TResult>(Query query, Func<TResponse, TResult> handler)
+        {
+            var response = await _pplusHandler.HandleQuery(_token, query);
+            switch (response)
+            {
+                case TResponse message:
+                {
+                    return handler(message);
+                }
+
+                case IO_Fehler error:
+                {
+                    throw new Exception(error.Reason);
+                }
+
+                default:
+                    throw new Exception($"Unerwartetes Response '{response.GetType()}' erhalten");
+            }
+        }
+
+        public void Dispose()
+        {
         }
     }
 }
