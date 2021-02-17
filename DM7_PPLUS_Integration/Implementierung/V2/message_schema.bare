@@ -3,11 +3,21 @@
 	password: string
 }
 
-type Authentication_Result { token: optional<i32> }
+type Authentication_Result (Authentication_Succeeded | Authentication_Failed)
+type Authentication_Succeeded { token: i32 }
+type Authentication_Failed { reason: string }
 
 type Query_Message {
 	token: i32
-	query: Query
+	query: data # Verschlüsselte Query
+}
+
+type Response_Message (Query_Succeeded | Query_Failed)
+
+type Query_Succeeded data # Enthält verschlüsseltes Query_Result
+
+type Query_Failed {
+	reason: string
 }
 
 type Query (
@@ -26,9 +36,9 @@ type Mitarbeiterfotos_abrufen_ab_V1 Datenstand
 type Dienste_abrufen_V1 void
 type Dienste_abrufen_ab_V1 Datenstand
 
-type Response (Mitarbeiterliste_V1 | Mitarbeiterfotos_V1 | Dienste_V1 | Query_Failed)
+type Query_Result (Mitarbeiterliste_V1 | Mitarbeiterfotos_V1 | Dienste_V1 | IO_Fehler)
 
-type Query_Failed {
+type IO_Fehler {
 	reason: string
 }
 

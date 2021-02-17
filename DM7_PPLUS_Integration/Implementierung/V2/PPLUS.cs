@@ -24,7 +24,7 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
 
     public class PPLUS : DM7_PPLUS_API
     {
-        public static Task<PPLUS> Connect(string address, string user, string password, Log log)
+        public static Task<PPLUS> Connect(string address, string user, string password, string encryptionKey, Log log)
         {
             if (!Uri.TryCreate(address, UriKind.Absolute, out var uri)) throw new ArgumentException($"'{address}' ist keine gültige Addresse", nameof(address));
 
@@ -36,7 +36,7 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
                 }
 
                 log.Debug($"Verbinde mit Server {address}");
-                switch (Authenticate(uri, user, password, log))
+                switch (Authenticate(uri, user, password, encryptionKey, log))
                 {
                     case Authenticated authenticated:
                         return new PPLUS(authenticated.Handler, authenticated.Token);
@@ -50,9 +50,9 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
             });
         }
 
-        private static Authentication_Result Authenticate(Uri uri, string user, string password, Log log)
+        private static Authentication_Result Authenticate(Uri uri, string user, string password, string encryptionKey, Log log)
         {
-            var pplusHandler = new Port($"{uri.Scheme}://{uri.Host}", uri.Port, log);
+            var pplusHandler = new Port($"{uri.Scheme}://{uri.Host}", uri.Port, encryptionKey, log);
             var token = pplusHandler.Authenticate(user, password).Result;
 
             return token.HasValue
@@ -115,7 +115,7 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
 
         private async Task<TResult> Handle_Query<TResponse, TResult>(Query query, Func<TResponse, TResult> handler)
         {
-            var response = await _pplusHandler.HandleQuery(new Query_Message(_token.Value, query));
+            var response = await _pplusHandler.HandleQuery(_token, query);
             switch (response)
             {
                 case TResponse message:
@@ -123,7 +123,7 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
                     return handler(message);
                 }
 
-                case Query_Failed error:
+                case IO_Fehler error:
                 {
                     throw new Exception(error.Reason);
                 }

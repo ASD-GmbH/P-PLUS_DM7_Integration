@@ -47,11 +47,11 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
             return namen[random.Next(0, namen.Length)];
         }
 
-        public Task<Response> HandleQuery(Query_Message message)
+        public Task<Query_Result> HandleQuery(Token token, Query query)
         {
-            return Task.Run<Response>(() =>
+            return Task.Run<Query_Result>(() =>
             {
-                switch (message.Query)
+                switch (query)
                 {
                     case Mitarbeiter_abrufen_V1 _:
                     {
@@ -61,14 +61,9 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
                                 .ToList();
                         return Message_mapper.Mitarbeiterstammdaten_als_Message(new Stammdaten<Mitarbeiter>(mitarbeiter, new Datenstand(1)));
                     }
-
-                    case Mitarbeiter_abrufen_ab_V1 _:
-                    {
-                        return new Query_Failed("Query nicht implementiert");
-                    }
                 }
 
-                return new Query_Failed($"'{message.Query.GetType()}' wurde nicht behandelt");
+                return new IO_Fehler($"'{query.GetType()}' wurde nicht behandelt");
             });
         }
 

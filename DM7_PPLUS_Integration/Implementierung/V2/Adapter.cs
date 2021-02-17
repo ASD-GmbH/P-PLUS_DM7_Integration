@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 using System.Threading;
 using Bare.Msg;
 using NetMQ;
@@ -12,12 +13,14 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
         public static int Authentication_Port(int portRangeStart) => portRangeStart + 1;
 
         private readonly PPLUS_Handler _pplusHandler;
+        private readonly string _encryptionKey;
         private readonly NetMQPoller _poller;
         private readonly Thread _thread;
 
-        public Adapter(string address, int port_range_start, PPLUS_Handler pplusHandler)
+        public Adapter(string address, int port_range_start, PPLUS_Handler pplusHandler, string encryptionKey)
         {
             _pplusHandler = pplusHandler;
+            _encryptionKey = encryptionKey;
 
             _poller = new NetMQPoller();
             _thread = new Thread(() =>
@@ -44,30 +47,61 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
 
         private void Handle_Query(NetMQSocket socket)
         {
-            var caller = socket.ReceiveFrameBytes();
-            socket.SkipFrame();
-            Send_Message(
-                caller,
-                _pplusHandler.HandleQuery(Query_Message.Decoded(socket.ReceiveFrameBytes())).Result,
-                socket);
+            using (var encryption = Encryption.From_encoded_Key(_encryptionKey))
+            {
+                var caller = socket.ReceiveFrameBytes();
+                socket.SkipFrame();
+                var message = Query_Message.Decoded(socket.ReceiveFrameBytes());
+
+                Response_Message response;
+                try
+                {
+                    var query = Encoding.Query_Decoded(encryption.Decrypt(message.Query));
+                    var result = _pplusHandler.HandleQuery(Message_mapper.Token_aus(message), query).Result;
+                    response = new Query_Succeeded(encryption.Encrypt(Encoding.Query_Result_Encoded(result)));
+                }
+                catch (CryptographicException)
+                {
+                    response = new Query_Failed("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab.");
+                }
+
+                Send_Response(caller, response, socket);
+            }
         }
 
-        private static void Send_Message(byte[] caller, Response response, NetMQSocket socket)
+        private static void Send_Response(byte[] caller, Response_Message response, NetMQSocket socket)
         {
             socket.SendMoreFrame(caller);
             socket.SendMoreFrameEmpty();
-            socket.SendFrame(Encoding.Response_Encoded(response));
+            socket.SendFrame(Encoding.Response_Message_Encoded(response));
         }
 
         private void Authenticate(NetMQSocket socket)
         {
             var caller = socket.ReceiveFrameBytes();
             socket.SkipFrame();
-            var request = Authentication_Request.Decoded(socket.ReceiveFrameBytes());
-            var token = _pplusHandler.Authenticate(request.User, request.Password).Result;
-            socket.SendMoreFrame(caller);
-            socket.SendMoreFrameEmpty();
-            socket.SendFrame(new Bare.Msg.Authentication_Result(token?.Value).Encoded());
+
+            using (var encryption = Encryption.From_encoded_Key(_encryptionKey))
+            {
+                Bare.Msg.Authentication_Result message;
+                try
+                {
+                    var request = Authentication_Request.Decoded(encryption.Decrypt(socket.ReceiveFrameBytes()));
+                    var token = _pplusHandler.Authenticate(request.User, request.Password).Result;
+                    message =
+                        token.HasValue
+                            ? (Bare.Msg.Authentication_Result) new Authentication_Succeeded(token.Value.Value)
+                            : new Authentication_Failed("Zugriff nicht zugelassen.");
+                }
+                catch (CryptographicException)
+                {
+                    message = new Authentication_Failed("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab.");
+                }
+
+                socket.SendMoreFrame(caller);
+                socket.SendMoreFrameEmpty();
+                socket.SendFrame(Encoding.Authentication_Result_Encoded(message));
+            }
         }
 
         public void Dispose()

@@ -33,9 +33,10 @@ namespace Demo_Implementierung
                 .Mit_Mitarbeitern(test_Mitarbeiter)
                 .Mit_Mitarbeiterfotos(Leeres_Foto_für(Heimeshoff().Id), Leeres_Foto_für(Helmig().Id))
                 .Mit_Diensten(Testdienst())
-                .Start("127.0.0.1", 2000, out _);
+                .Start("127.0.0.1", 2000, out var key);
 
-            using (var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", logger).Result)
+            //using (var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("0123456789abcdef0123456789abcdef")), logger).Result)
+            using (var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", key, logger).Result)
             {
                 Console.WriteLine($"Daten arbeiten mit Auswahllisten Version {api.Auswahllisten_Version}");
 

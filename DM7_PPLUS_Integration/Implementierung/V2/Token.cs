@@ -10,5 +10,15 @@
         {
             Value = value;
         }
+
+        public static bool operator !=(Token a, Token b)
+        {
+            return a.Value != b.Value;
+        }
+
+        public static bool operator ==(Token a, Token b)
+        {
+            return a.Value == b.Value;
+        }
     }
 }

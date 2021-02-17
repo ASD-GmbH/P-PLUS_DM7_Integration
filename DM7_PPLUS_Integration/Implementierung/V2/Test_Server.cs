@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Bare.Msg;
 using DM7_PPLUS_Integration.Daten;
-using DM7_PPLUS_Integration.Implementierung.Server;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
 
 namespace DM7_PPLUS_Integration.Implementierung.V2
@@ -53,12 +52,11 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
             return this;
         }
 
-        public Test_Host Start(string adresse, int port, out string publickey)
+        public Test_Host Start(string adresse, int port, out string encryptionKey)
         {
             var backend = new Test_PPLUS_Handler(_user, _password, _mitarbeiter, _mitarbeiterfotos, _dienste);
-            var privatekey = CryptoService.GenerateRSAKeyPair();
-            publickey = CryptoService.GetPublicKey(privatekey);
-            return new Test_Host(backend, adresse, port, privatekey);
+            encryptionKey = Encryption.Generate_encoded_Key();
+            return new Test_Host(backend, adresse, port, encryptionKey);
         }
     }
 
@@ -273,37 +271,37 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
             });
         }
 
-        public Task<Response> HandleQuery(Query_Message message)
+        public Task<Query_Result> HandleQuery(Token token, Query query)
         {
-            return Task.Run<Response>(() =>
+            return Task.Run<Query_Result>(() =>
             {
-                if (_token.HasValue == false || _token.Value.Value != message.Token)
+                if (_token.HasValue == false || _token.Value != token)
                 {
-                    return new Query_Failed("Unberechtigter Zugriff");
+                    return new IO_Fehler("Unberechtigter Zugriff");
                 }
 
-                switch (message.Query)
+                switch (query)
                 {
                     case Mitarbeiter_abrufen_V1 _:
                         return Message_mapper.Mitarbeiterstammdaten_als_Message(Mitarbeiter_abrufen());
 
-                    case Mitarbeiter_abrufen_ab_V1 query:
-                        return Message_mapper.Mitarbeiterstammdaten_als_Message(Mitarbeiter_abrufen_ab(Message_mapper.Stand_aus(query.Value)));
+                    case Mitarbeiter_abrufen_ab_V1 q:
+                        return Message_mapper.Mitarbeiterstammdaten_als_Message(Mitarbeiter_abrufen_ab(Message_mapper.Stand_aus(q.Value)));
 
                     case Mitarbeiterfotos_abrufen_V1 _:
                         return Message_mapper.Mitarbeiterfotos_als_Message(Mitarbeiterfotos_abrufen());
 
-                    case Mitarbeiterfotos_abrufen_ab_V1 query:
-                        return Message_mapper.Mitarbeiterfotos_als_Message(Mitarbeiterfotos_abrufen_ab(Message_mapper.Stand_aus(query.Value)));
+                    case Mitarbeiterfotos_abrufen_ab_V1 q:
+                        return Message_mapper.Mitarbeiterfotos_als_Message(Mitarbeiterfotos_abrufen_ab(Message_mapper.Stand_aus(q.Value)));
 
                     case Dienste_abrufen_V1 _:
                         return Message_mapper.Dienste_als_Message(Dienste_abrufen());
 
-                    case Dienste_abrufen_ab_V1 query:
-                        return Message_mapper.Dienste_als_Message(Dienste_abrufen_ab(Message_mapper.Stand_aus(query.Value)));
+                    case Dienste_abrufen_ab_V1 q:
+                        return Message_mapper.Dienste_als_Message(Dienste_abrufen_ab(Message_mapper.Stand_aus(q.Value)));
 
                     default:
-                        return new Query_Failed($"Query '{message.Query.GetType()}' nicht behandelt");
+                        return new IO_Fehler($"Query '{query.GetType()}' nicht behandelt");
                 }
             });
         }
@@ -316,12 +314,12 @@ namespace DM7_PPLUS_Integration.Implementierung.V2
         private readonly string _adresse;
         private readonly int _port;
 
-        internal Test_Host(Test_PPLUS_Handler pplusHandler, string adresse, int port, string privatekey)
+        internal Test_Host(Test_PPLUS_Handler pplusHandler, string adresse, int port, string encryptionKey)
         {
             _pplusHandler = pplusHandler;
             _adresse = adresse;
             _port = port;
-            _host = new Adapter(adresse, port, _pplusHandler);
+            _host = new Adapter(adresse, port, _pplusHandler, encryptionKey);
         }
 
         public string ConnectionString => $"tcp://{_adresse}:{_port}";

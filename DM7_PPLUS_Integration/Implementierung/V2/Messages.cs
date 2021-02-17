@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 12.02.2021 17:06 //
+// Generated code by BareNET - 17.02.2021 14:46 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
@@ -36,37 +36,64 @@ namespace Bare.Msg
 		}
 	}
 
-	public readonly struct Authentication_Result
+	public interface Authentication_Result { /* Base type of union */ }
+
+	public readonly struct Authentication_Succeeded : Authentication_Result
 	{
-		public readonly int? Token;
+		public readonly int Token;
 	
-		public Authentication_Result(int? token)
+		public Authentication_Succeeded(int token)
 		{
 			Token = token;
 		}
 	
 		public byte[] Encoded()
 		{
-			return BareNET.Bare.Encode_optional<int>(Token, TokenOpt => BareNET.Bare.Encode_i32(TokenOpt));
+			return BareNET.Bare.Encode_i32(Token);
 		}
 	
-		public static Authentication_Result Decoded(byte[] data) { return Decode(data).Item1; }
+		public static Authentication_Succeeded Decoded(byte[] data) { return Decode(data).Item1; }
 	
-		public static ValueTuple<Authentication_Result, byte[]> Decode(byte[] data)
+		public static ValueTuple<Authentication_Succeeded, byte[]> Decode(byte[] data)
 		{
-			var token = BareNET.Bare.Decode_optional(data, dataOpt => BareNET.Bare.Decode_i32(dataOpt));
-			return new ValueTuple<Authentication_Result, byte[]>(
-				new Authentication_Result(token.Item1),
+			var token = BareNET.Bare.Decode_i32(data);
+			return new ValueTuple<Authentication_Succeeded, byte[]>(
+				new Authentication_Succeeded(token.Item1),
 				token.Item2);
+		}
+	}
+
+	public readonly struct Authentication_Failed : Authentication_Result
+	{
+		public readonly string Reason;
+	
+		public Authentication_Failed(string reason)
+		{
+			Reason = reason;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_string(Reason);
+		}
+	
+		public static Authentication_Failed Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Authentication_Failed, byte[]> Decode(byte[] data)
+		{
+			var reason = BareNET.Bare.Decode_string(data);
+			return new ValueTuple<Authentication_Failed, byte[]>(
+				new Authentication_Failed(reason.Item1),
+				reason.Item2);
 		}
 	}
 
 	public readonly struct Query_Message
 	{
 		public readonly int Token;
-		public readonly Query Query;
+		public readonly byte[] Query;
 	
-		public Query_Message(int token, Query query)
+		public Query_Message(int token, byte[] query)
 		{
 			Token = token;
 			Query = query;
@@ -75,7 +102,7 @@ namespace Bare.Msg
 		public byte[] Encoded()
 		{
 			return BareNET.Bare.Encode_i32(Token)
-				.Concat(Encoding.Query_Encoded(Query))
+				.Concat(BareNET.Bare.Encode_data(Query))
 				.ToArray();
 		}
 	
@@ -84,10 +111,62 @@ namespace Bare.Msg
 		public static ValueTuple<Query_Message, byte[]> Decode(byte[] data)
 		{
 			var token = BareNET.Bare.Decode_i32(data);
-			var query = Encoding.Decode_Query(token.Item2);
+			var query = BareNET.Bare.Decode_data(token.Item2);
 			return new ValueTuple<Query_Message, byte[]>(
 				new Query_Message(token.Item1, query.Item1),
 				query.Item2);
+		}
+	}
+
+	public interface Response_Message { /* Base type of union */ }
+
+	public readonly struct Query_Succeeded : Response_Message
+	{
+		public readonly byte[] Value;
+	
+		public Query_Succeeded(byte[] value)
+		{
+			Value = value;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_data(Value);
+		}
+	
+		public static Query_Succeeded Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Query_Succeeded, byte[]> Decode(byte[] data)
+		{
+			var value = BareNET.Bare.Decode_data(data);
+			return new ValueTuple<Query_Succeeded, byte[]>(
+				new Query_Succeeded(value.Item1),
+				value.Item2);
+		}
+	}
+
+	public readonly struct Query_Failed : Response_Message
+	{
+		public readonly string Reason;
+	
+		public Query_Failed(string reason)
+		{
+			Reason = reason;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_string(Reason);
+		}
+	
+		public static Query_Failed Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Query_Failed, byte[]> Decode(byte[] data)
+		{
+			var reason = BareNET.Bare.Decode_string(data);
+			return new ValueTuple<Query_Failed, byte[]>(
+				new Query_Failed(reason.Item1),
+				reason.Item2);
 		}
 	}
 
@@ -189,13 +268,13 @@ namespace Bare.Msg
 		}
 	}
 
-	public interface Response { /* Base type of union */ }
+	public interface Query_Result { /* Base type of union */ }
 
-	public readonly struct Query_Failed : Response
+	public readonly struct IO_Fehler : Query_Result
 	{
 		public readonly string Reason;
 	
-		public Query_Failed(string reason)
+		public IO_Fehler(string reason)
 		{
 			Reason = reason;
 		}
@@ -205,18 +284,18 @@ namespace Bare.Msg
 			return BareNET.Bare.Encode_string(Reason);
 		}
 	
-		public static Query_Failed Decoded(byte[] data) { return Decode(data).Item1; }
+		public static IO_Fehler Decoded(byte[] data) { return Decode(data).Item1; }
 	
-		public static ValueTuple<Query_Failed, byte[]> Decode(byte[] data)
+		public static ValueTuple<IO_Fehler, byte[]> Decode(byte[] data)
 		{
 			var reason = BareNET.Bare.Decode_string(data);
-			return new ValueTuple<Query_Failed, byte[]>(
-				new Query_Failed(reason.Item1),
+			return new ValueTuple<IO_Fehler, byte[]>(
+				new IO_Fehler(reason.Item1),
 				reason.Item2);
 		}
 	}
 
-	public readonly struct Mitarbeiterliste_V1 : Response
+	public readonly struct Mitarbeiterliste_V1 : Query_Result
 	{
 		public readonly Mitarbeiter_V1[] Mitarbeiter;
 		public readonly Datenstand Stand;
@@ -246,7 +325,7 @@ namespace Bare.Msg
 		}
 	}
 
-	public readonly struct Mitarbeiterfotos_V1 : Response
+	public readonly struct Mitarbeiterfotos_V1 : Query_Result
 	{
 		public readonly Mitarbeiterfoto_V1[] Fotos;
 		public readonly Datenstand Stand;
@@ -276,7 +355,7 @@ namespace Bare.Msg
 		}
 	}
 
-	public readonly struct Dienste_V1 : Response
+	public readonly struct Dienste_V1 : Query_Result
 	{
 		public readonly Dienst_V1[] Dienste;
 		public readonly Datenstand Stand;
@@ -787,6 +866,48 @@ namespace Bare.Msg
 
 	public static class Encoding
 	{
+		private static readonly BareNET.Union<Authentication_Result> _Authentication_Result =
+			BareNET.Union<Authentication_Result>.Register()
+				.With_Case<Authentication_Succeeded>(v => ((Authentication_Succeeded) v).Encoded(), d => { var decoded = Authentication_Succeeded.Decode(d); return new ValueTuple<Authentication_Result, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Authentication_Failed>(v => ((Authentication_Failed) v).Encoded(), d => { var decoded = Authentication_Failed.Decode(d); return new ValueTuple<Authentication_Result, byte[]>(decoded.Item1, decoded.Item2); });
+		
+		public static byte[] Authentication_Result_Encoded(Authentication_Result value)
+		{
+			return BareNET.Bare.Encode_union(value, _Authentication_Result);
+		}
+		
+		public static Authentication_Result Authentication_Result_Decoded(byte[] data)
+		{
+			return Decode_Authentication_Result(data).Item1;
+		}
+		
+		public static ValueTuple<Authentication_Result, byte[]> Decode_Authentication_Result(byte[] data)
+		{
+			return BareNET.Bare.Decode_union<Authentication_Result>(data, _Authentication_Result);
+		}
+
+
+		private static readonly BareNET.Union<Response_Message> _Response_Message =
+			BareNET.Union<Response_Message>.Register()
+				.With_Case<Query_Succeeded>(v => ((Query_Succeeded) v).Encoded(), d => { var decoded = Query_Succeeded.Decode(d); return new ValueTuple<Response_Message, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Query_Failed>(v => ((Query_Failed) v).Encoded(), d => { var decoded = Query_Failed.Decode(d); return new ValueTuple<Response_Message, byte[]>(decoded.Item1, decoded.Item2); });
+		
+		public static byte[] Response_Message_Encoded(Response_Message value)
+		{
+			return BareNET.Bare.Encode_union(value, _Response_Message);
+		}
+		
+		public static Response_Message Response_Message_Decoded(byte[] data)
+		{
+			return Decode_Response_Message(data).Item1;
+		}
+		
+		public static ValueTuple<Response_Message, byte[]> Decode_Response_Message(byte[] data)
+		{
+			return BareNET.Bare.Decode_union<Response_Message>(data, _Response_Message);
+		}
+
+
 		private static readonly BareNET.Union<Query> _Query =
 			BareNET.Union<Query>.Register()
 				.With_Case<Mitarbeiter_abrufen_V1>(v => ((Mitarbeiter_abrufen_V1) v).Encoded(), d => { var decoded = Mitarbeiter_abrufen_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
@@ -812,26 +933,26 @@ namespace Bare.Msg
 		}
 
 
-		private static readonly BareNET.Union<Response> _Response =
-			BareNET.Union<Response>.Register()
-				.With_Case<Mitarbeiterliste_V1>(v => ((Mitarbeiterliste_V1) v).Encoded(), d => { var decoded = Mitarbeiterliste_V1.Decode(d); return new ValueTuple<Response, byte[]>(decoded.Item1, decoded.Item2); })
-				.With_Case<Mitarbeiterfotos_V1>(v => ((Mitarbeiterfotos_V1) v).Encoded(), d => { var decoded = Mitarbeiterfotos_V1.Decode(d); return new ValueTuple<Response, byte[]>(decoded.Item1, decoded.Item2); })
-				.With_Case<Dienste_V1>(v => ((Dienste_V1) v).Encoded(), d => { var decoded = Dienste_V1.Decode(d); return new ValueTuple<Response, byte[]>(decoded.Item1, decoded.Item2); })
-				.With_Case<Query_Failed>(v => ((Query_Failed) v).Encoded(), d => { var decoded = Query_Failed.Decode(d); return new ValueTuple<Response, byte[]>(decoded.Item1, decoded.Item2); });
+		private static readonly BareNET.Union<Query_Result> _Query_Result =
+			BareNET.Union<Query_Result>.Register()
+				.With_Case<Mitarbeiterliste_V1>(v => ((Mitarbeiterliste_V1) v).Encoded(), d => { var decoded = Mitarbeiterliste_V1.Decode(d); return new ValueTuple<Query_Result, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Mitarbeiterfotos_V1>(v => ((Mitarbeiterfotos_V1) v).Encoded(), d => { var decoded = Mitarbeiterfotos_V1.Decode(d); return new ValueTuple<Query_Result, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Dienste_V1>(v => ((Dienste_V1) v).Encoded(), d => { var decoded = Dienste_V1.Decode(d); return new ValueTuple<Query_Result, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<IO_Fehler>(v => ((IO_Fehler) v).Encoded(), d => { var decoded = IO_Fehler.Decode(d); return new ValueTuple<Query_Result, byte[]>(decoded.Item1, decoded.Item2); });
 		
-		public static byte[] Response_Encoded(Response value)
+		public static byte[] Query_Result_Encoded(Query_Result value)
 		{
-			return BareNET.Bare.Encode_union(value, _Response);
+			return BareNET.Bare.Encode_union(value, _Query_Result);
 		}
 		
-		public static Response Response_Decoded(byte[] data)
+		public static Query_Result Query_Result_Decoded(byte[] data)
 		{
-			return Decode_Response(data).Item1;
+			return Decode_Query_Result(data).Item1;
 		}
 		
-		public static ValueTuple<Response, byte[]> Decode_Response(byte[] data)
+		public static ValueTuple<Query_Result, byte[]> Decode_Query_Result(byte[] data)
 		{
-			return BareNET.Bare.Decode_union<Response>(data, _Response);
+			return BareNET.Bare.Decode_union<Query_Result>(data, _Query_Result);
 		}
 	}
 }
