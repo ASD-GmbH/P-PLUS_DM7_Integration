@@ -72,6 +72,9 @@
     <Compile Include="Implementierung\Encryption.cs" />
     <Compile Include="Implementierung\Messages.cs" />
     <Compile Include="Implementierung\Message_mapper.cs" />
+    <Compile Include="Public\Daten\Abwesenheit.cs" />
+    <Compile Include="Public\Daten\Dienstbuchung.cs" />
+    <Compile Include="Public\Daten\Zeitpunkt.cs" />
     <Compile Include="Public\PPLUS.cs" />
     <Compile Include="Implementierung\PPLUS_Handler.cs" />
     <Compile Include="Implementierung\Port.cs" />
@@ -86,7 +89,6 @@
     <Compile Include="Public\Daten\Postanschrift.cs" />
     <Compile Include="Public\Daten\Datum.cs" />
     <Compile Include="Public\Daten\Kontakt.cs" />
-    <Compile Include="Public\Daten\Mitarbeiterfoto.cs" />
     <Compile Include="Public\Daten\Qualifikation.cs" />
     <Compile Include="Public\Daten\Uhrzeit.cs" />
     <Compile Include="Public\DM7_PPLUS_API.cs" />

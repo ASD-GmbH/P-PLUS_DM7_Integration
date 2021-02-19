@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Security.Authentication;
 using System.Threading.Tasks;
 using Bare.Msg;
 using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung;
+using Datum = DM7_PPLUS_Integration.Daten.Datum;
 
 namespace DM7_PPLUS_Integration
 {
@@ -86,25 +88,25 @@ namespace DM7_PPLUS_Integration
                 Message_mapper.Mitarbeiterlist_als_Stammdaten);
         }
 
-        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen()
-        {
-            return Handle_Query<Mitarbeiterfotos_V1, Stammdaten<Mitarbeiterfoto>>(
-                new Mitarbeiterfotos_abrufen_V1(),
-                Message_mapper.Mitarbeiterfotos_als_Stammdaten);
-        }
-
-        public Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen_ab(Datenstand stand)
-        {
-            return Handle_Query<Mitarbeiterfotos_V1, Stammdaten<Mitarbeiterfoto>>(
-                new Mitarbeiterfotos_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand)),
-                Message_mapper.Mitarbeiterfotos_als_Stammdaten);
-        }
-
         public Task<Stammdaten<Dienst>> Dienste_abrufen()
         {
             return Handle_Query<Dienste_V1, Stammdaten<Dienst>>(
                 new Dienste_abrufen_V1(),
                 Message_mapper.Dienste_als_Stammdaten);
+        }
+
+        public Task<ReadOnlyCollection<Dienstbuchung>> Dienstbuchungen_zum_Stichtag(Datum stichtag, Guid mandantId)
+        {
+            return Handle_Query<Dienstbuchungen_V1, ReadOnlyCollection<Dienstbuchung>>(
+                new Dienstbuchungen_zum_Stichtag_V1(Message_mapper.Datum_als_Message(stichtag), Message_mapper.UUID_aus(mandantId)),
+                Message_mapper.Dienstbuchungen);
+        }
+
+        public Task<ReadOnlyCollection<Abwesenheit>> Abwesenheiten_zum_Stichtag(Datum stichtag, Guid mandantId)
+        {
+            return Handle_Query<Abwesenheiten_V1, ReadOnlyCollection<Abwesenheit>>(
+                new Abwesenheiten_zum_Stichtag_V1(Message_mapper.Datum_als_Message(stichtag), Message_mapper.UUID_aus(mandantId)),
+                Message_mapper.Abwesenheiten);
         }
 
         public Task<Stammdaten<Dienst>> Dienste_abrufen_ab(Datenstand stand)

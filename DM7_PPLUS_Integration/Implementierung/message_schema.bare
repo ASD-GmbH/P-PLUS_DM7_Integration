@@ -1,4 +1,5 @@
-﻿type Authentication_Request {
+﻿### Port & Adapter Messages ###
+type Authentication_Request {
 	user: string
 	password: string
 }
@@ -20,35 +21,41 @@ type Query_Failed {
 	reason: string
 }
 
+### Queries ###
 type Query (
 	Mitarbeiter_abrufen_V1
 	| Mitarbeiter_abrufen_ab_V1
-	| Mitarbeiterfotos_abrufen_V1
-	| Mitarbeiterfotos_abrufen_ab_V1
 	| Dienste_abrufen_V1
 	| Dienste_abrufen_ab_V1
+	| Dienstbuchungen_zum_Stichtag_V1
+	| Abwesenheiten_zum_Stichtag_V1
 )
 
 type Mitarbeiter_abrufen_V1 void
 type Mitarbeiter_abrufen_ab_V1 Datenstand
-type Mitarbeiterfotos_abrufen_V1 void
-type Mitarbeiterfotos_abrufen_ab_V1 Datenstand
 type Dienste_abrufen_V1 void
 type Dienste_abrufen_ab_V1 Datenstand
-
-type Query_Result (Mitarbeiterliste_V1 | Mitarbeiterfotos_V1 | Dienste_V1 | IO_Fehler)
-
-type IO_Fehler {
-	reason: string
+type Abwesenheiten_zum_Stichtag_V1 {
+	stichtag: Datum
+	mandant: UUID
 }
+type Dienstbuchungen_zum_Stichtag_V1 {
+	stichtag: Datum
+	mandant: UUID
+}
+
+type Query_Result (
+	IO_Fehler
+	| Mitarbeiterliste_V1
+	| Dienste_V1
+	| Dienstbuchungen_V1
+	| Abwesenheiten_V1
+)
+
+type IO_Fehler { reason: string }
 
 type Mitarbeiterliste_V1 {
 	mitarbeiter: []Mitarbeiter_V1
-	stand: Datenstand
-}
-
-type Mitarbeiterfotos_V1 {
-	fotos: []Mitarbeiterfoto_V1
 	stand: Datenstand
 }
 
@@ -57,9 +64,14 @@ type Dienste_V1 {
 	stand: Datenstand
 }
 
+type Dienstbuchungen_V1 []Dienstbuchung_V1
+
+type Abwesenheiten_V1 []Abwesenheit_V1
+
+### Daten ###
 type Mitarbeiter_V1 {
 	id: UUID
-	mandantenzugehörigkeiten: []DM7_Mandantenzugehörigkeit_V1
+	mandantenzugehoerigkeiten: []DM7_Mandantenzugehoerigkeit_V1
 	titel: UUID
 	vorname: string
 	nachname: string
@@ -74,10 +86,10 @@ type Mitarbeiter_V1 {
 	kontakte: []Kontakt_V1
 }
 
-type DM7_Mandantenzugehörigkeit_V1 {
+type DM7_Mandantenzugehoerigkeit_V1 {
 	mandantId: UUID
-	gültigAb: Datum
-	gültigBis: optional<Datum>
+	gueltigAb: Datum
+	gueltigBis: optional<Datum>
 }
 
 type Postanschrift_V1 {
@@ -92,6 +104,8 @@ type Postanschrift_V1 {
 type Qualifikation_V1 {
 	stufe: u8
 	bezeichnung: string
+	gueltigAb: Datum
+	gueltigBis: optional<Datum>
 }
 
 type Kontakt_V1 {
@@ -100,24 +114,18 @@ type Kontakt_V1 {
 	eintrag: string
 }
 
-type Mitarbeiterfoto_V1 {
-	mitarbeiter: UUID
-	foto: data
-}
-
 type Dienst_V1 {
 	id: uint
-	mandant: UUID
+	mandantenzugehoerigkeiten: []DM7_Mandantenzugehoerigkeit_V1
 	kurzbezeichnung: string
 	bezeichnung: string
-	gültigAb: Datum
-	gültibBis: optional<Datum>
-	beginn: Uhrzeit
-	gültigAn: Dienst_Gültigkeit_V1
-	gelöscht: bool
+	gueltigAb: Datum
+	gueltibBis: optional<Datum>
+	gueltigAn: Dienst_Gueltigkeit_V1
+	geloescht: bool
 }
 
-type Dienst_Gültigkeit_V1 {
+type Dienst_Gueltigkeit_V1 {
 	montag: bool
 	dienstag: bool
 	mittwoch: bool
@@ -128,7 +136,27 @@ type Dienst_Gültigkeit_V1 {
 	feiertags: bool
 }
 
+type Dienstbuchung_V1 {
+	mitarbeiter: UUID
+	dienst: int
+	beginntUm: Uhrzeit
+}
+
+type Abwesenheit_V1 {
+	mitarbeiter: UUID
+	abwesendAb: Zeitpunkt
+	vorraussichtlichWiederVerfuegbarAb: Zeitpunkt
+	grund: string
+	art: Abwesenheitsart_V1
+}
+
+enum Abwesenheitsart_V1 {
+	FEHLZEIT
+	ANDERSWEITIG_VERPLANT
+}
+
 type UUID data<16>
 type Datum { tag: u8 monat: u8 jahr: u16 }
 type Uhrzeit { stunden: u8 minuten: u8 }
+type Zeitpunkt { datum: Datum uhrzeit: Uhrzeit }
 type Datenstand u64

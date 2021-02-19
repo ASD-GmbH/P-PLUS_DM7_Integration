@@ -30,8 +30,13 @@ namespace Demo_Implementierung
             var testServer = Test_Server.Instanz()
                 .Mit_Authentification("user", "password")
                 .Mit_Mitarbeitern(test_Mitarbeiter)
-                .Mit_Mitarbeiterfotos(Leeres_Foto_für(Heimeshoff().Id), Leeres_Foto_für(Helmig().Id))
                 .Mit_Diensten(Testdienst())
+                .Mit_Dienstbuchungen_für(Mandant_1, Heute(), 
+                    Ist_im_Testdienst(Helmig()),
+                    Ist_im_Testdienst(Heimeshoff()))
+                .Mit_Abwesenheiten_für(Mandant_1,
+                    Krank(Heimeshoff()),
+                    Verplant(Helmig()))
                 .Start("127.0.0.1", 2000, out var key);
 
             //using (var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("0123456789abcdef0123456789abcdef")), logger).Result)
@@ -50,20 +55,36 @@ namespace Demo_Implementierung
                 Console.WriteLine("\n### Nur Mitarbeiter seit neuen Stand");
                 Mitarbeiter_anzeigen(api.Mitarbeiter_abrufen_ab(mitarbeiter.Stand).Result);
 
-                Console.WriteLine("\n### Initiale Mitarbeiterfotos");
-                var fotos = api.Mitarbeiterfotos_abrufen().Result;
-                Mitarbeiter_mit_Fotos_anzeigen(fotos, api);
-
-                testServer.Mitarbeiterfotos_hinzufügen(Leeres_Foto_für(Willenborg().Id));
-                Console.WriteLine("\n### Neue Mitarbeiterfotos");
-                Mitarbeiter_mit_Fotos_anzeigen(api.Mitarbeiterfotos_abrufen_ab(fotos.Stand).Result, api);
-
                 Console.WriteLine("\n### Initiale Dienste");
                 Dienste_anzeigen(api);
 
                 testServer.Dienste_anlegen(Frühtour());
                 Console.WriteLine("\n### Dienste nach Neuanlage");
                 Dienste_anzeigen(api);
+
+                Console.WriteLine("\n### Initiale Dienstbuchungen");
+                Dienstbuchungen_anzeigen(Mandant_1, Heute(),  api);
+
+                testServer.Dienste_buchen(Mandant_1, Heute(), Fährt_Frühtour(Willenborg()));
+                Console.WriteLine("\n### Dienstbuchungen nach Buchung");
+                Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
+
+                testServer.Dienst_streichen(Mandant_1, Heute(), Testdienst().Id);
+                Console.WriteLine("\n### Dienstbuchungen nach Streichung");
+                Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
+
+                Console.WriteLine("\n### Initiale Abwesenheiten zum 04.02.2021");
+                Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(04, 02, 2021), api);
+
+                Console.WriteLine("\n### Initiale Abwesenheiten zum 10.02.2021");
+                Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(10, 02, 2021), api);
+
+                testServer.Abwesenheiten_eintragen(Mandant_1, Urlaub(Willenborg()));
+                Console.WriteLine("\n### Abwesenheiten zum 20.02.2021 nach Eintragung");
+                Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(20, 02, 2021), api);
+
+                Console.WriteLine("\n### Abwesenheiten zum 04.02.2021 nach Eintragung");
+                Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(04, 02, 2021), api);
 
                 testServer.Revoke_Token();
                 Console.WriteLine("\n### Token revoked");
@@ -80,15 +101,6 @@ namespace Demo_Implementierung
         {
             var alle_Mitarbeiter = api.Mitarbeiter_abrufen().Result;
             Mitarbeiter_anzeigen(alle_Mitarbeiter);
-        }
-
-        private static void Mitarbeiter_mit_Fotos_anzeigen(IEnumerable<Mitarbeiterfoto> fotos, DM7_PPLUS_API api)
-        {
-            var mitarbeiterbezeichnungen = api.Mitarbeiter_abrufen().Result.ToDictionary(_ => _.Id, _ => $"{_.Nachname}, {_.Vorname}");
-            foreach (var foto in fotos)
-            {
-                Console.WriteLine($" - Bild für {mitarbeiterbezeichnungen[foto.Mitarbeiter]}");
-            }
         }
 
         private static void Mitarbeiter_anzeigen(IEnumerable<Mitarbeiter> alle_Mitarbeiter)
@@ -109,11 +121,53 @@ namespace Demo_Implementierung
             }
         }
 
+        private static void Dienstbuchungen_anzeigen(Guid mandantId, Datum stichtag, DM7_PPLUS_API api)
+        {
+            var mitarbeiter_lookup = api.Mitarbeiter_abrufen().Result.ToDictionary(_ => _.Id, _ => $"{_.Nachname}, {_.Vorname}");
+            var dienst_lookup = api.Dienste_abrufen().Result.ToDictionary(_ => _.Id, _ => _.Bezeichnung);
+            var dienstbuchungen = api.Dienstbuchungen_zum_Stichtag(stichtag, mandantId).Result;
+            foreach (var dienstbuchung in dienstbuchungen)
+            {
+                var mitarbeiter =
+                    mitarbeiter_lookup.ContainsKey(dienstbuchung.MitarbeiterId)
+                        ? mitarbeiter_lookup[dienstbuchung.MitarbeiterId]
+                        : "[Unbekannter Mitarbeiter]";
+                var dienst =
+                    dienst_lookup.ContainsKey(dienstbuchung.DienstId)
+                        ? dienst_lookup[dienstbuchung.DienstId]
+                        : "[Unbekannter Dienst]";
+                Console.WriteLine($" - {mitarbeiter}: {dienst} - {Datum_als_Text(stichtag)} {Uhrzeit_als_Text(dienstbuchung.Beginnt_um)}");
+            }
+        }
+
+        private static void Abwesenheiten_anzeigen(Guid mandantId, Datum stichtag, DM7_PPLUS_API api)
+        {
+            var mitarbeiter_lookup = api.Mitarbeiter_abrufen().Result.ToDictionary(_ => _.Id, _ => $"{_.Nachname}, {_.Vorname}");
+            var abwesenheiten = api.Abwesenheiten_zum_Stichtag(stichtag, mandantId).Result;
+            foreach (var abwesenheit in abwesenheiten)
+            {
+                var mitarbeiter =
+                    mitarbeiter_lookup.ContainsKey(abwesenheit.MitarbeiterId)
+                        ? mitarbeiter_lookup[abwesenheit.MitarbeiterId]
+                        : "[Unbekannter Mitarbeiter]";
+                Console.WriteLine($" - {mitarbeiter}: {abwesenheit.Grund} für Zeitraum {Zeitpunkt_als_Text(abwesenheit.Abwesend_ab)} - {Zeitpunkt_als_Text(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab)}");
+            }
+        }
+        
         private static string Datum_als_Text(Datum? datum)
         {
             return datum.HasValue
                 ? $"{datum.Value.Tag:00}.{datum.Value.Monat:00}.{datum.Value.Jahr:0000}"
                 : "[Ende offen]";
+        }
+
+        private static string Uhrzeit_als_Text(Uhrzeit uhrzeit) => $"{uhrzeit.Stunden:00}:{uhrzeit.Minuten:00}";
+        private static string Zeitpunkt_als_Text(Zeitpunkt zeitpunkt) => $"{Datum_als_Text(zeitpunkt.Datum)} {Uhrzeit_als_Text(zeitpunkt.Uhrzeit)}";
+
+        private static Datum Heute()
+        {
+            var heute = DateTime.Now;
+            return Datum.DD_MM_YYYY(heute.Day, heute.Month, heute.Year);
         }
 
         private static Mitarbeiter Heimeshoff() =>
@@ -122,7 +176,7 @@ namespace Demo_Implementierung
                 new ReadOnlyCollection<DM7_Mandantenzugehörigkeit>(
                     new List<DM7_Mandantenzugehörigkeit>
                     {
-                        new DM7_Mandantenzugehörigkeit(Mandant_1, new Datum(01, 01, 2016), null)
+                        new DM7_Mandantenzugehörigkeit(Mandant_1, Datum.DD_MM_YYYY(01, 01, 2016), null)
                     }),
                 "Pnr 007",
                 Auswahllisten_1.Titel.Kein,
@@ -130,7 +184,7 @@ namespace Demo_Implementierung
                 "Heimeshoff",
                 null,
                 "Hei",
-                new Datum(19, 11, 1981),
+                Datum.DD_MM_YYYY(19, 11, 1981),
                 Auswahllisten_1.Geschlecht.Maennlich,
                 Auswahllisten_1.Konfession.Keine,
                 Auswahllisten_1.Familienstand.Verheiratet,
@@ -144,7 +198,7 @@ namespace Demo_Implementierung
                 new ReadOnlyCollection<DM7_Mandantenzugehörigkeit>(
                     new List<DM7_Mandantenzugehörigkeit>
                     {
-                        new DM7_Mandantenzugehörigkeit(Mandant_1, new Datum(01, 01, 2018), null)
+                        new DM7_Mandantenzugehörigkeit(Mandant_1, Datum.DD_MM_YYYY(01, 01, 2018), null)
                     }),
                 "Pnr 001",
                 Auswahllisten_1.Titel.Kein,
@@ -152,7 +206,7 @@ namespace Demo_Implementierung
                 "Helmig",
                 null,
                 "Nil",
-                new Datum(10, 08, 1995),
+                Datum.DD_MM_YYYY(10, 08, 1995),
                 Auswahllisten_1.Geschlecht.Maennlich,
                 Auswahllisten_1.Konfession.Keine,
                 Auswahllisten_1.Familienstand.Ledig,
@@ -166,7 +220,7 @@ namespace Demo_Implementierung
                 new ReadOnlyCollection<DM7_Mandantenzugehörigkeit>(
                     new List<DM7_Mandantenzugehörigkeit>
                     {
-                        new DM7_Mandantenzugehörigkeit(Mandant_2, new Datum(01, 01, 2010), null)
+                        new DM7_Mandantenzugehörigkeit(Mandant_2, Datum.DD_MM_YYYY(01, 01, 2010), null)
                     }),
                 "Pnr DM7",
                 Auswahllisten_1.Titel.Kein,
@@ -174,7 +228,7 @@ namespace Demo_Implementierung
                 "Willenborg",
                 null,
                 "Wil",
-                new Datum(12, 05, 1975),
+                Datum.DD_MM_YYYY(12, 05, 1975),
                 Auswahllisten_1.Geschlecht.Maennlich,
                 Auswahllisten_1.Konfession.Keine,
                 Auswahllisten_1.Familienstand.Verheiratet,
@@ -182,32 +236,73 @@ namespace Demo_Implementierung
                 new ReadOnlyCollection<Kontakt>(new List<Kontakt>())
             );
 
-        private static Mitarbeiterfoto Leeres_Foto_für(Guid mitarbeiter) =>
-            new Mitarbeiterfoto(mitarbeiter, Guid.Empty, new byte[0]);
-
         private static Dienst Frühtour() =>
             new Dienst(
                 2,
-                Guid.NewGuid(),
+                new ReadOnlyCollection<DM7_Mandantenzugehörigkeit>(
+                    new List<DM7_Mandantenzugehörigkeit>
+                    {
+                        new DM7_Mandantenzugehörigkeit(Mandant_1, new Datum(01, 01, 2010), null)
+                    }),
                 "F",
                 "Frühtour",
-                new Datum(21, 01, 2019),
-                new Datum(31, 12, 2021),
-                Uhrzeit.HHMM(05, 00),
+                Datum.DD_MM_YYYY(21, 01, 2019),
+                Datum.DD_MM_YYYY(31, 12, 2021),
                 new Dienst_Gültigkeit(true, true, true, true, true, false, false, true),
                 false);
 
         private static Dienst Testdienst() =>
             new Dienst(
                 1,
-                Guid.NewGuid(),
+                new ReadOnlyCollection<DM7_Mandantenzugehörigkeit>(
+                    new List<DM7_Mandantenzugehörigkeit>
+                    {
+                        new DM7_Mandantenzugehörigkeit(Mandant_1, Datum.DD_MM_YYYY(01, 01, 2010), Datum.DD_MM_YYYY(31, 12, 2014)),
+                        new DM7_Mandantenzugehörigkeit(Mandant_2, Datum.DD_MM_YYYY(01, 01, 2015), null),
+                        new DM7_Mandantenzugehörigkeit(Mandant_1, Datum.DD_MM_YYYY(01, 01, 2016), null)
+                    }),
                 "Test",
                 "Testdienst",
-                new Datum(21, 01, 2020),
+                Datum.DD_MM_YYYY(21, 01, 2020),
                 null,
-                Uhrzeit.HHMM(09, 30),
                 new Dienst_Gültigkeit(true, true, true, true, false, false, false, false),
                 false);
+
+        private static Dienstbuchung Fährt_Frühtour(Mitarbeiter mitarbeiter) =>
+            new Dienstbuchung(
+                mitarbeiter.Id,
+                Frühtour().Id,
+                Uhrzeit.HH_MM(06, 30));
+
+        private static Dienstbuchung Ist_im_Testdienst(Mitarbeiter mitarbeiter) =>
+            new Dienstbuchung(
+                mitarbeiter.Id,
+                Testdienst().Id,
+                Uhrzeit.HH_MM(14, 45));
+
+        private static Abwesenheit Krank(Mitarbeiter mitarbeiter) =>
+            new Abwesenheit(
+                mitarbeiter.Id,
+                Zeitpunkt.DD_MM_YYYY_HH_MM(10, 02, 2021, 07, 45),
+                Zeitpunkt.DD_MM_YYYY_HH_MM(10, 02, 2021, 17, 00),
+                "Krank",
+                Abwesenheitsart.Fehlzeit);
+
+        private static Abwesenheit Urlaub(Mitarbeiter mitarbeiter) =>
+            new Abwesenheit(
+                mitarbeiter.Id,
+                Zeitpunkt.DD_MM_YYYY_HH_MM(08, 02, 2021, 00, 00),
+                Zeitpunkt.DD_MM_YYYY_HH_MM(22, 02, 2021, 00, 00),
+                "Urlaub",
+                Abwesenheitsart.Fehlzeit);
+
+        private static Abwesenheit Verplant(Mitarbeiter mitarbeiter) =>
+            new Abwesenheit(
+                mitarbeiter.Id,
+                Zeitpunkt.DD_MM_YYYY_HH_MM(04, 02, 2021, 11, 30),
+                Zeitpunkt.DD_MM_YYYY_HH_MM(04, 02, 2021, 14, 15),
+                "Testdienst",
+                Abwesenheitsart.Andersweitig_verplant);
 
         private static Guid Mandant_1 => Guid.Parse("58B053FA-1501-4DC2-B575-88F20CD3EFE5");
         private static Guid Mandant_2 => Guid.Parse("19651D9E-7C12-49D4-8860-70E5C0CF0199");

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Daten;
 
@@ -22,17 +23,6 @@ namespace DM7_PPLUS_Integration
         Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen_ab(Datenstand stand);
 
         /// <summary>
-        /// Abruf aller Mitarbeiterfotos
-        /// </summary>
-        /// <returns></returns>
-        Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen();
-
-        /// <summary>
-        /// Abruf nur der Mitarbeiterfotos mit Aktualisierungen seit dem angegebenen Datenstand
-        /// </summary>
-        Task<Stammdaten<Mitarbeiterfoto>> Mitarbeiterfotos_abrufen_ab(Datenstand stand);
-
-        /// <summary>
         /// Abruf nur der Dienste mit Aktualisierungen seit dem angegebenen Datenstand
         /// </summary>
         Task<Stammdaten<Dienst>> Dienste_abrufen_ab(Datenstand stand);
@@ -41,5 +31,20 @@ namespace DM7_PPLUS_Integration
         /// Abruf aller Dienste
         /// </summary>
         Task<Stammdaten<Dienst>> Dienste_abrufen();
+
+        /// <summary>
+        /// Abruf aller Dienstbuchungen gültig zum gegebenen Stichtag für den gegebenen Mandanten (mandantId)
+        /// <param name="stichtag">Datum zu dem die Dienstbuchung beginnt</param>
+        /// <param name="mandantId">MandantId in der die Dienstbuchung geplant ist</param>
+        /// </summary>
+        Task<ReadOnlyCollection<Dienstbuchung>> Dienstbuchungen_zum_Stichtag(Datum stichtag, Guid mandantId);
+
+        /// <summary>
+        /// Abruf aller Abwesenheiten für Mitarbeiter am Stichtag relevant für den gegebenen Mandanten (mandantId)
+        /// </summary>
+        /// <param name="stichtag"></param>
+        /// <param name="mandantId">MandantId für den die Abwesenheiten relevant sind</param>
+        /// <returns></returns>
+        Task<ReadOnlyCollection<Abwesenheit>> Abwesenheiten_zum_Stichtag(Datum stichtag, Guid mandantId);
     }
 }

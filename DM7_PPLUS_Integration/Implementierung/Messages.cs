@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 17.02.2021 14:46 //
+// Generated code by BareNET - 19.02.2021 16:49 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
@@ -204,38 +204,6 @@ namespace Bare.Msg
 		}
 	}
 
-	public readonly struct Mitarbeiterfotos_abrufen_V1 : Query
-	{
-		public byte[] Encoded() { return new byte[0]; }
-		public static Mitarbeiterfotos_abrufen_V1 Decoded(byte[] data) { return new Mitarbeiterfotos_abrufen_V1(); }
-		public static ValueTuple<Mitarbeiterfotos_abrufen_V1, byte[]> Decode(byte[] data) { return new ValueTuple<Mitarbeiterfotos_abrufen_V1, byte[]>(new Mitarbeiterfotos_abrufen_V1(), data); }
-	}
-
-	public readonly struct Mitarbeiterfotos_abrufen_ab_V1 : Query
-	{
-		public readonly Datenstand Value;
-	
-		public Mitarbeiterfotos_abrufen_ab_V1(Datenstand value)
-		{
-			Value = value;
-		}
-	
-		public byte[] Encoded()
-		{
-			return Value.Encoded();
-		}
-	
-		public static Mitarbeiterfotos_abrufen_ab_V1 Decoded(byte[] data) { return Decode(data).Item1; }
-	
-		public static ValueTuple<Mitarbeiterfotos_abrufen_ab_V1, byte[]> Decode(byte[] data)
-		{
-			var value = Datenstand.Decode(data);
-			return new ValueTuple<Mitarbeiterfotos_abrufen_ab_V1, byte[]>(
-				new Mitarbeiterfotos_abrufen_ab_V1(value.Item1),
-				value.Item2);
-		}
-	}
-
 	public readonly struct Dienste_abrufen_V1 : Query
 	{
 		public byte[] Encoded() { return new byte[0]; }
@@ -265,6 +233,66 @@ namespace Bare.Msg
 			return new ValueTuple<Dienste_abrufen_ab_V1, byte[]>(
 				new Dienste_abrufen_ab_V1(value.Item1),
 				value.Item2);
+		}
+	}
+
+	public readonly struct Abwesenheiten_zum_Stichtag_V1 : Query
+	{
+		public readonly Datum Stichtag;
+		public readonly UUID Mandant;
+	
+		public Abwesenheiten_zum_Stichtag_V1(Datum stichtag, UUID mandant)
+		{
+			Stichtag = stichtag;
+			Mandant = mandant;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Stichtag.Encoded()
+				.Concat(Mandant.Encoded())
+				.ToArray();
+		}
+	
+		public static Abwesenheiten_zum_Stichtag_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Abwesenheiten_zum_Stichtag_V1, byte[]> Decode(byte[] data)
+		{
+			var stichtag = Datum.Decode(data);
+			var mandant = UUID.Decode(stichtag.Item2);
+			return new ValueTuple<Abwesenheiten_zum_Stichtag_V1, byte[]>(
+				new Abwesenheiten_zum_Stichtag_V1(stichtag.Item1, mandant.Item1),
+				mandant.Item2);
+		}
+	}
+
+	public readonly struct Dienstbuchungen_zum_Stichtag_V1 : Query
+	{
+		public readonly Datum Stichtag;
+		public readonly UUID Mandant;
+	
+		public Dienstbuchungen_zum_Stichtag_V1(Datum stichtag, UUID mandant)
+		{
+			Stichtag = stichtag;
+			Mandant = mandant;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Stichtag.Encoded()
+				.Concat(Mandant.Encoded())
+				.ToArray();
+		}
+	
+		public static Dienstbuchungen_zum_Stichtag_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Dienstbuchungen_zum_Stichtag_V1, byte[]> Decode(byte[] data)
+		{
+			var stichtag = Datum.Decode(data);
+			var mandant = UUID.Decode(stichtag.Item2);
+			return new ValueTuple<Dienstbuchungen_zum_Stichtag_V1, byte[]>(
+				new Dienstbuchungen_zum_Stichtag_V1(stichtag.Item1, mandant.Item1),
+				mandant.Item2);
 		}
 	}
 
@@ -325,36 +353,6 @@ namespace Bare.Msg
 		}
 	}
 
-	public readonly struct Mitarbeiterfotos_V1 : Query_Result
-	{
-		public readonly Mitarbeiterfoto_V1[] Fotos;
-		public readonly Datenstand Stand;
-	
-		public Mitarbeiterfotos_V1(Mitarbeiterfoto_V1[] fotos, Datenstand stand)
-		{
-			Fotos = fotos;
-			Stand = stand;
-		}
-	
-		public byte[] Encoded()
-		{
-			return BareNET.Bare.Encode_list(Fotos, FotosList => FotosList.Encoded())
-				.Concat(Stand.Encoded())
-				.ToArray();
-		}
-	
-		public static Mitarbeiterfotos_V1 Decoded(byte[] data) { return Decode(data).Item1; }
-	
-		public static ValueTuple<Mitarbeiterfotos_V1, byte[]> Decode(byte[] data)
-		{
-			var fotos = BareNET.Bare.Decode_list(data, dataList => Mitarbeiterfoto_V1.Decode(dataList));
-			var stand = Datenstand.Decode(fotos.Item2);
-			return new ValueTuple<Mitarbeiterfotos_V1, byte[]>(
-				new Mitarbeiterfotos_V1(fotos.Item1.ToArray(), stand.Item1),
-				stand.Item2);
-		}
-	}
-
 	public readonly struct Dienste_V1 : Query_Result
 	{
 		public readonly Dienst_V1[] Dienste;
@@ -385,10 +383,60 @@ namespace Bare.Msg
 		}
 	}
 
+	public readonly struct Dienstbuchungen_V1 : Query_Result
+	{
+		public readonly Dienstbuchung_V1[] Value;
+	
+		public Dienstbuchungen_V1(Dienstbuchung_V1[] value)
+		{
+			Value = value;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_list(Value, ValueList => ValueList.Encoded());
+		}
+	
+		public static Dienstbuchungen_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Dienstbuchungen_V1, byte[]> Decode(byte[] data)
+		{
+			var value = BareNET.Bare.Decode_list(data, dataList => Dienstbuchung_V1.Decode(dataList));
+			return new ValueTuple<Dienstbuchungen_V1, byte[]>(
+				new Dienstbuchungen_V1(value.Item1.ToArray()),
+				value.Item2);
+		}
+	}
+
+	public readonly struct Abwesenheiten_V1 : Query_Result
+	{
+		public readonly Abwesenheit_V1[] Value;
+	
+		public Abwesenheiten_V1(Abwesenheit_V1[] value)
+		{
+			Value = value;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_list(Value, ValueList => ValueList.Encoded());
+		}
+	
+		public static Abwesenheiten_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Abwesenheiten_V1, byte[]> Decode(byte[] data)
+		{
+			var value = BareNET.Bare.Decode_list(data, dataList => Abwesenheit_V1.Decode(dataList));
+			return new ValueTuple<Abwesenheiten_V1, byte[]>(
+				new Abwesenheiten_V1(value.Item1.ToArray()),
+				value.Item2);
+		}
+	}
+
 	public readonly struct Mitarbeiter_V1
 	{
 		public readonly UUID Id;
-		public readonly DM7_Mandantenzugehörigkeit_V1[] Mandantenzugehörigkeiten;
+		public readonly DM7_Mandantenzugehoerigkeit_V1[] Mandantenzugehoerigkeiten;
 		public readonly UUID Titel;
 		public readonly string Vorname;
 		public readonly string Nachname;
@@ -402,10 +450,10 @@ namespace Bare.Msg
 		public readonly UUID Geschlecht;
 		public readonly Kontakt_V1[] Kontakte;
 	
-		public Mitarbeiter_V1(UUID id, DM7_Mandantenzugehörigkeit_V1[] mandantenzugehörigkeiten, UUID titel, string vorname, string nachname, Postanschrift_V1? postanschrift, Datum? geburtstag, UUID familienstand, UUID konfession, Qualifikation_V1[] qualifikationen, string handzeichen, string personalnummer, UUID geschlecht, Kontakt_V1[] kontakte)
+		public Mitarbeiter_V1(UUID id, DM7_Mandantenzugehoerigkeit_V1[] mandantenzugehoerigkeiten, UUID titel, string vorname, string nachname, Postanschrift_V1? postanschrift, Datum? geburtstag, UUID familienstand, UUID konfession, Qualifikation_V1[] qualifikationen, string handzeichen, string personalnummer, UUID geschlecht, Kontakt_V1[] kontakte)
 		{
 			Id = id;
-			Mandantenzugehörigkeiten = mandantenzugehörigkeiten;
+			Mandantenzugehoerigkeiten = mandantenzugehoerigkeiten;
 			Titel = titel;
 			Vorname = vorname;
 			Nachname = nachname;
@@ -423,7 +471,7 @@ namespace Bare.Msg
 		public byte[] Encoded()
 		{
 			return Id.Encoded()
-				.Concat(BareNET.Bare.Encode_list(Mandantenzugehörigkeiten, MandantenzugehörigkeitenList => MandantenzugehörigkeitenList.Encoded()))
+				.Concat(BareNET.Bare.Encode_list(Mandantenzugehoerigkeiten, MandantenzugehoerigkeitenList => MandantenzugehoerigkeitenList.Encoded()))
 				.Concat(Titel.Encoded())
 				.Concat(BareNET.Bare.Encode_string(Vorname))
 				.Concat(BareNET.Bare.Encode_string(Nachname))
@@ -444,8 +492,8 @@ namespace Bare.Msg
 		public static ValueTuple<Mitarbeiter_V1, byte[]> Decode(byte[] data)
 		{
 			var id = UUID.Decode(data);
-			var mandantenzugehörigkeiten = BareNET.Bare.Decode_list(id.Item2, idList => DM7_Mandantenzugehörigkeit_V1.Decode(idList));
-			var titel = UUID.Decode(mandantenzugehörigkeiten.Item2);
+			var mandantenzugehoerigkeiten = BareNET.Bare.Decode_list(id.Item2, idList => DM7_Mandantenzugehoerigkeit_V1.Decode(idList));
+			var titel = UUID.Decode(mandantenzugehoerigkeiten.Item2);
 			var vorname = BareNET.Bare.Decode_string(titel.Item2);
 			var nachname = BareNET.Bare.Decode_string(vorname.Item2);
 			var postanschrift = BareNET.Bare.Decode_optional(nachname.Item2, nachnameOpt => Postanschrift_V1.Decode(nachnameOpt));
@@ -458,42 +506,42 @@ namespace Bare.Msg
 			var geschlecht = UUID.Decode(personalnummer.Item2);
 			var kontakte = BareNET.Bare.Decode_list(geschlecht.Item2, geschlechtList => Kontakt_V1.Decode(geschlechtList));
 			return new ValueTuple<Mitarbeiter_V1, byte[]>(
-				new Mitarbeiter_V1(id.Item1, mandantenzugehörigkeiten.Item1.ToArray(), titel.Item1, vorname.Item1, nachname.Item1, postanschrift.Item1, geburtstag.Item1, familienstand.Item1, konfession.Item1, qualifikationen.Item1.ToArray(), handzeichen.Item1, personalnummer.Item1, geschlecht.Item1, kontakte.Item1.ToArray()),
+				new Mitarbeiter_V1(id.Item1, mandantenzugehoerigkeiten.Item1.ToArray(), titel.Item1, vorname.Item1, nachname.Item1, postanschrift.Item1, geburtstag.Item1, familienstand.Item1, konfession.Item1, qualifikationen.Item1.ToArray(), handzeichen.Item1, personalnummer.Item1, geschlecht.Item1, kontakte.Item1.ToArray()),
 				kontakte.Item2);
 		}
 	}
 
-	public readonly struct DM7_Mandantenzugehörigkeit_V1
+	public readonly struct DM7_Mandantenzugehoerigkeit_V1
 	{
 		public readonly UUID Mandantid;
-		public readonly Datum Gültigab;
-		public readonly Datum? Gültigbis;
+		public readonly Datum Gueltigab;
+		public readonly Datum? Gueltigbis;
 	
-		public DM7_Mandantenzugehörigkeit_V1(UUID mandantId, Datum gültigAb, Datum? gültigBis)
+		public DM7_Mandantenzugehoerigkeit_V1(UUID mandantId, Datum gueltigAb, Datum? gueltigBis)
 		{
 			Mandantid = mandantId;
-			Gültigab = gültigAb;
-			Gültigbis = gültigBis;
+			Gueltigab = gueltigAb;
+			Gueltigbis = gueltigBis;
 		}
 	
 		public byte[] Encoded()
 		{
 			return Mandantid.Encoded()
-				.Concat(Gültigab.Encoded())
-				.Concat(BareNET.Bare.Encode_optional<Datum>(Gültigbis, GültigbisOpt => GültigbisOpt.Encoded()))
+				.Concat(Gueltigab.Encoded())
+				.Concat(BareNET.Bare.Encode_optional<Datum>(Gueltigbis, GueltigbisOpt => GueltigbisOpt.Encoded()))
 				.ToArray();
 		}
 	
-		public static DM7_Mandantenzugehörigkeit_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+		public static DM7_Mandantenzugehoerigkeit_V1 Decoded(byte[] data) { return Decode(data).Item1; }
 	
-		public static ValueTuple<DM7_Mandantenzugehörigkeit_V1, byte[]> Decode(byte[] data)
+		public static ValueTuple<DM7_Mandantenzugehoerigkeit_V1, byte[]> Decode(byte[] data)
 		{
 			var mandantId = UUID.Decode(data);
-			var gültigAb = Datum.Decode(mandantId.Item2);
-			var gültigBis = BareNET.Bare.Decode_optional(gültigAb.Item2, gültigAbOpt => Datum.Decode(gültigAbOpt));
-			return new ValueTuple<DM7_Mandantenzugehörigkeit_V1, byte[]>(
-				new DM7_Mandantenzugehörigkeit_V1(mandantId.Item1, gültigAb.Item1, gültigBis.Item1),
-				gültigBis.Item2);
+			var gueltigAb = Datum.Decode(mandantId.Item2);
+			var gueltigBis = BareNET.Bare.Decode_optional(gueltigAb.Item2, gueltigAbOpt => Datum.Decode(gueltigAbOpt));
+			return new ValueTuple<DM7_Mandantenzugehoerigkeit_V1, byte[]>(
+				new DM7_Mandantenzugehoerigkeit_V1(mandantId.Item1, gueltigAb.Item1, gueltigBis.Item1),
+				gueltigBis.Item2);
 		}
 	}
 
@@ -547,17 +595,23 @@ namespace Bare.Msg
 	{
 		public readonly byte Stufe;
 		public readonly string Bezeichnung;
+		public readonly Datum Gueltigab;
+		public readonly Datum? Gueltigbis;
 	
-		public Qualifikation_V1(byte stufe, string bezeichnung)
+		public Qualifikation_V1(byte stufe, string bezeichnung, Datum gueltigAb, Datum? gueltigBis)
 		{
 			Stufe = stufe;
 			Bezeichnung = bezeichnung;
+			Gueltigab = gueltigAb;
+			Gueltigbis = gueltigBis;
 		}
 	
 		public byte[] Encoded()
 		{
 			return BareNET.Bare.Encode_u8(Stufe)
 				.Concat(BareNET.Bare.Encode_string(Bezeichnung))
+				.Concat(Gueltigab.Encoded())
+				.Concat(BareNET.Bare.Encode_optional<Datum>(Gueltigbis, GueltigbisOpt => GueltigbisOpt.Encoded()))
 				.ToArray();
 		}
 	
@@ -567,9 +621,11 @@ namespace Bare.Msg
 		{
 			var stufe = BareNET.Bare.Decode_u8(data);
 			var bezeichnung = BareNET.Bare.Decode_string(stufe.Item2);
+			var gueltigAb = Datum.Decode(bezeichnung.Item2);
+			var gueltigBis = BareNET.Bare.Decode_optional(gueltigAb.Item2, gueltigAbOpt => Datum.Decode(gueltigAbOpt));
 			return new ValueTuple<Qualifikation_V1, byte[]>(
-				new Qualifikation_V1(stufe.Item1, bezeichnung.Item1),
-				bezeichnung.Item2);
+				new Qualifikation_V1(stufe.Item1, bezeichnung.Item1, gueltigAb.Item1, gueltigBis.Item1),
+				gueltigBis.Item2);
 		}
 	}
 
@@ -607,72 +663,39 @@ namespace Bare.Msg
 		}
 	}
 
-	public readonly struct Mitarbeiterfoto_V1
-	{
-		public readonly UUID Mitarbeiter;
-		public readonly byte[] Foto;
-	
-		public Mitarbeiterfoto_V1(UUID mitarbeiter, byte[] foto)
-		{
-			Mitarbeiter = mitarbeiter;
-			Foto = foto;
-		}
-	
-		public byte[] Encoded()
-		{
-			return Mitarbeiter.Encoded()
-				.Concat(BareNET.Bare.Encode_data(Foto))
-				.ToArray();
-		}
-	
-		public static Mitarbeiterfoto_V1 Decoded(byte[] data) { return Decode(data).Item1; }
-	
-		public static ValueTuple<Mitarbeiterfoto_V1, byte[]> Decode(byte[] data)
-		{
-			var mitarbeiter = UUID.Decode(data);
-			var foto = BareNET.Bare.Decode_data(mitarbeiter.Item2);
-			return new ValueTuple<Mitarbeiterfoto_V1, byte[]>(
-				new Mitarbeiterfoto_V1(mitarbeiter.Item1, foto.Item1),
-				foto.Item2);
-		}
-	}
-
 	public readonly struct Dienst_V1
 	{
 		public readonly ulong Id;
-		public readonly UUID Mandant;
+		public readonly DM7_Mandantenzugehoerigkeit_V1[] Mandantenzugehoerigkeiten;
 		public readonly string Kurzbezeichnung;
 		public readonly string Bezeichnung;
-		public readonly Datum Gültigab;
-		public readonly Datum? Gültibbis;
-		public readonly Uhrzeit Beginn;
-		public readonly Dienst_Gültigkeit_V1 Gültigan;
-		public readonly bool Gelöscht;
+		public readonly Datum Gueltigab;
+		public readonly Datum? Gueltibbis;
+		public readonly Dienst_Gueltigkeit_V1 Gueltigan;
+		public readonly bool Geloescht;
 	
-		public Dienst_V1(ulong id, UUID mandant, string kurzbezeichnung, string bezeichnung, Datum gültigAb, Datum? gültibBis, Uhrzeit beginn, Dienst_Gültigkeit_V1 gültigAn, bool gelöscht)
+		public Dienst_V1(ulong id, DM7_Mandantenzugehoerigkeit_V1[] mandantenzugehoerigkeiten, string kurzbezeichnung, string bezeichnung, Datum gueltigAb, Datum? gueltibBis, Dienst_Gueltigkeit_V1 gueltigAn, bool geloescht)
 		{
 			Id = id;
-			Mandant = mandant;
+			Mandantenzugehoerigkeiten = mandantenzugehoerigkeiten;
 			Kurzbezeichnung = kurzbezeichnung;
 			Bezeichnung = bezeichnung;
-			Gültigab = gültigAb;
-			Gültibbis = gültibBis;
-			Beginn = beginn;
-			Gültigan = gültigAn;
-			Gelöscht = gelöscht;
+			Gueltigab = gueltigAb;
+			Gueltibbis = gueltibBis;
+			Gueltigan = gueltigAn;
+			Geloescht = geloescht;
 		}
 	
 		public byte[] Encoded()
 		{
 			return BareNET.Bare.Encode_uint(Id)
-				.Concat(Mandant.Encoded())
+				.Concat(BareNET.Bare.Encode_list(Mandantenzugehoerigkeiten, MandantenzugehoerigkeitenList => MandantenzugehoerigkeitenList.Encoded()))
 				.Concat(BareNET.Bare.Encode_string(Kurzbezeichnung))
 				.Concat(BareNET.Bare.Encode_string(Bezeichnung))
-				.Concat(Gültigab.Encoded())
-				.Concat(BareNET.Bare.Encode_optional<Datum>(Gültibbis, GültibbisOpt => GültibbisOpt.Encoded()))
-				.Concat(Beginn.Encoded())
-				.Concat(Gültigan.Encoded())
-				.Concat(BareNET.Bare.Encode_bool(Gelöscht))
+				.Concat(Gueltigab.Encoded())
+				.Concat(BareNET.Bare.Encode_optional<Datum>(Gueltibbis, GueltibbisOpt => GueltibbisOpt.Encoded()))
+				.Concat(Gueltigan.Encoded())
+				.Concat(BareNET.Bare.Encode_bool(Geloescht))
 				.ToArray();
 		}
 	
@@ -681,21 +704,20 @@ namespace Bare.Msg
 		public static ValueTuple<Dienst_V1, byte[]> Decode(byte[] data)
 		{
 			var id = BareNET.Bare.Decode_uint(data);
-			var mandant = UUID.Decode(id.Item2);
-			var kurzbezeichnung = BareNET.Bare.Decode_string(mandant.Item2);
+			var mandantenzugehoerigkeiten = BareNET.Bare.Decode_list(id.Item2, idList => DM7_Mandantenzugehoerigkeit_V1.Decode(idList));
+			var kurzbezeichnung = BareNET.Bare.Decode_string(mandantenzugehoerigkeiten.Item2);
 			var bezeichnung = BareNET.Bare.Decode_string(kurzbezeichnung.Item2);
-			var gültigAb = Datum.Decode(bezeichnung.Item2);
-			var gültibBis = BareNET.Bare.Decode_optional(gültigAb.Item2, gültigAbOpt => Datum.Decode(gültigAbOpt));
-			var beginn = Uhrzeit.Decode(gültibBis.Item2);
-			var gültigAn = Dienst_Gültigkeit_V1.Decode(beginn.Item2);
-			var gelöscht = BareNET.Bare.Decode_bool(gültigAn.Item2);
+			var gueltigAb = Datum.Decode(bezeichnung.Item2);
+			var gueltibBis = BareNET.Bare.Decode_optional(gueltigAb.Item2, gueltigAbOpt => Datum.Decode(gueltigAbOpt));
+			var gueltigAn = Dienst_Gueltigkeit_V1.Decode(gueltibBis.Item2);
+			var geloescht = BareNET.Bare.Decode_bool(gueltigAn.Item2);
 			return new ValueTuple<Dienst_V1, byte[]>(
-				new Dienst_V1(id.Item1, mandant.Item1, kurzbezeichnung.Item1, bezeichnung.Item1, gültigAb.Item1, gültibBis.Item1, beginn.Item1, gültigAn.Item1, gelöscht.Item1),
-				gelöscht.Item2);
+				new Dienst_V1(id.Item1, mandantenzugehoerigkeiten.Item1.ToArray(), kurzbezeichnung.Item1, bezeichnung.Item1, gueltigAb.Item1, gueltibBis.Item1, gueltigAn.Item1, geloescht.Item1),
+				geloescht.Item2);
 		}
 	}
 
-	public readonly struct Dienst_Gültigkeit_V1
+	public readonly struct Dienst_Gueltigkeit_V1
 	{
 		public readonly bool Montag;
 		public readonly bool Dienstag;
@@ -706,7 +728,7 @@ namespace Bare.Msg
 		public readonly bool Sonntag;
 		public readonly bool Feiertags;
 	
-		public Dienst_Gültigkeit_V1(bool montag, bool dienstag, bool mittwoch, bool donnerstag, bool freitag, bool samstag, bool sonntag, bool feiertags)
+		public Dienst_Gueltigkeit_V1(bool montag, bool dienstag, bool mittwoch, bool donnerstag, bool freitag, bool samstag, bool sonntag, bool feiertags)
 		{
 			Montag = montag;
 			Dienstag = dienstag;
@@ -731,9 +753,9 @@ namespace Bare.Msg
 				.ToArray();
 		}
 	
-		public static Dienst_Gültigkeit_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+		public static Dienst_Gueltigkeit_V1 Decoded(byte[] data) { return Decode(data).Item1; }
 	
-		public static ValueTuple<Dienst_Gültigkeit_V1, byte[]> Decode(byte[] data)
+		public static ValueTuple<Dienst_Gueltigkeit_V1, byte[]> Decode(byte[] data)
 		{
 			var montag = BareNET.Bare.Decode_bool(data);
 			var dienstag = BareNET.Bare.Decode_bool(montag.Item2);
@@ -743,10 +765,92 @@ namespace Bare.Msg
 			var samstag = BareNET.Bare.Decode_bool(freitag.Item2);
 			var sonntag = BareNET.Bare.Decode_bool(samstag.Item2);
 			var feiertags = BareNET.Bare.Decode_bool(sonntag.Item2);
-			return new ValueTuple<Dienst_Gültigkeit_V1, byte[]>(
-				new Dienst_Gültigkeit_V1(montag.Item1, dienstag.Item1, mittwoch.Item1, donnerstag.Item1, freitag.Item1, samstag.Item1, sonntag.Item1, feiertags.Item1),
+			return new ValueTuple<Dienst_Gueltigkeit_V1, byte[]>(
+				new Dienst_Gueltigkeit_V1(montag.Item1, dienstag.Item1, mittwoch.Item1, donnerstag.Item1, freitag.Item1, samstag.Item1, sonntag.Item1, feiertags.Item1),
 				feiertags.Item2);
 		}
+	}
+
+	public readonly struct Dienstbuchung_V1
+	{
+		public readonly UUID Mitarbeiter;
+		public readonly long Dienst;
+		public readonly Uhrzeit Beginntum;
+	
+		public Dienstbuchung_V1(UUID mitarbeiter, long dienst, Uhrzeit beginntUm)
+		{
+			Mitarbeiter = mitarbeiter;
+			Dienst = dienst;
+			Beginntum = beginntUm;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Mitarbeiter.Encoded()
+				.Concat(BareNET.Bare.Encode_int(Dienst))
+				.Concat(Beginntum.Encoded())
+				.ToArray();
+		}
+	
+		public static Dienstbuchung_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Dienstbuchung_V1, byte[]> Decode(byte[] data)
+		{
+			var mitarbeiter = UUID.Decode(data);
+			var dienst = BareNET.Bare.Decode_int(mitarbeiter.Item2);
+			var beginntUm = Uhrzeit.Decode(dienst.Item2);
+			return new ValueTuple<Dienstbuchung_V1, byte[]>(
+				new Dienstbuchung_V1(mitarbeiter.Item1, dienst.Item1, beginntUm.Item1),
+				beginntUm.Item2);
+		}
+	}
+
+	public readonly struct Abwesenheit_V1
+	{
+		public readonly UUID Mitarbeiter;
+		public readonly Zeitpunkt Abwesendab;
+		public readonly Zeitpunkt Vorraussichtlichwiederverfuegbarab;
+		public readonly string Grund;
+		public readonly Abwesenheitsart_V1 Art;
+	
+		public Abwesenheit_V1(UUID mitarbeiter, Zeitpunkt abwesendAb, Zeitpunkt vorraussichtlichWiederVerfuegbarAb, string grund, Abwesenheitsart_V1 art)
+		{
+			Mitarbeiter = mitarbeiter;
+			Abwesendab = abwesendAb;
+			Vorraussichtlichwiederverfuegbarab = vorraussichtlichWiederVerfuegbarAb;
+			Grund = grund;
+			Art = art;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Mitarbeiter.Encoded()
+				.Concat(Abwesendab.Encoded())
+				.Concat(Vorraussichtlichwiederverfuegbarab.Encoded())
+				.Concat(BareNET.Bare.Encode_string(Grund))
+				.Concat(Encoding.Abwesenheitsart_V1_Encoded(Art))
+				.ToArray();
+		}
+	
+		public static Abwesenheit_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Abwesenheit_V1, byte[]> Decode(byte[] data)
+		{
+			var mitarbeiter = UUID.Decode(data);
+			var abwesendAb = Zeitpunkt.Decode(mitarbeiter.Item2);
+			var vorraussichtlichWiederVerfuegbarAb = Zeitpunkt.Decode(abwesendAb.Item2);
+			var grund = BareNET.Bare.Decode_string(vorraussichtlichWiederVerfuegbarAb.Item2);
+			var art = Encoding.Decode_Abwesenheitsart_V1(grund.Item2);
+			return new ValueTuple<Abwesenheit_V1, byte[]>(
+				new Abwesenheit_V1(mitarbeiter.Item1, abwesendAb.Item1, vorraussichtlichWiederVerfuegbarAb.Item1, grund.Item1, art.Item1),
+				art.Item2);
+		}
+	}
+
+	public enum Abwesenheitsart_V1
+	{
+		FEHLZEIT,
+		ANDERSWEITIG_VERPLANT
 	}
 
 	public readonly struct UUID
@@ -839,6 +943,36 @@ namespace Bare.Msg
 		}
 	}
 
+	public readonly struct Zeitpunkt
+	{
+		public readonly Datum Datum;
+		public readonly Uhrzeit Uhrzeit;
+	
+		public Zeitpunkt(Datum datum, Uhrzeit uhrzeit)
+		{
+			Datum = datum;
+			Uhrzeit = uhrzeit;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Datum.Encoded()
+				.Concat(Uhrzeit.Encoded())
+				.ToArray();
+		}
+	
+		public static Zeitpunkt Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Zeitpunkt, byte[]> Decode(byte[] data)
+		{
+			var datum = Datum.Decode(data);
+			var uhrzeit = Uhrzeit.Decode(datum.Item2);
+			return new ValueTuple<Zeitpunkt, byte[]>(
+				new Zeitpunkt(datum.Item1, uhrzeit.Item1),
+				uhrzeit.Item2);
+		}
+	}
+
 	public readonly struct Datenstand
 	{
 		public readonly ulong Value;
@@ -912,10 +1046,10 @@ namespace Bare.Msg
 			BareNET.Union<Query>.Register()
 				.With_Case<Mitarbeiter_abrufen_V1>(v => ((Mitarbeiter_abrufen_V1) v).Encoded(), d => { var decoded = Mitarbeiter_abrufen_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<Mitarbeiter_abrufen_ab_V1>(v => ((Mitarbeiter_abrufen_ab_V1) v).Encoded(), d => { var decoded = Mitarbeiter_abrufen_ab_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
-				.With_Case<Mitarbeiterfotos_abrufen_V1>(v => ((Mitarbeiterfotos_abrufen_V1) v).Encoded(), d => { var decoded = Mitarbeiterfotos_abrufen_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
-				.With_Case<Mitarbeiterfotos_abrufen_ab_V1>(v => ((Mitarbeiterfotos_abrufen_ab_V1) v).Encoded(), d => { var decoded = Mitarbeiterfotos_abrufen_ab_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<Dienste_abrufen_V1>(v => ((Dienste_abrufen_V1) v).Encoded(), d => { var decoded = Dienste_abrufen_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
-				.With_Case<Dienste_abrufen_ab_V1>(v => ((Dienste_abrufen_ab_V1) v).Encoded(), d => { var decoded = Dienste_abrufen_ab_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); });
+				.With_Case<Dienste_abrufen_ab_V1>(v => ((Dienste_abrufen_ab_V1) v).Encoded(), d => { var decoded = Dienste_abrufen_ab_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Dienstbuchungen_zum_Stichtag_V1>(v => ((Dienstbuchungen_zum_Stichtag_V1) v).Encoded(), d => { var decoded = Dienstbuchungen_zum_Stichtag_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Abwesenheiten_zum_Stichtag_V1>(v => ((Abwesenheiten_zum_Stichtag_V1) v).Encoded(), d => { var decoded = Abwesenheiten_zum_Stichtag_V1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); });
 		
 		public static byte[] Query_Encoded(Query value)
 		{
@@ -935,10 +1069,11 @@ namespace Bare.Msg
 
 		private static readonly BareNET.Union<Query_Result> _Query_Result =
 			BareNET.Union<Query_Result>.Register()
+				.With_Case<IO_Fehler>(v => ((IO_Fehler) v).Encoded(), d => { var decoded = IO_Fehler.Decode(d); return new ValueTuple<Query_Result, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<Mitarbeiterliste_V1>(v => ((Mitarbeiterliste_V1) v).Encoded(), d => { var decoded = Mitarbeiterliste_V1.Decode(d); return new ValueTuple<Query_Result, byte[]>(decoded.Item1, decoded.Item2); })
-				.With_Case<Mitarbeiterfotos_V1>(v => ((Mitarbeiterfotos_V1) v).Encoded(), d => { var decoded = Mitarbeiterfotos_V1.Decode(d); return new ValueTuple<Query_Result, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<Dienste_V1>(v => ((Dienste_V1) v).Encoded(), d => { var decoded = Dienste_V1.Decode(d); return new ValueTuple<Query_Result, byte[]>(decoded.Item1, decoded.Item2); })
-				.With_Case<IO_Fehler>(v => ((IO_Fehler) v).Encoded(), d => { var decoded = IO_Fehler.Decode(d); return new ValueTuple<Query_Result, byte[]>(decoded.Item1, decoded.Item2); });
+				.With_Case<Dienstbuchungen_V1>(v => ((Dienstbuchungen_V1) v).Encoded(), d => { var decoded = Dienstbuchungen_V1.Decode(d); return new ValueTuple<Query_Result, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Abwesenheiten_V1>(v => ((Abwesenheiten_V1) v).Encoded(), d => { var decoded = Abwesenheiten_V1.Decode(d); return new ValueTuple<Query_Result, byte[]>(decoded.Item1, decoded.Item2); });
 		
 		public static byte[] Query_Result_Encoded(Query_Result value)
 		{
@@ -953,6 +1088,22 @@ namespace Bare.Msg
 		public static ValueTuple<Query_Result, byte[]> Decode_Query_Result(byte[] data)
 		{
 			return BareNET.Bare.Decode_union<Query_Result>(data, _Query_Result);
+		}
+
+
+		public static byte[] Abwesenheitsart_V1_Encoded(Abwesenheitsart_V1 value)
+		{
+			return BareNET.Bare.Encode_enum(value);
+		}
+		
+		public static Abwesenheitsart_V1 Abwesenheitsart_V1_Decoded(byte[] data)
+		{
+			return Decode_Abwesenheitsart_V1(data).Item1;
+		}
+		
+		public static ValueTuple<Abwesenheitsart_V1, byte[]> Decode_Abwesenheitsart_V1(byte[] data)
+		{
+			return BareNET.Bare.Decode_enum<Abwesenheitsart_V1>(data);
 		}
 	}
 }

@@ -18,7 +18,8 @@ namespace DM7_PPLUS_Integration.Implementierung
 
         private readonly List<Dienst> _dienste = new List<Dienst>();
         private readonly List<Mitarbeiter> _mitarbeiter = new List<Mitarbeiter>();
-        private readonly List<Mitarbeiterfoto> _mitarbeiterfotos = new List<Mitarbeiterfoto>();
+        private readonly Dictionary<(Guid mandant, Datum tag), List<Dienstbuchung>> _dienstbuchungen = new Dictionary<(Guid, Datum), List<Dienstbuchung>>();
+        private readonly Dictionary<Guid, List<Abwesenheit>> _abwesenheiten = new Dictionary<Guid, List<Abwesenheit>>();
         private string _user = "anonymous";
         private string _password = "password";
 
@@ -38,10 +39,34 @@ namespace DM7_PPLUS_Integration.Implementierung
             return this;
         }
 
-        public Test_Server Mit_Mitarbeiterfotos(params Mitarbeiterfoto[] mitarbeiterfotos)
+        public Test_Server Mit_Dienstbuchungen_für(Guid mandant, Datum tag, params Dienstbuchung[] dienstbuchungen)
         {
-            _mitarbeiterfotos.Clear();
-            _mitarbeiterfotos.AddRange(mitarbeiterfotos);
+            var key = (mandant, tag);
+            if (_dienstbuchungen.ContainsKey(key))
+            {
+                _dienstbuchungen[key].Clear();
+                _dienstbuchungen[key].AddRange(dienstbuchungen);
+            }
+            else
+            {
+                _dienstbuchungen.Add(key, dienstbuchungen.ToList());
+            }
+
+            return this;
+        }
+
+        public Test_Server Mit_Abwesenheiten_für(Guid mandant, params Abwesenheit[] abwesenheiten)
+        {
+            if (_abwesenheiten.ContainsKey(mandant))
+            {
+                _abwesenheiten[mandant].Clear();
+                _abwesenheiten[mandant].AddRange(abwesenheiten);
+            }
+            else
+            {
+                _abwesenheiten.Add(mandant, abwesenheiten.ToList());
+            }
+
             return this;
         }
 
@@ -54,7 +79,7 @@ namespace DM7_PPLUS_Integration.Implementierung
 
         public Test_Host Start(string adresse, int port, out string encryptionKey)
         {
-            var backend = new Test_PPLUS_Handler(_user, _password, _mitarbeiter, _mitarbeiterfotos, _dienste);
+            var backend = new Test_PPLUS_Handler(_user, _password, _mitarbeiter, _dienste, _dienstbuchungen, _abwesenheiten);
             encryptionKey = Encryption.Generate_encoded_Key();
             return new Test_Host(backend, adresse, port, encryptionKey);
         }
@@ -78,16 +103,24 @@ namespace DM7_PPLUS_Integration.Implementierung
         private readonly string _password;
         private Token? _token;
         private readonly List<Daten_mit_Version<Mitarbeiter>> _mitarbeiter;
-        private readonly List<Daten_mit_Version<Mitarbeiterfoto>> _mitarbeiterfotos;
         private readonly List<Daten_mit_Version<Dienst>> _dienste;
+        private readonly Dictionary<(Guid mandant, Datum tag), List<Dienstbuchung>> _dienstbuchungen;
+        private readonly Dictionary<Guid, List<Abwesenheit>> _abwesenheiten;
 
-        public Test_PPLUS_Handler(string user, string password, IEnumerable<Mitarbeiter> mitarbeiter, IEnumerable<Mitarbeiterfoto> fotos, IEnumerable<Dienst> dienste)
+        public Test_PPLUS_Handler(
+            string user,
+            string password,
+            IEnumerable<Mitarbeiter> mitarbeiter,
+            IEnumerable<Dienst> dienste,
+            Dictionary<(Guid mandant, Datum tag), List<Dienstbuchung>> dienstbuchungen,
+            Dictionary<Guid, List<Abwesenheit>> abwesenheiten)
         {
             _user = user;
             _password = password;
             _mitarbeiter = mitarbeiter.Select(_ => new Daten_mit_Version<Mitarbeiter>(_, 1)).ToList();
-            _mitarbeiterfotos = fotos.Select(_ => new Daten_mit_Version<Mitarbeiterfoto>(_, 1)).ToList();
             _dienste = dienste.Select(_ => new Daten_mit_Version<Dienst>(_, 1)).ToList();
+            _dienstbuchungen = dienstbuchungen;
+            _abwesenheiten = abwesenheiten;
         }
 
         public void Dienste_setzen(IEnumerable<Dienst> dienste)
@@ -118,12 +151,11 @@ namespace DM7_PPLUS_Integration.Implementierung
         {
             return new Dienst(
                 dienst.Id,
-                dienst.Mandant,
+                dienst.Mandantenzugehörigkeiten,
                 dienst.Kurzbezeichnung,
                 dienst.Bezeichnung,
                 dienst.Gültig_ab,
                 dienst.Gültig_bis,
-                dienst.Beginn,
                 dienst.Gültig_an,
                 true
             );
@@ -182,26 +214,6 @@ namespace DM7_PPLUS_Integration.Implementierung
             );
         }
 
-        public void Mitarbeiterfotos_setzen(IEnumerable<Mitarbeiterfoto> mitarbeiterfotos)
-        {
-            var nächste_Version = Nächste_Version(_mitarbeiterfotos);
-            _mitarbeiterfotos.Clear();
-            _mitarbeiterfotos.AddRange(mitarbeiterfotos.Select(_ =>
-                new Daten_mit_Version<Mitarbeiterfoto>(_, nächste_Version)));
-        }
-
-        public void Mitarbeiterfotos_hinzufügen(IEnumerable<Mitarbeiterfoto> mitarbeiterfotos)
-        {
-            var nächste_Version = Nächste_Version(_mitarbeiterfotos);
-            _mitarbeiterfotos.AddRange(mitarbeiterfotos.Select(_ =>
-                new Daten_mit_Version<Mitarbeiterfoto>(_, nächste_Version)));
-        }
-
-        public void Mitarbeiterfoto_löschen(Guid mitarbeiter)
-        {
-            _mitarbeiterfotos.RemoveAll(_ => _.Data.Mitarbeiter == mitarbeiter);
-        }
-
         public Stammdaten<Mitarbeiter> Mitarbeiter_abrufen()
         {
             return new Stammdaten<Mitarbeiter>(_mitarbeiter.Select(_ => _.Data).ToList(),
@@ -218,22 +230,6 @@ namespace DM7_PPLUS_Integration.Implementierung
             return new Stammdaten<Mitarbeiter>(mitarbeiter, Höchster_Datenstand(_mitarbeiter));
         }
 
-        public Stammdaten<Mitarbeiterfoto> Mitarbeiterfotos_abrufen()
-        {
-            return new Stammdaten<Mitarbeiterfoto>(_mitarbeiterfotos.Select(_ => _.Data).ToList(),
-                Höchster_Datenstand(_mitarbeiterfotos));
-        }
-
-        public Stammdaten<Mitarbeiterfoto> Mitarbeiterfotos_abrufen_ab(Datenstand stand)
-        {
-            var fotos =
-                _mitarbeiterfotos
-                    .Where(_ => _.Version > stand.Value)
-                    .Select(_ => _.Data)
-                    .ToList();
-            return new Stammdaten<Mitarbeiterfoto>(fotos, Höchster_Datenstand(_mitarbeiterfotos));
-        }
-
         public Stammdaten<Dienst> Dienste_abrufen()
         {
             return new Stammdaten<Dienst>(_dienste.Select(_ => _.Data).ToList(), Höchster_Datenstand(_dienste));
@@ -247,6 +243,84 @@ namespace DM7_PPLUS_Integration.Implementierung
                     .Select(_ => _.Data)
                     .ToList();
             return new Stammdaten<Dienst>(dienste, Höchster_Datenstand(_dienste));
+        }
+
+        public List<(Guid MandantId, Datum datum, Dienstbuchung dienstbuchung)> Dienstbuchungen_abrufen()
+        {
+            return _dienstbuchungen
+                .SelectMany(kv => kv.Value.Select(buchung => (kv.Key.mandant, kv.Key.tag, buchung)))
+                .ToList();
+        }
+
+        public List<(Guid MandantId, Abwesenheit abwesenheit)> Abwesenheiten_abrufen()
+        {
+            return _abwesenheiten
+                .SelectMany(kv => kv.Value.Select(abwesenheit => (kv.Key, abwesenheit)))
+                .ToList();
+        }
+
+        private ReadOnlyCollection<Dienstbuchung> Dienstbuchungen_zum_Stichtag(Guid mandant, Datum stichtag)
+        {
+            var key = (mandant, stichtag);
+            return _dienstbuchungen.ContainsKey(key)
+                ? new ReadOnlyCollection<Dienstbuchung>(_dienstbuchungen[key])
+                : new ReadOnlyCollection<Dienstbuchung>(new List<Dienstbuchung>());
+        }
+
+        public void Dienstbuchungen_leeren()
+        {
+            _dienstbuchungen.Clear();
+        }
+
+        public void Dienstbuchungen_hinzufügen(Guid mandant, Datum tag, IEnumerable<Dienstbuchung> dienstbuchungen)
+        {
+            var key = (mandant, tag);
+            if (_dienstbuchungen.ContainsKey(key))
+            {
+                _dienstbuchungen[key].AddRange(dienstbuchungen);
+            }
+            else
+            {
+                _dienstbuchungen.Add(key, dienstbuchungen.ToList());
+            }
+        }
+
+        public void Dienst_streichen(Guid mandant, Datum tag, int dienst)
+        {
+            var key = (mandant, tag);
+            if (_dienstbuchungen.ContainsKey(key)) _dienstbuchungen[key].RemoveAll(buchung => buchung.DienstId == dienst);
+        }
+
+        private ReadOnlyCollection<Abwesenheit> Abwesenheiten_zum_Stichtag(Guid mandant, Datum stichtag)
+        {
+            var stichtagDateTime = new DateTime(stichtag.Jahr, stichtag.Monat, stichtag.Tag);
+            bool Gilt_an_Stichtag(Abwesenheit abwesenheit)
+            {
+                var von = new DateTime(abwesenheit.Abwesend_ab.Datum.Jahr, abwesenheit.Abwesend_ab.Datum.Monat, abwesenheit.Abwesend_ab.Datum.Tag);
+                var bis = new DateTime(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Datum.Jahr, abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Datum.Monat, abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Datum.Tag);
+                return von <= stichtagDateTime && stichtagDateTime <= bis;
+            }
+
+            var abwesenheiten =
+                _abwesenheiten.ContainsKey(mandant)
+                    ? _abwesenheiten[mandant].Where(Gilt_an_Stichtag).ToList()
+                    : new List<Abwesenheit>();
+            return new ReadOnlyCollection<Abwesenheit>(abwesenheiten);
+        }
+
+        public void Abwesenheiten_leeren()
+        {
+            _abwesenheiten.Clear();
+        }
+
+        public void Abwesenheiten_eintragen(Guid mandant, IEnumerable<Abwesenheit> abwesenheiten)
+        {
+            if (_abwesenheiten.ContainsKey(mandant)) _abwesenheiten[mandant].AddRange(abwesenheiten);
+        }
+
+        public void Abwesenheiten_streichen_von(Guid mandant, Guid mitarbeiter)
+        {
+            if (_abwesenheiten.ContainsKey(mandant)) _abwesenheiten[mandant].RemoveAll(abwesenheit => abwesenheit.MitarbeiterId == mitarbeiter);
         }
 
         private static Datenstand Höchster_Datenstand<T>(List<Daten_mit_Version<T>> daten) =>
@@ -288,17 +362,17 @@ namespace DM7_PPLUS_Integration.Implementierung
                     case Mitarbeiter_abrufen_ab_V1 q:
                         return Message_mapper.Mitarbeiterstammdaten_als_Message(Mitarbeiter_abrufen_ab(Message_mapper.Stand_aus(q.Value)));
 
-                    case Mitarbeiterfotos_abrufen_V1 _:
-                        return Message_mapper.Mitarbeiterfotos_als_Message(Mitarbeiterfotos_abrufen());
-
-                    case Mitarbeiterfotos_abrufen_ab_V1 q:
-                        return Message_mapper.Mitarbeiterfotos_als_Message(Mitarbeiterfotos_abrufen_ab(Message_mapper.Stand_aus(q.Value)));
-
                     case Dienste_abrufen_V1 _:
                         return Message_mapper.Dienste_als_Message(Dienste_abrufen());
 
                     case Dienste_abrufen_ab_V1 q:
                         return Message_mapper.Dienste_als_Message(Dienste_abrufen_ab(Message_mapper.Stand_aus(q.Value)));
+
+                    case Dienstbuchungen_zum_Stichtag_V1 q:
+                        return Message_mapper.Dienstbuchungen_als_Message(Dienstbuchungen_zum_Stichtag(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Stichtag)));
+
+                    case Abwesenheiten_zum_Stichtag_V1 q:
+                        return Message_mapper.Abwesenheiten_als_Message(Abwesenheiten_zum_Stichtag(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Stichtag)));
 
                     default:
                         return new IO_Fehler($"Query '{query.GetType()}' nicht behandelt");
@@ -344,21 +418,6 @@ namespace DM7_PPLUS_Integration.Implementierung
             _pplusHandler.Mitarbeiter_austreten_zum(austrittsdatum, mitarbeiter);
         }
 
-        public void Mitarbeiterfotos_setzen(params Mitarbeiterfoto[] mitarbeiterfotos)
-        {
-            _pplusHandler.Mitarbeiterfotos_setzen(mitarbeiterfotos);
-        }
-
-        public void Mitarbeiterfotos_hinzufügen(params Mitarbeiterfoto[] mitarbeiterfotos)
-        {
-            _pplusHandler.Mitarbeiterfotos_hinzufügen(mitarbeiterfotos);
-        }
-
-        public void Mitarbeiterfoto_löschen(Guid mitarbeiter)
-        {
-            _pplusHandler.Mitarbeiterfoto_löschen(mitarbeiter);
-        }
-
         public void Dienst_löschen(int dienstId)
         {
             _pplusHandler.Dienst_löschen(dienstId);
@@ -374,9 +433,42 @@ namespace DM7_PPLUS_Integration.Implementierung
             _pplusHandler.Dienste_setzen(dienste);
         }
 
+        public void Dienstbuchungen_setzen(Guid mandantId, Datum datum, params Dienstbuchung[] dienstbuchungen)
+        {
+            _pplusHandler.Dienstbuchungen_leeren();
+            _pplusHandler.Dienstbuchungen_hinzufügen(mandantId, datum, dienstbuchungen);
+        }
+
+        public void Dienste_buchen(Guid mandantId, Datum datum, params Dienstbuchung[] dienstbuchungen)
+        {
+            _pplusHandler.Dienstbuchungen_hinzufügen(mandantId, datum, dienstbuchungen);
+        }
+
+        public void Dienst_streichen(Guid mandantId, Datum tag, int dienstId)
+        {
+            _pplusHandler.Dienst_streichen(mandantId, tag, dienstId);
+        }
+
+        public void Abwesenheiten_setzen(Guid mandantId, params Abwesenheit[] abwesenheiten)
+        {
+            _pplusHandler.Abwesenheiten_leeren();
+            _pplusHandler.Abwesenheiten_eintragen(mandantId, abwesenheiten);
+        }
+
+        public void Abwesenheiten_eintragen(Guid mandantId, params Abwesenheit[] abwesenheiten)
+        {
+            _pplusHandler.Abwesenheiten_eintragen(mandantId, abwesenheiten);
+        }
+
+        public void Abwesenheiten_streichen_von(Guid mandantId, Guid mitarbeiter)
+        {
+            _pplusHandler.Abwesenheiten_streichen_von(mandantId, mitarbeiter);
+        }
+
         public List<Dienst> Dienste() => _pplusHandler.Dienste_abrufen().ToList();
         public List<Mitarbeiter> Mitarbeiter() => _pplusHandler.Mitarbeiter_abrufen().ToList();
-        public List<Mitarbeiterfoto> Mitarbeiterfotos() => _pplusHandler.Mitarbeiterfotos_abrufen().ToList();
+        public List<(Guid MandantId, Datum datum, Dienstbuchung dienstbuchung)> Dienstbuchungen() => _pplusHandler.Dienstbuchungen_abrufen();
+        public List<(Guid mandantId, Abwesenheit abwesenheit)> Abwesenheiten() => _pplusHandler.Abwesenheiten_abrufen();
 
         public void Dispose()
         {
