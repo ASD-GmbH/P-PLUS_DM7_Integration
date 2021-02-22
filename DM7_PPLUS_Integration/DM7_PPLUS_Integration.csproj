@@ -2,6 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>AppLogger</PackageId>
+    <Version>0.16</Version>
+    <Authors>Marco Heimeshoff, Nils Helmig</Authors>
+    <Company>ASD Personalinformationssysteme GmbH</Company>
+    <summary>Schnittstelle zur Integration von DM7 und P-PLUS</summary>
+    <description>
+      Schnittstelle zur Integration von DM7 und P-PLUS.
+      DM7 bekommt einen Adapter, der die DM7_PPLUS_API implementiert. Darüber kann DM7 Abfragen stellen und wird über Änderungen informiert.
+      Ziel ist es, die Integration beidseitig versionsflexibel zu entwickeln, damit mehrere Stände von P-PLUS und mehrere Stände von DM7 miteinander arbeiten können.
+    </description>
   </PropertyGroup>
 
   <ItemGroup>
