@@ -63,3 +63,5 @@ DM7_PPLUS_Integration/Version.gen.cs
 _deploy/
 _pack/
 DM7_PPLUS_Integration/Properties/Assemblyinfo.gen.cs
+
+.ionide

@@ -1,0 +1,2 @@
+- Increase the <Version> tag in DM7_PPLUS_Integration.csproj
+- run 'build.cmd' via console
