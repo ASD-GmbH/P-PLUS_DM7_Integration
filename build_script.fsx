@@ -123,7 +123,7 @@ Target "BuildInfo" (fun _ ->
     let buildinfo = buildinfo_template.Replace("$$VERSION$$", version);
     write_text_file buildinfo "./DM7_PPLUS_Integration/Version.gen.cs"
     let assemblyinfo = sprintf "[assembly: System.Reflection.AssemblyVersion(\"%s\")]\r\n[assembly: System.Reflection.AssemblyFileVersion(\"%s\")]" pureversion pureversion
-    write_text_file assemblyinfo "./DM7_PPLUS_Integration/Properties/Assemblyinfo.gen.cs"
+    write_text_file assemblyinfo "./DM7_PPLUS_Integration/Assemblyinfo.gen.cs"
 )
 
 Target "Build" ( fun _ ->

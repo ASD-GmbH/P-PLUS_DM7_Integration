@@ -46,7 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DM7_PPLUS_Integration\DM7_PPLUS_Integration.csproj">
-      <Project>{A9E98E9C-A6FE-4E18-B0D8-2A0B0B197F73}</Project>
+      <Project>{a9e98e9c-a6fe-4e18-b0d8-2a0b0b197f73}</Project>
       <Name>DM7_PPLUS_Integration</Name>
     </ProjectReference>
   </ItemGroup>

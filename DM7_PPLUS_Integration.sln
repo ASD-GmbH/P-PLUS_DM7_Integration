@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.31005.135
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo_Implementierung", "Demo_Implementierung\Demo_Implementierung.csproj", "{87D2D1A3-630E-48D4-9CDD-952DC03C8FF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DM7_PPLUS_Integration", "DM7_PPLUS_Integration\DM7_PPLUS_Integration.csproj", "{A9E98E9C-A6FE-4E18-B0D8-2A0B0B197F73}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DM7_PPLUS_Integration", "DM7_PPLUS_Integration\DM7_PPLUS_Integration.csproj", "{A9E98E9C-A6FE-4E18-B0D8-2A0B0B197F73}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{55445FF7-3437-40BE-9197-456428C8ACD9}"
 	ProjectSection(SolutionItems) = preProject
