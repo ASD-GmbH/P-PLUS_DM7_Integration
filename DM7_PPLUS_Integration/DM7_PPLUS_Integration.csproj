@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageId>AppLogger</PackageId>
+    <PackageId>DM7_PPLUS_Integration</PackageId>
     <Version>0.16</Version>
     <Authors>Marco Heimeshoff, Nils Helmig</Authors>
     <Company>ASD Personalinformationssysteme GmbH</Company>
