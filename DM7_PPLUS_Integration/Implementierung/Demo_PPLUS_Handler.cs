@@ -71,5 +71,13 @@ namespace DM7_PPLUS_Integration.Implementierung
         {
             return Task.FromResult<Token?>(Token.Demo());
         }
+
+        public Task<Capabilities> Capabilities()
+        {
+            return Task.FromResult(new Capabilities(new []
+            {
+                Capability.MITARBEITER_V1
+            }));
+        }
     }
 }

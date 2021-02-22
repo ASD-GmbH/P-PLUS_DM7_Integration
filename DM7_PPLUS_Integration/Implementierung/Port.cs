@@ -87,5 +87,21 @@ namespace DM7_PPLUS_Integration.Implementierung
                 }
             });
         }
+
+        public Task<Capabilities> Capabilities()
+        {
+            return Task.Run(() =>
+            {
+                using (var socket = new RequestSocket($"{_address}:{Adapter.Capabilities_Port(_port_range_start) }"))
+                {
+                    _log.Debug("Capabilities laden...");
+                    socket.SendFrameEmpty();
+                    var capabilities = Bare.Msg.Capabilities.Decoded(socket.ReceiveFrameBytes());
+                    _log.Debug("Capabilities geladen:");
+                    foreach (var capability in capabilities.Value) _log.Debug($" - {capability}");
+                    return capabilities;
+                }
+            });
+        }
     }
 }

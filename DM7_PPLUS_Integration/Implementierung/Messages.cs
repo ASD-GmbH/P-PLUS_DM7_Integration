@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 19.02.2021 16:49 //
+// Generated code by BareNET - 22.02.2021 14:16 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
@@ -168,6 +168,39 @@ namespace Bare.Msg
 				new Query_Failed(reason.Item1),
 				reason.Item2);
 		}
+	}
+
+	public readonly struct Capabilities
+	{
+		public readonly Capability[] Value;
+	
+		public Capabilities(Capability[] value)
+		{
+			Value = value;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_list(Value, ValueList => Encoding.Capability_Encoded(ValueList));
+		}
+	
+		public static Capabilities Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Capabilities, byte[]> Decode(byte[] data)
+		{
+			var value = BareNET.Bare.Decode_list(data, dataList => Encoding.Decode_Capability(dataList));
+			return new ValueTuple<Capabilities, byte[]>(
+				new Capabilities(value.Item1.ToArray()),
+				value.Item2);
+		}
+	}
+
+	public enum Capability
+	{
+		MITARBEITER_V1,
+		DIENSTE_V1,
+		DIENSTBUCHUNGEN_V1,
+		ABWESENHEITEN_V1
 	}
 
 	public interface Query { /* Base type of union */ }
@@ -1039,6 +1072,22 @@ namespace Bare.Msg
 		public static ValueTuple<Response_Message, byte[]> Decode_Response_Message(byte[] data)
 		{
 			return BareNET.Bare.Decode_union<Response_Message>(data, _Response_Message);
+		}
+
+
+		public static byte[] Capability_Encoded(Capability value)
+		{
+			return BareNET.Bare.Encode_enum(value);
+		}
+		
+		public static Capability Capability_Decoded(byte[] data)
+		{
+			return Decode_Capability(data).Item1;
+		}
+		
+		public static ValueTuple<Capability, byte[]> Decode_Capability(byte[] data)
+		{
+			return BareNET.Bare.Decode_enum<Capability>(data);
 		}
 
 

@@ -339,10 +339,21 @@ namespace DM7_PPLUS_Integration.Implementierung
             return Task.Run(() =>
             {
                 if (user != _user || _password != password) return null;
-                
+
                 _token = new Token(69);
                 return _token;
             });
+        }
+
+        public Task<Capabilities> Capabilities()
+        {
+            return Task.FromResult(new Capabilities(new []
+            {
+                Capability.MITARBEITER_V1,
+                Capability.DIENSTE_V1,
+                Capability.ABWESENHEITEN_V1,
+                Capability.DIENSTBUCHUNGEN_V1
+            }));
         }
 
         public Task<Query_Result> HandleQuery(Token token, Query query)

@@ -5,7 +5,7 @@ using DM7_PPLUS_Integration.Daten;
 
 namespace DM7_PPLUS_Integration
 {
-    public interface DM7_PPLUS_API : IDisposable
+    public interface DM7_PPLUS_API
     {
         /// <summary>
         /// Vom Server verwendete Version der GUID-basierten Merkmale

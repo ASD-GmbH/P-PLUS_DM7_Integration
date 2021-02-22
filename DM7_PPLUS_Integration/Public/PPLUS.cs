@@ -6,6 +6,8 @@ using Bare.Msg;
 using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DM7_PPLUS_Integration
 {
@@ -42,7 +44,11 @@ namespace DM7_PPLUS_Integration
                 switch (Authenticate(uri, user, password, encryptionKey, log))
                 {
                     case Authenticated authenticated:
+                    {
+                        var (_, missing_capabilities) = Negotiate_capabilities(authenticated.Handler.Capabilities().Result.Value.ToList());
+                        Guard_no_missing_capabilities(missing_capabilities);
                         return new PPLUS(authenticated.Handler, authenticated.Token);
+                    }
 
                     case Not_Authenticated _:
                         throw new AuthenticationException("Nicht authentifiziert");
@@ -53,6 +59,32 @@ namespace DM7_PPLUS_Integration
             });
         }
 
+        private static (List<Capability>, List<string>) Negotiate_capabilities(List<Capability> server_capabilities)
+        {
+            var best_fitting_capabilites = new List<Capability>();
+            var missing_capabilities = new List<string>();
+
+            void Evaluate(string nicht_zutreffend, params Capability[] one_of_this)
+            {
+                foreach (var capability in one_of_this)
+                {
+                    if (server_capabilities.Contains(capability))
+                    {
+                        best_fitting_capabilites.Add(capability);
+                        return;
+                    }
+                }
+                missing_capabilities.Add(nicht_zutreffend);
+            }
+
+            Evaluate("Mitarbeiter Version 1", Capability.MITARBEITER_V1);
+            Evaluate("Dienste Version 1", Capability.DIENSTE_V1);
+            Evaluate("Abwesenheiten Version 1", Capability.ABWESENHEITEN_V1);
+            Evaluate("Dienstbuchungen Version 1", Capability.DIENSTBUCHUNGEN_V1);
+
+            return (best_fitting_capabilites, missing_capabilities);
+        }
+
         private static Authentication_Result Authenticate(Uri uri, string user, string password, string encryptionKey, Log log)
         {
             var pplusHandler = new Port($"{uri.Scheme}://{uri.Host}", uri.Port, encryptionKey, log);
@@ -61,6 +93,11 @@ namespace DM7_PPLUS_Integration
             return token.HasValue
                 ? (Authentication_Result) new Authenticated(pplusHandler, token.Value)
                 : new Not_Authenticated();
+        }
+
+        private static void Guard_no_missing_capabilities(List<string> missing_capabilities)
+        {
+            if (missing_capabilities.Any()) throw new NotSupportedException($"Folgende Capabilities nicht unterstützt: {string.Join(", ", missing_capabilities)}");
         }
 
         private readonly PPLUS_Handler _pplusHandler;
@@ -76,44 +113,80 @@ namespace DM7_PPLUS_Integration
 
         public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen()
         {
-            return Handle_Query<Mitarbeiterliste_V1, Stammdaten<Mitarbeiter>>(
-                new Mitarbeiter_abrufen_V1(),
-                Message_mapper.Mitarbeiterlist_als_Stammdaten);
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities().Result.Value.ToList());
+            Guard_no_missing_capabilities(missing);
+
+            if (best_fitting.Contains(Capability.MITARBEITER_V1))
+                return Handle_Query<Mitarbeiterliste_V1, Stammdaten<Mitarbeiter>>(
+                    new Mitarbeiter_abrufen_V1(),
+                    Message_mapper.Mitarbeiterlist_als_Stammdaten);
+            
+            throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }
 
         public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen_ab(Datenstand stand)
         {
-            return Handle_Query<Mitarbeiterliste_V1, Stammdaten<Mitarbeiter>>(
-                new Mitarbeiter_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand)),
-                Message_mapper.Mitarbeiterlist_als_Stammdaten);
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities().Result.Value.ToList());
+            Guard_no_missing_capabilities(missing);
+
+            if (best_fitting.Contains(Capability.MITARBEITER_V1))
+                return Handle_Query<Mitarbeiterliste_V1, Stammdaten<Mitarbeiter>>(
+                    new Mitarbeiter_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand)),
+                    Message_mapper.Mitarbeiterlist_als_Stammdaten);
+            
+            throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }
 
         public Task<Stammdaten<Dienst>> Dienste_abrufen()
         {
-            return Handle_Query<Dienste_V1, Stammdaten<Dienst>>(
-                new Dienste_abrufen_V1(),
-                Message_mapper.Dienste_als_Stammdaten);
-        }
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities().Result.Value.ToList());
+            Guard_no_missing_capabilities(missing);
 
-        public Task<ReadOnlyCollection<Dienstbuchung>> Dienstbuchungen_zum_Stichtag(Datum stichtag, Guid mandantId)
-        {
-            return Handle_Query<Dienstbuchungen_V1, ReadOnlyCollection<Dienstbuchung>>(
-                new Dienstbuchungen_zum_Stichtag_V1(Message_mapper.Datum_als_Message(stichtag), Message_mapper.UUID_aus(mandantId)),
-                Message_mapper.Dienstbuchungen);
-        }
+            if (best_fitting.Contains(Capability.DIENSTE_V1))
+                return Handle_Query<Dienste_V1, Stammdaten<Dienst>>(
+                    new Dienste_abrufen_V1(),
+                    Message_mapper.Dienste_als_Stammdaten);
 
-        public Task<ReadOnlyCollection<Abwesenheit>> Abwesenheiten_zum_Stichtag(Datum stichtag, Guid mandantId)
-        {
-            return Handle_Query<Abwesenheiten_V1, ReadOnlyCollection<Abwesenheit>>(
-                new Abwesenheiten_zum_Stichtag_V1(Message_mapper.Datum_als_Message(stichtag), Message_mapper.UUID_aus(mandantId)),
-                Message_mapper.Abwesenheiten);
+            throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }
 
         public Task<Stammdaten<Dienst>> Dienste_abrufen_ab(Datenstand stand)
         {
-            return Handle_Query<Dienste_V1, Stammdaten<Dienst>>(
-                new Dienste_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand)),
-                Message_mapper.Dienste_als_Stammdaten);
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities().Result.Value.ToList());
+            Guard_no_missing_capabilities(missing);
+
+            if (best_fitting.Contains(Capability.DIENSTE_V1))
+                return Handle_Query<Dienste_V1, Stammdaten<Dienst>>(
+                    new Dienste_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand)),
+                    Message_mapper.Dienste_als_Stammdaten);
+            
+            throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
+        }
+
+        public Task<ReadOnlyCollection<Dienstbuchung>> Dienstbuchungen_zum_Stichtag(Datum stichtag, Guid mandantId)
+        {
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities().Result.Value.ToList());
+            Guard_no_missing_capabilities(missing);
+
+            if (best_fitting.Contains(Capability.DIENSTBUCHUNGEN_V1))
+                return Handle_Query<Dienstbuchungen_V1, ReadOnlyCollection<Dienstbuchung>>(
+                    new Dienstbuchungen_zum_Stichtag_V1(Message_mapper.Datum_als_Message(stichtag), Message_mapper.UUID_aus(mandantId)),
+                    Message_mapper.Dienstbuchungen);
+
+            throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
+        }
+
+        public Task<ReadOnlyCollection<Abwesenheit>> Abwesenheiten_zum_Stichtag(Datum stichtag, Guid mandantId)
+        {
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities().Result.Value.ToList());
+            Guard_no_missing_capabilities(missing);
+
+            if (best_fitting.Contains(Capability.ABWESENHEITEN_V1))
+                return Handle_Query<Abwesenheiten_V1, ReadOnlyCollection<Abwesenheit>>(
+                new Abwesenheiten_zum_Stichtag_V1(Message_mapper.Datum_als_Message(stichtag), Message_mapper.UUID_aus(mandantId)),
+                Message_mapper.Abwesenheiten);
+
+            throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }
 
         private async Task<TResult> Handle_Query<TResponse, TResult>(Query query, Func<TResponse, TResult> handler)
@@ -134,10 +207,6 @@ namespace DM7_PPLUS_Integration
                 default:
                     throw new Exception($"Unerwartetes Response '{response.GetType()}' erhalten");
             }
-        }
-
-        public void Dispose()
-        {
         }
     }
 }

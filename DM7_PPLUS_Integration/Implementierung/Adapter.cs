@@ -11,6 +11,7 @@ namespace DM7_PPLUS_Integration.Implementierung
     {
         public static int Query_Port(int portRangeStart) => portRangeStart;
         public static int Authentication_Port(int portRangeStart) => portRangeStart + 1;
+        public static int Capabilities_Port(int portRangeStart) => portRangeStart + 2;
 
         private readonly PPLUS_Handler _pplusHandler;
         private readonly string _encryptionKey;
@@ -26,10 +27,14 @@ namespace DM7_PPLUS_Integration.Implementierung
             _thread = new Thread(() =>
             {
                 using (var querySocket = new RouterSocket())
+                using (var capability_socket = new RouterSocket())
                 using (var authenticationSocket = new RouterSocket())
                 {
                     querySocket.Bind($"tcp://{address}:{Query_Port(port_range_start)}");
                     querySocket.ReceiveReady += (_, args) => Handle_Query(args.Socket);
+
+                    capability_socket.Bind($"tcp://{address}:{Capabilities_Port(port_range_start)}");
+                    capability_socket.ReceiveReady += (_, args) => Handle_Capabilities(args.Socket);
 
                     authenticationSocket.Bind($"tcp://{address}:{Authentication_Port(port_range_start)}");
                     authenticationSocket.ReceiveReady += (_, args) => Authenticate(args.Socket);
@@ -37,12 +42,26 @@ namespace DM7_PPLUS_Integration.Implementierung
                     using (_poller)
                     {
                         _poller.Add(querySocket);
+                        _poller.Add(capability_socket);
                         _poller.Add(authenticationSocket);
                         _poller.Run();
                     }
                 }
             });
             _thread.Start();
+        }
+
+        private void Handle_Capabilities(NetMQSocket socket)
+        {
+            var caller = socket.ReceiveFrameBytes();
+            socket.SkipFrame();
+            socket.SkipFrame();
+
+            var capabilities = _pplusHandler.Capabilities().Result;
+
+            socket.SendMoreFrame(caller);
+            socket.SendMoreFrameEmpty();
+            socket.SendFrame(capabilities.Encoded());
         }
 
         private void Handle_Query(NetMQSocket socket)

@@ -21,6 +21,16 @@ type Query_Failed {
 	reason: string
 }
 
+type Capabilities []Capability
+
+# Neue Capabilities nur anhängen !! Nicht ändern !!
+enum Capability {
+	MITARBEITER_V1
+	DIENSTE_V1
+	DIENSTBUCHUNGEN_V1
+	ABWESENHEITEN_V1
+}
+
 ### Queries ###
 type Query (
 	Mitarbeiter_abrufen_V1

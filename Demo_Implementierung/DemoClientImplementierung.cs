@@ -25,7 +25,8 @@ namespace Demo_Implementierung
                 Helmig()
             };
 
-            var logger = new ConsoleLogger();
+            //var logger = new ConsoleLogger();
+            var logger = new NoLogger();
 
             var testServer = Test_Server.Instanz()
                 .Mit_Authentification("user", "password")
@@ -39,9 +40,10 @@ namespace Demo_Implementierung
                     Verplant(Helmig()))
                 .Start("127.0.0.1", 2000, out var key);
 
-            //using (var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("0123456789abcdef0123456789abcdef")), logger).Result)
-            using (var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", key, logger).Result)
+            using (testServer)
             {
+                //var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("0123456789abcdef0123456789abcdef")), logger).Result;
+                var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", key, logger).Result;
                 Console.WriteLine($"Daten arbeiten mit Auswahllisten Version {api.Auswahllisten_Version}");
 
                 Console.WriteLine("### Initiale Mitarbeiter");
@@ -63,7 +65,7 @@ namespace Demo_Implementierung
                 Dienste_anzeigen(api);
 
                 Console.WriteLine("\n### Initiale Dienstbuchungen");
-                Dienstbuchungen_anzeigen(Mandant_1, Heute(),  api);
+                Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
 
                 testServer.Dienste_buchen(Mandant_1, Heute(), Fährt_Frühtour(Willenborg()));
                 Console.WriteLine("\n### Dienstbuchungen nach Buchung");
@@ -94,7 +96,6 @@ namespace Demo_Implementierung
 
             Console.WriteLine("Beliebige Taste drücken zum Beenden...");
             Console.ReadKey();
-            testServer.Dispose();
         }
 
         private static void Mitarbeiter_anzeigen(DM7_PPLUS_API api)
