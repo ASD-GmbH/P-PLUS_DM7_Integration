@@ -275,14 +275,8 @@ namespace DM7_PPLUS_Integration.Implementierung
         public void Dienstbuchungen_hinzufügen(Guid mandant, Datum tag, IEnumerable<Dienstbuchung> dienstbuchungen)
         {
             var key = (mandant, tag);
-            if (_dienstbuchungen.ContainsKey(key))
-            {
-                _dienstbuchungen[key].AddRange(dienstbuchungen);
-            }
-            else
-            {
-                _dienstbuchungen.Add(key, dienstbuchungen.ToList());
-            }
+            if (_dienstbuchungen.ContainsKey(key)) _dienstbuchungen[key].AddRange(dienstbuchungen);
+            else _dienstbuchungen.Add(key, dienstbuchungen.ToList());
         }
 
         public void Dienst_streichen(Guid mandant, Datum tag, int dienst)
@@ -316,6 +310,7 @@ namespace DM7_PPLUS_Integration.Implementierung
         public void Abwesenheiten_eintragen(Guid mandant, IEnumerable<Abwesenheit> abwesenheiten)
         {
             if (_abwesenheiten.ContainsKey(mandant)) _abwesenheiten[mandant].AddRange(abwesenheiten);
+            else _abwesenheiten.Add(mandant, abwesenheiten.ToList());
         }
 
         public void Abwesenheiten_streichen_von(Guid mandant, Guid mitarbeiter)
