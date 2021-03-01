@@ -108,7 +108,6 @@ type Postanschrift_V1 {
 	postleitzahl: string
 	ort: string
 	land: string
-	adresszusatz: string
 }
 
 type Qualifikation_V1 {
@@ -129,8 +128,6 @@ type Dienst_V1 {
 	mandantenzugehoerigkeiten: []DM7_Mandantenzugehoerigkeit_V1
 	kurzbezeichnung: string
 	bezeichnung: string
-	gueltigAb: Datum
-	gueltibBis: optional<Datum>
 	gueltigAn: Dienst_Gueltigkeit_V1
 	geloescht: bool
 }

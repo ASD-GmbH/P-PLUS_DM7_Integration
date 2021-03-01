@@ -154,8 +154,6 @@ namespace DM7_PPLUS_Integration.Implementierung
                 dienst.Mandantenzugehörigkeiten,
                 dienst.Kurzbezeichnung,
                 dienst.Bezeichnung,
-                dienst.Gültig_ab,
-                dienst.Gültig_bis,
                 dienst.Gültig_an,
                 true
             );

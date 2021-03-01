@@ -97,8 +97,7 @@ namespace DM7_PPLUS_Integration.Implementierung
                 postanschrift.Strasse,
                 postanschrift.Postleitzahl,
                 postanschrift.Ort,
-                postanschrift.Land,
-                postanschrift.Adresszusatz);
+                postanschrift.Land);
 
         private static Postanschrift Postanschrift_aus(Postanschrift_V1 postanschrift) =>
             new Postanschrift(
@@ -106,8 +105,7 @@ namespace DM7_PPLUS_Integration.Implementierung
                 postanschrift.Strasse,
                 postanschrift.Postleitzahl,
                 postanschrift.Ort,
-                postanschrift.Land,
-                postanschrift.Adresszusatz);
+                postanschrift.Land);
 
         private static DM7_Mandantenzugehoerigkeit_V1 DM7_Mandantenzugehörigkeit_als_Message(DM7_Mandantenzugehörigkeit mandantenzugehörigkeit) =>
             new DM7_Mandantenzugehoerigkeit_V1(
@@ -127,8 +125,6 @@ namespace DM7_PPLUS_Integration.Implementierung
                 Liste_als_Message(dienst.Mandantenzugehörigkeiten, DM7_Mandantenzugehörigkeit_als_Message),
                 dienst.Kurzbezeichnung,
                 dienst.Bezeichnung,
-                Datum_als_Message(dienst.Gültig_ab),
-                Option_Map(dienst.Gültig_bis, Datum_als_Message),
                 Dienst_Gültigkeit_als_Message(dienst.Gültig_an),
                 dienst.Gelöscht);
 
@@ -138,8 +134,6 @@ namespace DM7_PPLUS_Integration.Implementierung
                 Liste_aus(dienst.Mandantenzugehoerigkeiten, DM7_Mandantenzugehörigkeit_aus),
                 dienst.Kurzbezeichnung,
                 dienst.Bezeichnung,
-                Datum_aus(dienst.Gueltigab),
-                Option_Map(dienst.Gueltibbis, Datum_aus),
                 Dienst_Gültigkeit_aus(dienst.Gueltigan),
                 dienst.Geloescht);
 

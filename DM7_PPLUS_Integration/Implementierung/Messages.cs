@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 22.02.2021 14:16 //
+// Generated code by BareNET - 01.03.2021 09:41 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
@@ -585,16 +585,14 @@ namespace Bare.Msg
 		public readonly string Postleitzahl;
 		public readonly string Ort;
 		public readonly string Land;
-		public readonly string Adresszusatz;
 	
-		public Postanschrift_V1(UUID id, string strasse, string postleitzahl, string ort, string land, string adresszusatz)
+		public Postanschrift_V1(UUID id, string strasse, string postleitzahl, string ort, string land)
 		{
 			Id = id;
 			Strasse = strasse;
 			Postleitzahl = postleitzahl;
 			Ort = ort;
 			Land = land;
-			Adresszusatz = adresszusatz;
 		}
 	
 		public byte[] Encoded()
@@ -604,7 +602,6 @@ namespace Bare.Msg
 				.Concat(BareNET.Bare.Encode_string(Postleitzahl))
 				.Concat(BareNET.Bare.Encode_string(Ort))
 				.Concat(BareNET.Bare.Encode_string(Land))
-				.Concat(BareNET.Bare.Encode_string(Adresszusatz))
 				.ToArray();
 		}
 	
@@ -617,10 +614,9 @@ namespace Bare.Msg
 			var postleitzahl = BareNET.Bare.Decode_string(strasse.Item2);
 			var ort = BareNET.Bare.Decode_string(postleitzahl.Item2);
 			var land = BareNET.Bare.Decode_string(ort.Item2);
-			var adresszusatz = BareNET.Bare.Decode_string(land.Item2);
 			return new ValueTuple<Postanschrift_V1, byte[]>(
-				new Postanschrift_V1(id.Item1, strasse.Item1, postleitzahl.Item1, ort.Item1, land.Item1, adresszusatz.Item1),
-				adresszusatz.Item2);
+				new Postanschrift_V1(id.Item1, strasse.Item1, postleitzahl.Item1, ort.Item1, land.Item1),
+				land.Item2);
 		}
 	}
 
@@ -702,19 +698,15 @@ namespace Bare.Msg
 		public readonly DM7_Mandantenzugehoerigkeit_V1[] Mandantenzugehoerigkeiten;
 		public readonly string Kurzbezeichnung;
 		public readonly string Bezeichnung;
-		public readonly Datum Gueltigab;
-		public readonly Datum? Gueltibbis;
 		public readonly Dienst_Gueltigkeit_V1 Gueltigan;
 		public readonly bool Geloescht;
 	
-		public Dienst_V1(ulong id, DM7_Mandantenzugehoerigkeit_V1[] mandantenzugehoerigkeiten, string kurzbezeichnung, string bezeichnung, Datum gueltigAb, Datum? gueltibBis, Dienst_Gueltigkeit_V1 gueltigAn, bool geloescht)
+		public Dienst_V1(ulong id, DM7_Mandantenzugehoerigkeit_V1[] mandantenzugehoerigkeiten, string kurzbezeichnung, string bezeichnung, Dienst_Gueltigkeit_V1 gueltigAn, bool geloescht)
 		{
 			Id = id;
 			Mandantenzugehoerigkeiten = mandantenzugehoerigkeiten;
 			Kurzbezeichnung = kurzbezeichnung;
 			Bezeichnung = bezeichnung;
-			Gueltigab = gueltigAb;
-			Gueltibbis = gueltibBis;
 			Gueltigan = gueltigAn;
 			Geloescht = geloescht;
 		}
@@ -725,8 +717,6 @@ namespace Bare.Msg
 				.Concat(BareNET.Bare.Encode_list(Mandantenzugehoerigkeiten, MandantenzugehoerigkeitenList => MandantenzugehoerigkeitenList.Encoded()))
 				.Concat(BareNET.Bare.Encode_string(Kurzbezeichnung))
 				.Concat(BareNET.Bare.Encode_string(Bezeichnung))
-				.Concat(Gueltigab.Encoded())
-				.Concat(BareNET.Bare.Encode_optional<Datum>(Gueltibbis, GueltibbisOpt => GueltibbisOpt.Encoded()))
 				.Concat(Gueltigan.Encoded())
 				.Concat(BareNET.Bare.Encode_bool(Geloescht))
 				.ToArray();
@@ -740,12 +730,10 @@ namespace Bare.Msg
 			var mandantenzugehoerigkeiten = BareNET.Bare.Decode_list(id.Item2, idList => DM7_Mandantenzugehoerigkeit_V1.Decode(idList));
 			var kurzbezeichnung = BareNET.Bare.Decode_string(mandantenzugehoerigkeiten.Item2);
 			var bezeichnung = BareNET.Bare.Decode_string(kurzbezeichnung.Item2);
-			var gueltigAb = Datum.Decode(bezeichnung.Item2);
-			var gueltibBis = BareNET.Bare.Decode_optional(gueltigAb.Item2, gueltigAbOpt => Datum.Decode(gueltigAbOpt));
-			var gueltigAn = Dienst_Gueltigkeit_V1.Decode(gueltibBis.Item2);
+			var gueltigAn = Dienst_Gueltigkeit_V1.Decode(bezeichnung.Item2);
 			var geloescht = BareNET.Bare.Decode_bool(gueltigAn.Item2);
 			return new ValueTuple<Dienst_V1, byte[]>(
-				new Dienst_V1(id.Item1, mandantenzugehoerigkeiten.Item1.ToArray(), kurzbezeichnung.Item1, bezeichnung.Item1, gueltigAb.Item1, gueltibBis.Item1, gueltigAn.Item1, geloescht.Item1),
+				new Dienst_V1(id.Item1, mandantenzugehoerigkeiten.Item1.ToArray(), kurzbezeichnung.Item1, bezeichnung.Item1, gueltigAn.Item1, geloescht.Item1),
 				geloescht.Item2);
 		}
 	}

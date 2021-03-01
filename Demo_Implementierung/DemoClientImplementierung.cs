@@ -247,8 +247,6 @@ namespace Demo_Implementierung
                     }),
                 "F",
                 "Frühtour",
-                Datum.DD_MM_YYYY(21, 01, 2019),
-                Datum.DD_MM_YYYY(31, 12, 2021),
                 new Dienst_Gültigkeit(true, true, true, true, true, false, false, true),
                 false);
 
@@ -264,8 +262,6 @@ namespace Demo_Implementierung
                     }),
                 "Test",
                 "Testdienst",
-                Datum.DD_MM_YYYY(21, 01, 2020),
-                null,
                 new Dienst_Gültigkeit(true, true, true, true, false, false, false, false),
                 false);
 
