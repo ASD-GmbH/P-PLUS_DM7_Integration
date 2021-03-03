@@ -2,8 +2,6 @@
 {
     public readonly struct Token
     {
-        public static Token Demo() => new Token(0);
-
         public readonly int Value;
 
         public Token(int value)

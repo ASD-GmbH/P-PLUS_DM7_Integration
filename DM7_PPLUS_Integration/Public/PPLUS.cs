@@ -35,11 +35,6 @@ namespace DM7_PPLUS_Integration
 
             return Task.Run(() =>
             {
-                if (uri.Scheme == "demo")
-                {
-                    return new PPLUS(new Demo_PPLUS_Handler(), Token.Demo());
-                }
-
                 log.Debug($"Verbinde mit Server {address}");
                 switch (Authenticate(uri, user, password, encryptionKey, log))
                 {

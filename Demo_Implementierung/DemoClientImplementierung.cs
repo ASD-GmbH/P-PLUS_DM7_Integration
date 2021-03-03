@@ -15,8 +15,6 @@ namespace Demo_Implementierung
     /// </summary>
     public class Program
     {
-        private const string DEMO_URL = "demo://60";
-
         public static void Main()
         {
             var test_Mitarbeiter = new[]
