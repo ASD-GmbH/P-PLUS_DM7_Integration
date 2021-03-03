@@ -8,5 +8,6 @@ namespace DM7_PPLUS_Integration.Implementierung
         Task<Token?> Authenticate(string user, string password);
         Task<Capabilities> Capabilities();
         Task<Query_Result> HandleQuery(Token token, Query query);
+        Task<Command_Result> HandleCommand(Token token, Command command);
     }
 }

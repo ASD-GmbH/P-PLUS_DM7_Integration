@@ -14,6 +14,44 @@ namespace DM7_PPLUS_Integration.Implementierung
     {
         private readonly Random random = new Random();
 
+        public Task<Token?> Authenticate(string user, string password)
+        {
+            return Task.FromResult<Token?>(Token.Demo());
+        }
+
+        public Task<Capabilities> Capabilities()
+        {
+            return Task.FromResult(new Capabilities(new[]
+            {
+                Capability.MITARBEITER_V1
+            }));
+        }
+
+        public Task<Query_Result> HandleQuery(Token token, Query query)
+        {
+            return Task.Run<Query_Result>(() =>
+            {
+                switch (query)
+                {
+                    case Mitarbeiter_abrufen_V1 _:
+                    {
+                        var mitarbeiter =
+                            Enumerable.Range(0, 10)
+                                .Select(_ => Demo_Mitarbeiter())
+                                .ToList();
+                        return Message_mapper.Mitarbeiterstammdaten_als_Message(new Stammdaten<Mitarbeiter>(mitarbeiter, new Datenstand(1)));
+                    }
+                }
+
+                return new IO_Fehler($"'{query.GetType()}' wurde nicht behandelt");
+            });
+        }
+
+        public Task<Command_Result> HandleCommand(Token token, Command command)
+        {
+            return Task.FromResult<Command_Result>(new IO_Fehler($"'{command.GetType()}' wurde nicht behandelt"));
+        }
+
         private Mitarbeiter Demo_Mitarbeiter()
         {
             return new Mitarbeiter(
@@ -45,39 +83,6 @@ namespace DM7_PPLUS_Integration.Implementierung
         {
             var namen = "David,Boyd,Ollie,Hilton,Francesco,Hugh,Milford,Kasey,Rupert,King,Huey,Von,Roscoe,Dino,Warner,Stewart,Peter,Dannie,Edgar,Eusebio".Split(',');
             return namen[random.Next(0, namen.Length)];
-        }
-
-        public Task<Query_Result> HandleQuery(Token token, Query query)
-        {
-            return Task.Run<Query_Result>(() =>
-            {
-                switch (query)
-                {
-                    case Mitarbeiter_abrufen_V1 _:
-                    {
-                        var mitarbeiter =
-                            Enumerable.Range(0, 10)
-                                .Select(_ => Demo_Mitarbeiter())
-                                .ToList();
-                        return Message_mapper.Mitarbeiterstammdaten_als_Message(new Stammdaten<Mitarbeiter>(mitarbeiter, new Datenstand(1)));
-                    }
-                }
-
-                return new IO_Fehler($"'{query.GetType()}' wurde nicht behandelt");
-            });
-        }
-
-        public Task<Token?> Authenticate(string user, string password)
-        {
-            return Task.FromResult<Token?>(Token.Demo());
-        }
-
-        public Task<Capabilities> Capabilities()
-        {
-            return Task.FromResult(new Capabilities(new []
-            {
-                Capability.MITARBEITER_V1
-            }));
         }
     }
 }

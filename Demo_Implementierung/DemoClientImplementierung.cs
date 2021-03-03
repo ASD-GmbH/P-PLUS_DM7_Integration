@@ -88,6 +88,16 @@ namespace Demo_Implementierung
                 Console.WriteLine("\n### Abwesenheiten zum 04.02.2021 nach Eintragung");
                 Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(04, 02, 2021), api);
 
+                testServer.Dienste_buchen(Mandant_1, Heute(), Fährt_Frühtour(Heimeshoff()));
+                Console.WriteLine("\n### Dienstbuchungen vor Soll/Ist Abgleich");
+                Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
+
+                Console.WriteLine("\n### Soll/Ist Abgleich freigeben");
+                Soll_Ist_Abgleich_freigeben(api);
+
+                Console.WriteLine("\n### Dienstbuchungen nach Soll/Ist Abgleich");
+                Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
+
                 testServer.Revoke_Token();
                 Console.WriteLine("\n### Token revoked");
                 try { Mitarbeiter_anzeigen(api); }
@@ -153,6 +163,22 @@ namespace Demo_Implementierung
                         : "[Unbekannter Mitarbeiter]";
                 Console.WriteLine($" - {mitarbeiter}: {abwesenheit.Grund} für Zeitraum {Zeitpunkt_als_Text(abwesenheit.Abwesend_ab)} - {Zeitpunkt_als_Text(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab)}");
             }
+        }
+
+        private static void Soll_Ist_Abgleich_freigeben(DM7_PPLUS_API api)
+        {
+            var nicht_gefahrene_Touren =
+                new[]
+                {
+                    new Nicht_gefahrene_Tour(Heimeshoff().Id, Mandant_1, Frühtour().Id, Heute())
+                };
+            var abgleich = new Soll_Ist_Abgleich(
+                new ReadOnlyCollection<Ungeplante_Tour>(new List<Ungeplante_Tour>()),
+                new ReadOnlyCollection<Geplante_Tour>(new List<Geplante_Tour>()),
+                new ReadOnlyCollection<Nicht_gefahrene_Tour>(nicht_gefahrene_Touren));
+            var ergebnis = api.Soll_Ist_Abgleich_freigeben(abgleich).Result;
+
+            Console.WriteLine($"Ergebnis {ergebnis.GetType().Name}");
         }
         
         private static string Datum_als_Text(Datum? datum)

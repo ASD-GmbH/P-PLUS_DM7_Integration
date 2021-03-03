@@ -81,6 +81,7 @@ namespace DM7_PPLUS_Integration
             Evaluate("Dienste Version 1", Capability.DIENSTE_V1);
             Evaluate("Abwesenheiten Version 1", Capability.ABWESENHEITEN_V1);
             Evaluate("Dienstbuchungen Version 1", Capability.DIENSTBUCHUNGEN_V1);
+            Evaluate("Soll/Ist Abgleich Version 1", Capability.SOLL_IST_ABGLEICH_V1);
 
             return (best_fitting_capabilites, missing_capabilities);
         }
@@ -189,9 +190,41 @@ namespace DM7_PPLUS_Integration
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }
 
+        public Task<Soll_Ist_Abgleich_Verarbeitungsergebnis> Soll_Ist_Abgleich_freigeben(Soll_Ist_Abgleich abgleich)
+        {
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities().Result.Value.ToList());
+            Guard_no_missing_capabilities(missing);
+
+            if (best_fitting.Contains(Capability.SOLL_IST_ABGLEICH_V1))
+                return Handle_Command<Soll_Ist_Abgleich_Verarbeitungsergebnis_V1, Soll_Ist_Abgleich_Verarbeitungsergebnis>(
+                    new Soll_Ist_Abgleich_freigeben_V1(Message_mapper.Soll_Ist_Abgleich_als_Message(abgleich)),
+                    Message_mapper.Soll_Ist_Abgleich_Verarbeitungsergebnis);
+
+            throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
+        }
+
         private async Task<TResult> Handle_Query<TResponse, TResult>(Query query, Func<TResponse, TResult> handler)
         {
             var response = await _pplusHandler.HandleQuery(_token, query);
+            switch (response)
+            {
+                case TResponse message:
+                {
+                    return handler(message);
+                }
+
+                case IO_Fehler error:
+                {
+                    throw new Exception(error.Reason);
+                }
+
+                default:
+                    throw new Exception($"Unerwartetes Response '{response.GetType()}' erhalten");
+            }
+        }
+        private async Task<TResult> Handle_Command<TResponse, TResult>(Command command, Func<TResponse, TResult> handler)
+        {
+            var response = await _pplusHandler.HandleCommand(_token, command);
             switch (response)
             {
                 case TResponse message:

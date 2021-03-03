@@ -5,6 +5,7 @@ using System.Linq;
 using Bare.Msg;
 using DM7_PPLUS_Integration.Daten;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
+using Relative_Zeit = DM7_PPLUS_Integration.Daten.Relative_Zeit;
 using Uhrzeit = DM7_PPLUS_Integration.Daten.Uhrzeit;
 using Zeitpunkt = DM7_PPLUS_Integration.Daten.Zeitpunkt;
 
@@ -40,6 +41,38 @@ namespace DM7_PPLUS_Integration.Implementierung
 
         public static ReadOnlyCollection<Abwesenheit> Abwesenheiten(Abwesenheiten_V1 abwesenheiten) => Liste_aus(abwesenheiten.Value, Abwesenheit_aus);
         public static Abwesenheiten_V1 Abwesenheiten_als_Message(ReadOnlyCollection<Abwesenheit> abwesenheiten) => new Abwesenheiten_V1(Liste_als_Message(abwesenheiten, Abwesenheit_als_Message));
+
+        public static Soll_Ist_Abgleich_V1 Soll_Ist_Abgleich_als_Message(Soll_Ist_Abgleich abgleich) =>
+            new Soll_Ist_Abgleich_V1(
+                Liste_als_Message(abgleich.Ungeplante_Touren_ohne_Tourenstamm, Ungeplante_Tour_als_Message),
+                Liste_als_Message(abgleich.Geplante_Touren, Geplante_Tour_als_Message),
+                Liste_als_Message(abgleich.Nicht_gefahrene_Touren, Nicht_gefahrene_Tour_als_Message));
+
+        public static Soll_Ist_Abgleich Soll_Ist_Abgleich_aus(Soll_Ist_Abgleich_V1 abgleich) =>
+            new Soll_Ist_Abgleich(
+                Liste_aus(abgleich.Ungeplantetourenohnetourenstamm, Ungeplante_Tour_aus),
+                Liste_aus(abgleich.Geplantetouren, Geplante_Tour_aus),
+                Liste_aus(abgleich.Nichtgefahrenetouren, Nicht_gefahrene_Tour_aus));
+
+        public static Soll_Ist_Abgleich_Verarbeitungsergebnis_V1 Soll_Ist_Abgleich_Verarbeitungsergebnis_als_Message(Soll_Ist_Abgleich_Verarbeitungsergebnis ergebnis)
+        {
+            switch (ergebnis)
+            {
+                case Verarbeitet _: return new Verarbeitet_V1();
+                case Dienstplanabschluss_verhindert_Verarbeitung e: return new Dienstplanabschluss_verhindert_Verarbeitung_V1(Liste_als_Message(e.Dienstplanabschlüsse, Dienstplanabschluss_als_Message));
+                default: throw new ArgumentOutOfRangeException(nameof(ergebnis), ergebnis, null);
+            }
+        }
+
+        public static Soll_Ist_Abgleich_Verarbeitungsergebnis Soll_Ist_Abgleich_Verarbeitungsergebnis(Soll_Ist_Abgleich_Verarbeitungsergebnis_V1 ergebnis)
+        {
+            switch (ergebnis)
+            {
+                case Verarbeitet_V1 _: return new Verarbeitet();
+                case Dienstplanabschluss_verhindert_Verarbeitung_V1 e: return new Dienstplanabschluss_verhindert_Verarbeitung(Liste_aus(e.Value, Dienstplanabschluss_aus));
+                default: throw new ArgumentOutOfRangeException(nameof(ergebnis), ergebnis, null);
+            }
+        }
 
         private static Mitarbeiter_V1 Mitarbeiter_als_Message(Mitarbeiter mitarbeiter) =>
             new Mitarbeiter_V1(
@@ -217,6 +250,102 @@ namespace DM7_PPLUS_Integration.Implementierung
             }
         }
 
+        private static Ungeplante_Tour_V1 Ungeplante_Tour_als_Message(Ungeplante_Tour tour) =>
+            new Ungeplante_Tour_V1(
+                UUID_aus(tour.MitarbeiterId),
+                UUID_aus(tour.MandantId),
+                Zeitpunkt_als_Message(tour.Beginn),
+                Liste_als_Message(tour.Einsätze, Einsatz_als_Message));
+        
+        private static Ungeplante_Tour Ungeplante_Tour_aus(Ungeplante_Tour_V1 tour) =>
+            new Ungeplante_Tour(
+                Guid_aus(tour.Mitarbeiter),
+                Guid_aus(tour.Mandant),
+                Zeitpunkt_aus(tour.Beginn),
+                Liste_aus(tour.Einsaetze, Einsatz_aus));
+
+        private static Geplante_Tour_V1 Geplante_Tour_als_Message(Geplante_Tour tour) =>
+            new Geplante_Tour_V1(
+                UUID_aus(tour.MitarbeiterId),
+                UUID_aus(tour.MandantId),
+                tour.Dienst,
+                Zeitpunkt_als_Message(tour.Beginn),
+                Liste_als_Message(tour.Einsätze, Einsatz_als_Message));
+
+        private static Geplante_Tour Geplante_Tour_aus(Geplante_Tour_V1 tour) =>
+            new Geplante_Tour(
+                Guid_aus(tour.Mitarbeiter),
+                Guid_aus(tour.Mandant),
+                (int) tour.Dienst,
+                Zeitpunkt_aus(tour.Beginn),
+                Liste_aus(tour.Einsaetze, Einsatz_aus));
+
+        private static Nicht_gefahrene_Tour_V1 Nicht_gefahrene_Tour_als_Message(Nicht_gefahrene_Tour tour) =>
+            new Nicht_gefahrene_Tour_V1(
+                UUID_aus(tour.MitarbeiterId),
+                UUID_aus(tour.MandantId),
+                tour.Dienst,
+                Datum_als_Message(tour.Datum));
+
+        private static Nicht_gefahrene_Tour Nicht_gefahrene_Tour_aus(Nicht_gefahrene_Tour_V1 tour) =>
+            new Nicht_gefahrene_Tour(
+                Guid_aus(tour.Mitarbeiter),
+                Guid_aus(tour.Mandant),
+                (int) tour.Dienst,
+                Datum_aus(tour.Datum));
+
+        private static Einsatz_V1 Einsatz_als_Message(Einsatz einsatz) =>
+            new Einsatz_V1(
+                Relative_Zeit_als_Message(einsatz.Beginn),
+                einsatz.Dauer_in_Minuten,
+                einsatz.Anfahrtsdauer_in_Minuten,
+                einsatz.Abfahrtsdauer_in_Minuten,
+                Einsatzart_als_Message(einsatz.Art));
+
+        private static Einsatz Einsatz_aus(Einsatz_V1 einsatz) =>
+            new Einsatz(
+                Relative_Zeit_aus(einsatz.Beginn),
+                (uint) einsatz.Dauerinminuten,
+                (uint) einsatz.Anfahrtsdauerinminuten,
+                (uint) einsatz.Abfahrtsdauerinminuten,
+                Einsatzart_aus(einsatz.Art));
+
+        private static Einsatzart_V1 Einsatzart_als_Message(Einsatzart einsatzart)
+        {
+            switch (einsatzart)
+            {
+                case Klient_Einsatz _: return new Klient_Einsatz_V1();
+                case Sonstige_Zeit sonstige: return new Sonstige_Zeit_V1(UUID_aus(sonstige.Leistung));
+                case Pause _: return new Pause_V1();
+                case Unterbrechung _: return new Unterbrechung_V1();
+                default: throw new ArgumentOutOfRangeException(nameof(einsatzart), einsatzart, null);
+            }
+        }
+
+        private static Einsatzart Einsatzart_aus(Einsatzart_V1 einsatzart)
+        {
+            switch (einsatzart)
+            {
+                case Klient_Einsatz_V1 _: return new Klient_Einsatz();
+                case Sonstige_Zeit_V1 sonstige: return new Sonstige_Zeit(Guid_aus(sonstige.Leistung));
+                case Pause_V1 _: return new Pause();
+                case Unterbrechung_V1 _: return new Unterbrechung();
+                default: throw new ArgumentOutOfRangeException(nameof(einsatzart), einsatzart, null);
+            }
+        }
+
+        private static Dienstplanabschluss Dienstplanabschluss_aus(Dienstplanabschluss_V1 abschluss) =>
+            new Dienstplanabschluss(
+                Guid_aus(abschluss.Mitarbeiter),
+                Guid_aus(abschluss.Mandant),
+                Datum_aus(abschluss.Datum));
+
+        private static Dienstplanabschluss_V1 Dienstplanabschluss_als_Message(Dienstplanabschluss abschluss) =>
+            new Dienstplanabschluss_V1(
+                UUID_aus(abschluss.MitarbeiterId),
+                UUID_aus(abschluss.MandantId),
+                Datum_als_Message(abschluss.Datum));
+
         public static Guid Guid_aus(UUID uuid) => new Guid(uuid.Value);
         public static UUID UUID_aus(Guid guid) => new UUID(guid.ToByteArray());
         public static Datum Datum_aus(Bare.Msg.Datum datum) => new Datum(datum.Tag, datum.Monat, datum.Jahr);
@@ -226,10 +355,13 @@ namespace DM7_PPLUS_Integration.Implementierung
         private static Zeitpunkt Zeitpunkt_aus(Bare.Msg.Zeitpunkt zeitpunkt) => new Zeitpunkt(Datum_aus(zeitpunkt.Datum), Uhrzeit_aus(zeitpunkt.Uhrzeit));
         private static Bare.Msg.Uhrzeit Uhrzeit_als_Message(Uhrzeit uhrzeit) => new Bare.Msg.Uhrzeit((byte) uhrzeit.Stunden, (byte) uhrzeit.Minuten);
         private static Uhrzeit Uhrzeit_aus(Bare.Msg.Uhrzeit uhrzeit) => Uhrzeit.HH_MM(uhrzeit.Stunden, uhrzeit.Minuten);
+        private static Bare.Msg.Relative_Zeit Relative_Zeit_als_Message(Relative_Zeit zeit) => new Bare.Msg.Relative_Zeit(Uhrzeit_als_Message(zeit.Zeit), zeit.Am_Folgetag);
+        private static Relative_Zeit Relative_Zeit_aus(Bare.Msg.Relative_Zeit zeit) => new Relative_Zeit(Uhrzeit_aus(zeit.Zeit), zeit.Amfolgetag);
         private static ReadOnlyCollection<TOut> Liste_aus<TIn, TOut>(IEnumerable<TIn> daten, Func<TIn, TOut> mapper) => new ReadOnlyCollection<TOut>(daten.Select(mapper).ToList());
         private static TOut[] Liste_als_Message<TIn, TOut>(IEnumerable<TIn> daten, Func<TIn, TOut> mapper) => daten.Select(mapper).ToArray();
 
         public static Token Token_aus(Query_Message message) => new Token(message.Token);
+        public static Token Token_aus(Command_Message message) => new Token(message.Token);
 
         private static TOut? Option_Map<TIn, TOut>(TIn? option, Func<TIn, TOut> mapper) where TIn : struct where TOut : struct => option.HasValue ? mapper(option.Value) : (TOut?) null;
     }

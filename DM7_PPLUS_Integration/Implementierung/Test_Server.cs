@@ -123,6 +123,99 @@ namespace DM7_PPLUS_Integration.Implementierung
             _abwesenheiten = abwesenheiten;
         }
 
+        public Task<Token?> Authenticate(string user, string password)
+        {
+            return Task.Run(() =>
+            {
+                if (user != _user || _password != password) return null;
+
+                _token = new Token(69);
+                return _token;
+            });
+        }
+
+        public Task<Capabilities> Capabilities()
+        {
+            return Task.FromResult(new Capabilities(new[]
+            {
+                Capability.MITARBEITER_V1,
+                Capability.DIENSTE_V1,
+                Capability.ABWESENHEITEN_V1,
+                Capability.DIENSTBUCHUNGEN_V1,
+                Capability.SOLL_IST_ABGLEICH_V1
+            }));
+        }
+
+        public Task<Query_Result> HandleQuery(Token token, Query query)
+        {
+            return Task.Run<Query_Result>(() =>
+            {
+                if (_token.HasValue == false || _token.Value != token)
+                {
+                    return new IO_Fehler("Unberechtigter Zugriff");
+                }
+
+                switch (query)
+                {
+                    case Mitarbeiter_abrufen_V1 _:
+                        return Message_mapper.Mitarbeiterstammdaten_als_Message(Mitarbeiter_abrufen());
+
+                    case Mitarbeiter_abrufen_ab_V1 q:
+                        return Message_mapper.Mitarbeiterstammdaten_als_Message(Mitarbeiter_abrufen_ab(Message_mapper.Stand_aus(q.Value)));
+
+                    case Dienste_abrufen_V1 _:
+                        return Message_mapper.Dienste_als_Message(Dienste_abrufen());
+
+                    case Dienste_abrufen_ab_V1 q:
+                        return Message_mapper.Dienste_als_Message(Dienste_abrufen_ab(Message_mapper.Stand_aus(q.Value)));
+
+                    case Dienstbuchungen_zum_Stichtag_V1 q:
+                        return Message_mapper.Dienstbuchungen_als_Message(Dienstbuchungen_zum_Stichtag(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Stichtag)));
+
+                    case Abwesenheiten_zum_Stichtag_V1 q:
+                        return Message_mapper.Abwesenheiten_als_Message(Abwesenheiten_zum_Stichtag(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Stichtag)));
+
+                    default:
+                        return new IO_Fehler($"Query '{query.GetType()}' nicht behandelt");
+                }
+            });
+        }
+
+        public Task<Command_Result> HandleCommand(Token token, Command command)
+        {
+            return Task.Run<Command_Result>(() =>
+            {
+                if (_token.HasValue == false || _token.Value != token)
+                {
+                    return new IO_Fehler("Unberechtigter Zugriff");
+                }
+
+                switch (command)
+                {
+                    case Soll_Ist_Abgleich_freigeben_V1 c:
+                    {
+                        var abgleich = Message_mapper.Soll_Ist_Abgleich_aus(c.Value);
+                        var ergebnis = Verarbeite_Soll_Ist_Abgleich(abgleich);
+                        return Message_mapper.Soll_Ist_Abgleich_Verarbeitungsergebnis_als_Message(ergebnis);
+                    }
+
+                    default:
+                        return new IO_Fehler($"Command '{command.GetType()}' nicht behandelt");
+                }
+            });
+        }
+
+        private Soll_Ist_Abgleich_Verarbeitungsergebnis Verarbeite_Soll_Ist_Abgleich(Soll_Ist_Abgleich abgleich)
+        {
+            foreach (var nichtGefahreneTour in abgleich.Nicht_gefahrene_Touren)
+            {
+                var key = (nichtGefahreneTour.MandantId, nichtGefahreneTour.Datum);
+                if (!_dienstbuchungen.ContainsKey(key)) continue;
+                _dienstbuchungen[key].RemoveAll(db => db.MitarbeiterId == nichtGefahreneTour.MitarbeiterId && db.DienstId == nichtGefahreneTour.Dienst);
+            }
+            return new Verarbeitet();
+        }
+
         public void Dienste_setzen(IEnumerable<Dienst> dienste)
         {
             var nächste_Version = Nächste_Version(_dienste);
@@ -325,63 +418,6 @@ namespace DM7_PPLUS_Integration.Implementierung
         public void Revoke_Token()
         {
             _token = null;
-        }
-
-        public Task<Token?> Authenticate(string user, string password)
-        {
-            return Task.Run(() =>
-            {
-                if (user != _user || _password != password) return null;
-
-                _token = new Token(69);
-                return _token;
-            });
-        }
-
-        public Task<Capabilities> Capabilities()
-        {
-            return Task.FromResult(new Capabilities(new []
-            {
-                Capability.MITARBEITER_V1,
-                Capability.DIENSTE_V1,
-                Capability.ABWESENHEITEN_V1,
-                Capability.DIENSTBUCHUNGEN_V1
-            }));
-        }
-
-        public Task<Query_Result> HandleQuery(Token token, Query query)
-        {
-            return Task.Run<Query_Result>(() =>
-            {
-                if (_token.HasValue == false || _token.Value != token)
-                {
-                    return new IO_Fehler("Unberechtigter Zugriff");
-                }
-
-                switch (query)
-                {
-                    case Mitarbeiter_abrufen_V1 _:
-                        return Message_mapper.Mitarbeiterstammdaten_als_Message(Mitarbeiter_abrufen());
-
-                    case Mitarbeiter_abrufen_ab_V1 q:
-                        return Message_mapper.Mitarbeiterstammdaten_als_Message(Mitarbeiter_abrufen_ab(Message_mapper.Stand_aus(q.Value)));
-
-                    case Dienste_abrufen_V1 _:
-                        return Message_mapper.Dienste_als_Message(Dienste_abrufen());
-
-                    case Dienste_abrufen_ab_V1 q:
-                        return Message_mapper.Dienste_als_Message(Dienste_abrufen_ab(Message_mapper.Stand_aus(q.Value)));
-
-                    case Dienstbuchungen_zum_Stichtag_V1 q:
-                        return Message_mapper.Dienstbuchungen_als_Message(Dienstbuchungen_zum_Stichtag(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Stichtag)));
-
-                    case Abwesenheiten_zum_Stichtag_V1 q:
-                        return Message_mapper.Abwesenheiten_als_Message(Abwesenheiten_zum_Stichtag(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Stichtag)));
-
-                    default:
-                        return new IO_Fehler($"Query '{query.GetType()}' nicht behandelt");
-                }
-            });
         }
     }
 

@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 01.03.2021 09:41 //
+// Generated code by BareNET - 03.03.2021 11:22 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
@@ -170,6 +170,88 @@ namespace Bare.Msg
 		}
 	}
 
+	public readonly struct Command_Message
+	{
+		public readonly int Token;
+		public readonly byte[] Command;
+	
+		public Command_Message(int token, byte[] command)
+		{
+			Token = token;
+			Command = command;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_i32(Token)
+				.Concat(BareNET.Bare.Encode_data(Command))
+				.ToArray();
+		}
+	
+		public static Command_Message Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Command_Message, byte[]> Decode(byte[] data)
+		{
+			var token = BareNET.Bare.Decode_i32(data);
+			var command = BareNET.Bare.Decode_data(token.Item2);
+			return new ValueTuple<Command_Message, byte[]>(
+				new Command_Message(token.Item1, command.Item1),
+				command.Item2);
+		}
+	}
+
+	public interface Command_Response_Message { /* Base type of union */ }
+
+	public readonly struct Command_Succeeded : Command_Response_Message
+	{
+		public readonly byte[] Value;
+	
+		public Command_Succeeded(byte[] value)
+		{
+			Value = value;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_data(Value);
+		}
+	
+		public static Command_Succeeded Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Command_Succeeded, byte[]> Decode(byte[] data)
+		{
+			var value = BareNET.Bare.Decode_data(data);
+			return new ValueTuple<Command_Succeeded, byte[]>(
+				new Command_Succeeded(value.Item1),
+				value.Item2);
+		}
+	}
+
+	public readonly struct Command_Failed : Command_Response_Message
+	{
+		public readonly string Reason;
+	
+		public Command_Failed(string reason)
+		{
+			Reason = reason;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_string(Reason);
+		}
+	
+		public static Command_Failed Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Command_Failed, byte[]> Decode(byte[] data)
+		{
+			var reason = BareNET.Bare.Decode_string(data);
+			return new ValueTuple<Command_Failed, byte[]>(
+				new Command_Failed(reason.Item1),
+				reason.Item2);
+		}
+	}
+
 	public readonly struct Capabilities
 	{
 		public readonly Capability[] Value;
@@ -200,7 +282,8 @@ namespace Bare.Msg
 		MITARBEITER_V1,
 		DIENSTE_V1,
 		DIENSTBUCHUNGEN_V1,
-		ABWESENHEITEN_V1
+		ABWESENHEITEN_V1,
+		SOLL_IST_ABGLEICH_V1
 	}
 
 	public interface Query { /* Base type of union */ }
@@ -331,7 +414,7 @@ namespace Bare.Msg
 
 	public interface Query_Result { /* Base type of union */ }
 
-	public readonly struct IO_Fehler : Query_Result
+	public readonly struct IO_Fehler : Query_Result, Command_Result
 	{
 		public readonly string Reason;
 	
@@ -462,6 +545,35 @@ namespace Bare.Msg
 			var value = BareNET.Bare.Decode_list(data, dataList => Abwesenheit_V1.Decode(dataList));
 			return new ValueTuple<Abwesenheiten_V1, byte[]>(
 				new Abwesenheiten_V1(value.Item1.ToArray()),
+				value.Item2);
+		}
+	}
+
+	public interface Command { /* Base type of union */ }
+
+	public interface Command_Result { /* Base type of union */ }
+
+	public readonly struct Soll_Ist_Abgleich_freigeben_V1 : Command
+	{
+		public readonly Soll_Ist_Abgleich_V1 Value;
+	
+		public Soll_Ist_Abgleich_freigeben_V1(Soll_Ist_Abgleich_V1 value)
+		{
+			Value = value;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Value.Encoded();
+		}
+	
+		public static Soll_Ist_Abgleich_freigeben_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Soll_Ist_Abgleich_freigeben_V1, byte[]> Decode(byte[] data)
+		{
+			var value = Soll_Ist_Abgleich_V1.Decode(data);
+			return new ValueTuple<Soll_Ist_Abgleich_freigeben_V1, byte[]>(
+				new Soll_Ist_Abgleich_freigeben_V1(value.Item1),
 				value.Item2);
 		}
 	}
@@ -874,6 +986,316 @@ namespace Bare.Msg
 		ANDERSWEITIG_VERPLANT
 	}
 
+	public readonly struct Soll_Ist_Abgleich_V1
+	{
+		public readonly Ungeplante_Tour_V1[] Ungeplantetourenohnetourenstamm;
+		public readonly Geplante_Tour_V1[] Geplantetouren;
+		public readonly Nicht_gefahrene_Tour_V1[] Nichtgefahrenetouren;
+	
+		public Soll_Ist_Abgleich_V1(Ungeplante_Tour_V1[] ungeplanteTourenOhneTourenstamm, Geplante_Tour_V1[] geplanteTouren, Nicht_gefahrene_Tour_V1[] nichtGefahreneTouren)
+		{
+			Ungeplantetourenohnetourenstamm = ungeplanteTourenOhneTourenstamm;
+			Geplantetouren = geplanteTouren;
+			Nichtgefahrenetouren = nichtGefahreneTouren;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_list(Ungeplantetourenohnetourenstamm, UngeplantetourenohnetourenstammList => UngeplantetourenohnetourenstammList.Encoded())
+				.Concat(BareNET.Bare.Encode_list(Geplantetouren, GeplantetourenList => GeplantetourenList.Encoded()))
+				.Concat(BareNET.Bare.Encode_list(Nichtgefahrenetouren, NichtgefahrenetourenList => NichtgefahrenetourenList.Encoded()))
+				.ToArray();
+		}
+	
+		public static Soll_Ist_Abgleich_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Soll_Ist_Abgleich_V1, byte[]> Decode(byte[] data)
+		{
+			var ungeplanteTourenOhneTourenstamm = BareNET.Bare.Decode_list(data, dataList => Ungeplante_Tour_V1.Decode(dataList));
+			var geplanteTouren = BareNET.Bare.Decode_list(ungeplanteTourenOhneTourenstamm.Item2, ungeplanteTourenOhneTourenstammList => Geplante_Tour_V1.Decode(ungeplanteTourenOhneTourenstammList));
+			var nichtGefahreneTouren = BareNET.Bare.Decode_list(geplanteTouren.Item2, geplanteTourenList => Nicht_gefahrene_Tour_V1.Decode(geplanteTourenList));
+			return new ValueTuple<Soll_Ist_Abgleich_V1, byte[]>(
+				new Soll_Ist_Abgleich_V1(ungeplanteTourenOhneTourenstamm.Item1.ToArray(), geplanteTouren.Item1.ToArray(), nichtGefahreneTouren.Item1.ToArray()),
+				nichtGefahreneTouren.Item2);
+		}
+	}
+
+	public readonly struct Ungeplante_Tour_V1
+	{
+		public readonly UUID Mitarbeiter;
+		public readonly UUID Mandant;
+		public readonly Zeitpunkt Beginn;
+		public readonly Einsatz_V1[] Einsaetze;
+	
+		public Ungeplante_Tour_V1(UUID mitarbeiter, UUID mandant, Zeitpunkt beginn, Einsatz_V1[] einsaetze)
+		{
+			Mitarbeiter = mitarbeiter;
+			Mandant = mandant;
+			Beginn = beginn;
+			Einsaetze = einsaetze;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Mitarbeiter.Encoded()
+				.Concat(Mandant.Encoded())
+				.Concat(Beginn.Encoded())
+				.Concat(BareNET.Bare.Encode_list(Einsaetze, EinsaetzeList => EinsaetzeList.Encoded()))
+				.ToArray();
+		}
+	
+		public static Ungeplante_Tour_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Ungeplante_Tour_V1, byte[]> Decode(byte[] data)
+		{
+			var mitarbeiter = UUID.Decode(data);
+			var mandant = UUID.Decode(mitarbeiter.Item2);
+			var beginn = Zeitpunkt.Decode(mandant.Item2);
+			var einsaetze = BareNET.Bare.Decode_list(beginn.Item2, beginnList => Einsatz_V1.Decode(beginnList));
+			return new ValueTuple<Ungeplante_Tour_V1, byte[]>(
+				new Ungeplante_Tour_V1(mitarbeiter.Item1, mandant.Item1, beginn.Item1, einsaetze.Item1.ToArray()),
+				einsaetze.Item2);
+		}
+	}
+
+	public readonly struct Geplante_Tour_V1
+	{
+		public readonly UUID Mitarbeiter;
+		public readonly UUID Mandant;
+		public readonly long Dienst;
+		public readonly Zeitpunkt Beginn;
+		public readonly Einsatz_V1[] Einsaetze;
+	
+		public Geplante_Tour_V1(UUID mitarbeiter, UUID mandant, long dienst, Zeitpunkt beginn, Einsatz_V1[] einsaetze)
+		{
+			Mitarbeiter = mitarbeiter;
+			Mandant = mandant;
+			Dienst = dienst;
+			Beginn = beginn;
+			Einsaetze = einsaetze;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Mitarbeiter.Encoded()
+				.Concat(Mandant.Encoded())
+				.Concat(BareNET.Bare.Encode_int(Dienst))
+				.Concat(Beginn.Encoded())
+				.Concat(BareNET.Bare.Encode_list(Einsaetze, EinsaetzeList => EinsaetzeList.Encoded()))
+				.ToArray();
+		}
+	
+		public static Geplante_Tour_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Geplante_Tour_V1, byte[]> Decode(byte[] data)
+		{
+			var mitarbeiter = UUID.Decode(data);
+			var mandant = UUID.Decode(mitarbeiter.Item2);
+			var dienst = BareNET.Bare.Decode_int(mandant.Item2);
+			var beginn = Zeitpunkt.Decode(dienst.Item2);
+			var einsaetze = BareNET.Bare.Decode_list(beginn.Item2, beginnList => Einsatz_V1.Decode(beginnList));
+			return new ValueTuple<Geplante_Tour_V1, byte[]>(
+				new Geplante_Tour_V1(mitarbeiter.Item1, mandant.Item1, dienst.Item1, beginn.Item1, einsaetze.Item1.ToArray()),
+				einsaetze.Item2);
+		}
+	}
+
+	public readonly struct Nicht_gefahrene_Tour_V1
+	{
+		public readonly UUID Mitarbeiter;
+		public readonly UUID Mandant;
+		public readonly long Dienst;
+		public readonly Datum Datum;
+	
+		public Nicht_gefahrene_Tour_V1(UUID mitarbeiter, UUID mandant, long dienst, Datum datum)
+		{
+			Mitarbeiter = mitarbeiter;
+			Mandant = mandant;
+			Dienst = dienst;
+			Datum = datum;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Mitarbeiter.Encoded()
+				.Concat(Mandant.Encoded())
+				.Concat(BareNET.Bare.Encode_int(Dienst))
+				.Concat(Datum.Encoded())
+				.ToArray();
+		}
+	
+		public static Nicht_gefahrene_Tour_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Nicht_gefahrene_Tour_V1, byte[]> Decode(byte[] data)
+		{
+			var mitarbeiter = UUID.Decode(data);
+			var mandant = UUID.Decode(mitarbeiter.Item2);
+			var dienst = BareNET.Bare.Decode_int(mandant.Item2);
+			var datum = Datum.Decode(dienst.Item2);
+			return new ValueTuple<Nicht_gefahrene_Tour_V1, byte[]>(
+				new Nicht_gefahrene_Tour_V1(mitarbeiter.Item1, mandant.Item1, dienst.Item1, datum.Item1),
+				datum.Item2);
+		}
+	}
+
+	public readonly struct Einsatz_V1
+	{
+		public readonly Relative_Zeit Beginn;
+		public readonly ulong Dauerinminuten;
+		public readonly ulong Anfahrtsdauerinminuten;
+		public readonly ulong Abfahrtsdauerinminuten;
+		public readonly Einsatzart_V1 Art;
+	
+		public Einsatz_V1(Relative_Zeit beginn, ulong dauerInMinuten, ulong anfahrtsdauerInMinuten, ulong abfahrtsdauerInMinuten, Einsatzart_V1 art)
+		{
+			Beginn = beginn;
+			Dauerinminuten = dauerInMinuten;
+			Anfahrtsdauerinminuten = anfahrtsdauerInMinuten;
+			Abfahrtsdauerinminuten = abfahrtsdauerInMinuten;
+			Art = art;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Beginn.Encoded()
+				.Concat(BareNET.Bare.Encode_uint(Dauerinminuten))
+				.Concat(BareNET.Bare.Encode_uint(Anfahrtsdauerinminuten))
+				.Concat(BareNET.Bare.Encode_uint(Abfahrtsdauerinminuten))
+				.Concat(Encoding.Einsatzart_V1_Encoded(Art))
+				.ToArray();
+		}
+	
+		public static Einsatz_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Einsatz_V1, byte[]> Decode(byte[] data)
+		{
+			var beginn = Relative_Zeit.Decode(data);
+			var dauerInMinuten = BareNET.Bare.Decode_uint(beginn.Item2);
+			var anfahrtsdauerInMinuten = BareNET.Bare.Decode_uint(dauerInMinuten.Item2);
+			var abfahrtsdauerInMinuten = BareNET.Bare.Decode_uint(anfahrtsdauerInMinuten.Item2);
+			var art = Encoding.Decode_Einsatzart_V1(abfahrtsdauerInMinuten.Item2);
+			return new ValueTuple<Einsatz_V1, byte[]>(
+				new Einsatz_V1(beginn.Item1, dauerInMinuten.Item1, anfahrtsdauerInMinuten.Item1, abfahrtsdauerInMinuten.Item1, art.Item1),
+				art.Item2);
+		}
+	}
+
+	public interface Einsatzart_V1 { /* Base type of union */ }
+
+	public readonly struct Klient_Einsatz_V1 : Einsatzart_V1
+	{
+		public byte[] Encoded() { return new byte[0]; }
+		public static Klient_Einsatz_V1 Decoded(byte[] data) { return new Klient_Einsatz_V1(); }
+		public static ValueTuple<Klient_Einsatz_V1, byte[]> Decode(byte[] data) { return new ValueTuple<Klient_Einsatz_V1, byte[]>(new Klient_Einsatz_V1(), data); }
+	}
+
+	public readonly struct Sonstige_Zeit_V1 : Einsatzart_V1
+	{
+		public readonly UUID Leistung;
+	
+		public Sonstige_Zeit_V1(UUID leistung)
+		{
+			Leistung = leistung;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Leistung.Encoded();
+		}
+	
+		public static Sonstige_Zeit_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Sonstige_Zeit_V1, byte[]> Decode(byte[] data)
+		{
+			var leistung = UUID.Decode(data);
+			return new ValueTuple<Sonstige_Zeit_V1, byte[]>(
+				new Sonstige_Zeit_V1(leistung.Item1),
+				leistung.Item2);
+		}
+	}
+
+	public readonly struct Pause_V1 : Einsatzart_V1
+	{
+		public byte[] Encoded() { return new byte[0]; }
+		public static Pause_V1 Decoded(byte[] data) { return new Pause_V1(); }
+		public static ValueTuple<Pause_V1, byte[]> Decode(byte[] data) { return new ValueTuple<Pause_V1, byte[]>(new Pause_V1(), data); }
+	}
+
+	public readonly struct Unterbrechung_V1 : Einsatzart_V1
+	{
+		public byte[] Encoded() { return new byte[0]; }
+		public static Unterbrechung_V1 Decoded(byte[] data) { return new Unterbrechung_V1(); }
+		public static ValueTuple<Unterbrechung_V1, byte[]> Decode(byte[] data) { return new ValueTuple<Unterbrechung_V1, byte[]>(new Unterbrechung_V1(), data); }
+	}
+
+	public interface Soll_Ist_Abgleich_Verarbeitungsergebnis_V1 : Command_Result { /* Base type of union */ }
+
+	public readonly struct Verarbeitet_V1 : Soll_Ist_Abgleich_Verarbeitungsergebnis_V1
+	{
+		public byte[] Encoded() { return new byte[0]; }
+		public static Verarbeitet_V1 Decoded(byte[] data) { return new Verarbeitet_V1(); }
+		public static ValueTuple<Verarbeitet_V1, byte[]> Decode(byte[] data) { return new ValueTuple<Verarbeitet_V1, byte[]>(new Verarbeitet_V1(), data); }
+	}
+
+	public readonly struct Dienstplanabschluss_verhindert_Verarbeitung_V1 : Soll_Ist_Abgleich_Verarbeitungsergebnis_V1
+	{
+		public readonly Dienstplanabschluss_V1[] Value;
+	
+		public Dienstplanabschluss_verhindert_Verarbeitung_V1(Dienstplanabschluss_V1[] value)
+		{
+			Value = value;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_list(Value, ValueList => ValueList.Encoded());
+		}
+	
+		public static Dienstplanabschluss_verhindert_Verarbeitung_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Dienstplanabschluss_verhindert_Verarbeitung_V1, byte[]> Decode(byte[] data)
+		{
+			var value = BareNET.Bare.Decode_list(data, dataList => Dienstplanabschluss_V1.Decode(dataList));
+			return new ValueTuple<Dienstplanabschluss_verhindert_Verarbeitung_V1, byte[]>(
+				new Dienstplanabschluss_verhindert_Verarbeitung_V1(value.Item1.ToArray()),
+				value.Item2);
+		}
+	}
+
+	public readonly struct Dienstplanabschluss_V1
+	{
+		public readonly UUID Mitarbeiter;
+		public readonly UUID Mandant;
+		public readonly Datum Datum;
+	
+		public Dienstplanabschluss_V1(UUID mitarbeiter, UUID mandant, Datum datum)
+		{
+			Mitarbeiter = mitarbeiter;
+			Mandant = mandant;
+			Datum = datum;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Mitarbeiter.Encoded()
+				.Concat(Mandant.Encoded())
+				.Concat(Datum.Encoded())
+				.ToArray();
+		}
+	
+		public static Dienstplanabschluss_V1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Dienstplanabschluss_V1, byte[]> Decode(byte[] data)
+		{
+			var mitarbeiter = UUID.Decode(data);
+			var mandant = UUID.Decode(mitarbeiter.Item2);
+			var datum = Datum.Decode(mandant.Item2);
+			return new ValueTuple<Dienstplanabschluss_V1, byte[]>(
+				new Dienstplanabschluss_V1(mitarbeiter.Item1, mandant.Item1, datum.Item1),
+				datum.Item2);
+		}
+	}
+
 	public readonly struct UUID
 	{
 		public readonly byte[] Value;
@@ -994,6 +1416,36 @@ namespace Bare.Msg
 		}
 	}
 
+	public readonly struct Relative_Zeit
+	{
+		public readonly Uhrzeit Zeit;
+		public readonly bool Amfolgetag;
+	
+		public Relative_Zeit(Uhrzeit zeit, bool amFolgetag)
+		{
+			Zeit = zeit;
+			Amfolgetag = amFolgetag;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Zeit.Encoded()
+				.Concat(BareNET.Bare.Encode_bool(Amfolgetag))
+				.ToArray();
+		}
+	
+		public static Relative_Zeit Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<Relative_Zeit, byte[]> Decode(byte[] data)
+		{
+			var zeit = Uhrzeit.Decode(data);
+			var amFolgetag = BareNET.Bare.Decode_bool(zeit.Item2);
+			return new ValueTuple<Relative_Zeit, byte[]>(
+				new Relative_Zeit(zeit.Item1, amFolgetag.Item1),
+				amFolgetag.Item2);
+		}
+	}
+
 	public readonly struct Datenstand
 	{
 		public readonly ulong Value;
@@ -1063,6 +1515,27 @@ namespace Bare.Msg
 		}
 
 
+		private static readonly BareNET.Union<Command_Response_Message> _Command_Response_Message =
+			BareNET.Union<Command_Response_Message>.Register()
+				.With_Case<Command_Succeeded>(v => ((Command_Succeeded) v).Encoded(), d => { var decoded = Command_Succeeded.Decode(d); return new ValueTuple<Command_Response_Message, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Command_Failed>(v => ((Command_Failed) v).Encoded(), d => { var decoded = Command_Failed.Decode(d); return new ValueTuple<Command_Response_Message, byte[]>(decoded.Item1, decoded.Item2); });
+		
+		public static byte[] Command_Response_Message_Encoded(Command_Response_Message value)
+		{
+			return BareNET.Bare.Encode_union(value, _Command_Response_Message);
+		}
+		
+		public static Command_Response_Message Command_Response_Message_Decoded(byte[] data)
+		{
+			return Decode_Command_Response_Message(data).Item1;
+		}
+		
+		public static ValueTuple<Command_Response_Message, byte[]> Decode_Command_Response_Message(byte[] data)
+		{
+			return BareNET.Bare.Decode_union<Command_Response_Message>(data, _Command_Response_Message);
+		}
+
+
 		public static byte[] Capability_Encoded(Capability value)
 		{
 			return BareNET.Bare.Encode_enum(value);
@@ -1128,6 +1601,47 @@ namespace Bare.Msg
 		}
 
 
+		private static readonly BareNET.Union<Command> _Command =
+			BareNET.Union<Command>.Register()
+				.With_Case<Soll_Ist_Abgleich_freigeben_V1>(v => ((Soll_Ist_Abgleich_freigeben_V1) v).Encoded(), d => { var decoded = Soll_Ist_Abgleich_freigeben_V1.Decode(d); return new ValueTuple<Command, byte[]>(decoded.Item1, decoded.Item2); });
+		
+		public static byte[] Command_Encoded(Command value)
+		{
+			return BareNET.Bare.Encode_union(value, _Command);
+		}
+		
+		public static Command Command_Decoded(byte[] data)
+		{
+			return Decode_Command(data).Item1;
+		}
+		
+		public static ValueTuple<Command, byte[]> Decode_Command(byte[] data)
+		{
+			return BareNET.Bare.Decode_union<Command>(data, _Command);
+		}
+
+
+		private static readonly BareNET.Union<Command_Result> _Command_Result =
+			BareNET.Union<Command_Result>.Register()
+				.With_Case<IO_Fehler>(v => ((IO_Fehler) v).Encoded(), d => { var decoded = IO_Fehler.Decode(d); return new ValueTuple<Command_Result, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Soll_Ist_Abgleich_Verarbeitungsergebnis_V1>(v => Encoding.Soll_Ist_Abgleich_Verarbeitungsergebnis_V1_Encoded(((Soll_Ist_Abgleich_Verarbeitungsergebnis_V1) v)), d => { var decoded = Encoding.Decode_Soll_Ist_Abgleich_Verarbeitungsergebnis_V1(d); return new ValueTuple<Command_Result, byte[]>(decoded.Item1, decoded.Item2); });
+		
+		public static byte[] Command_Result_Encoded(Command_Result value)
+		{
+			return BareNET.Bare.Encode_union(value, _Command_Result);
+		}
+		
+		public static Command_Result Command_Result_Decoded(byte[] data)
+		{
+			return Decode_Command_Result(data).Item1;
+		}
+		
+		public static ValueTuple<Command_Result, byte[]> Decode_Command_Result(byte[] data)
+		{
+			return BareNET.Bare.Decode_union<Command_Result>(data, _Command_Result);
+		}
+
+
 		public static byte[] Abwesenheitsart_V1_Encoded(Abwesenheitsart_V1 value)
 		{
 			return BareNET.Bare.Encode_enum(value);
@@ -1141,6 +1655,50 @@ namespace Bare.Msg
 		public static ValueTuple<Abwesenheitsart_V1, byte[]> Decode_Abwesenheitsart_V1(byte[] data)
 		{
 			return BareNET.Bare.Decode_enum<Abwesenheitsart_V1>(data);
+		}
+
+
+		private static readonly BareNET.Union<Einsatzart_V1> _Einsatzart_V1 =
+			BareNET.Union<Einsatzart_V1>.Register()
+				.With_Case<Klient_Einsatz_V1>(v => ((Klient_Einsatz_V1) v).Encoded(), d => { var decoded = Klient_Einsatz_V1.Decode(d); return new ValueTuple<Einsatzart_V1, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Sonstige_Zeit_V1>(v => ((Sonstige_Zeit_V1) v).Encoded(), d => { var decoded = Sonstige_Zeit_V1.Decode(d); return new ValueTuple<Einsatzart_V1, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Pause_V1>(v => ((Pause_V1) v).Encoded(), d => { var decoded = Pause_V1.Decode(d); return new ValueTuple<Einsatzart_V1, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Unterbrechung_V1>(v => ((Unterbrechung_V1) v).Encoded(), d => { var decoded = Unterbrechung_V1.Decode(d); return new ValueTuple<Einsatzart_V1, byte[]>(decoded.Item1, decoded.Item2); });
+		
+		public static byte[] Einsatzart_V1_Encoded(Einsatzart_V1 value)
+		{
+			return BareNET.Bare.Encode_union(value, _Einsatzart_V1);
+		}
+		
+		public static Einsatzart_V1 Einsatzart_V1_Decoded(byte[] data)
+		{
+			return Decode_Einsatzart_V1(data).Item1;
+		}
+		
+		public static ValueTuple<Einsatzart_V1, byte[]> Decode_Einsatzart_V1(byte[] data)
+		{
+			return BareNET.Bare.Decode_union<Einsatzart_V1>(data, _Einsatzart_V1);
+		}
+
+
+		private static readonly BareNET.Union<Soll_Ist_Abgleich_Verarbeitungsergebnis_V1> _Soll_Ist_Abgleich_Verarbeitungsergebnis_V1 =
+			BareNET.Union<Soll_Ist_Abgleich_Verarbeitungsergebnis_V1>.Register()
+				.With_Case<Verarbeitet_V1>(v => ((Verarbeitet_V1) v).Encoded(), d => { var decoded = Verarbeitet_V1.Decode(d); return new ValueTuple<Soll_Ist_Abgleich_Verarbeitungsergebnis_V1, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<Dienstplanabschluss_verhindert_Verarbeitung_V1>(v => ((Dienstplanabschluss_verhindert_Verarbeitung_V1) v).Encoded(), d => { var decoded = Dienstplanabschluss_verhindert_Verarbeitung_V1.Decode(d); return new ValueTuple<Soll_Ist_Abgleich_Verarbeitungsergebnis_V1, byte[]>(decoded.Item1, decoded.Item2); });
+		
+		public static byte[] Soll_Ist_Abgleich_Verarbeitungsergebnis_V1_Encoded(Soll_Ist_Abgleich_Verarbeitungsergebnis_V1 value)
+		{
+			return BareNET.Bare.Encode_union(value, _Soll_Ist_Abgleich_Verarbeitungsergebnis_V1);
+		}
+		
+		public static Soll_Ist_Abgleich_Verarbeitungsergebnis_V1 Soll_Ist_Abgleich_Verarbeitungsergebnis_V1_Decoded(byte[] data)
+		{
+			return Decode_Soll_Ist_Abgleich_Verarbeitungsergebnis_V1(data).Item1;
+		}
+		
+		public static ValueTuple<Soll_Ist_Abgleich_Verarbeitungsergebnis_V1, byte[]> Decode_Soll_Ist_Abgleich_Verarbeitungsergebnis_V1(byte[] data)
+		{
+			return BareNET.Bare.Decode_union<Soll_Ist_Abgleich_Verarbeitungsergebnis_V1>(data, _Soll_Ist_Abgleich_Verarbeitungsergebnis_V1);
 		}
 	}
 }

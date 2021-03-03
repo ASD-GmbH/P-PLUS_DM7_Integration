@@ -14,12 +14,17 @@ type Query_Message {
 }
 
 type Response_Message (Query_Succeeded | Query_Failed)
-
 type Query_Succeeded data # Enthält verschlüsseltes Query_Result
+type Query_Failed { reason: string }
 
-type Query_Failed {
-	reason: string
+type Command_Message {
+	token: i32
+	command: data # Verschlüsseltes Command
 }
+
+type Command_Response_Message (Command_Succeeded | Command_Failed)
+type Command_Succeeded data # Enthält verschlüsseltes Command_Result
+type Command_Failed { reason: string }
 
 type Capabilities []Capability
 
@@ -29,6 +34,7 @@ enum Capability {
 	DIENSTE_V1
 	DIENSTBUCHUNGEN_V1
 	ABWESENHEITEN_V1
+	SOLL_IST_ABGLEICH_V1
 }
 
 ### Queries ###
@@ -77,6 +83,13 @@ type Dienste_V1 {
 type Dienstbuchungen_V1 []Dienstbuchung_V1
 
 type Abwesenheiten_V1 []Abwesenheit_V1
+
+### Commands ###
+type Command (Soll_Ist_Abgleich_freigeben_V1)
+
+type Command_Result (IO_Fehler | Soll_Ist_Abgleich_Verarbeitungsergebnis_V1)
+
+type Soll_Ist_Abgleich_freigeben_V1 Soll_Ist_Abgleich_V1
 
 ### Daten ###
 type Mitarbeiter_V1 {
@@ -162,8 +175,61 @@ enum Abwesenheitsart_V1 {
 	ANDERSWEITIG_VERPLANT
 }
 
+type Soll_Ist_Abgleich_V1 {
+	ungeplanteTourenOhneTourenstamm: []Ungeplante_Tour_V1
+	geplanteTouren: []Geplante_Tour_V1
+	nichtGefahreneTouren: []Nicht_gefahrene_Tour_V1
+}
+
+type Ungeplante_Tour_V1 {
+	mitarbeiter: UUID
+	mandant: UUID
+	beginn: Zeitpunkt
+	einsaetze: []Einsatz_V1
+}
+
+type Geplante_Tour_V1 {
+	mitarbeiter: UUID
+	mandant: UUID
+	dienst: int
+	beginn: Zeitpunkt
+	einsaetze: []Einsatz_V1
+}
+
+type Nicht_gefahrene_Tour_V1 {
+	mitarbeiter: UUID
+	mandant: UUID
+	dienst: int
+	datum: Datum
+}
+
+type Einsatz_V1 {
+	beginn: Relative_Zeit
+	dauerInMinuten: uint
+	anfahrtsdauerInMinuten: uint
+	abfahrtsdauerInMinuten: uint
+	art: Einsatzart_V1
+}
+
+type Einsatzart_V1 (Klient_Einsatz_V1 | Sonstige_Zeit_V1 | Pause_V1 | Unterbrechung_V1)
+type Klient_Einsatz_V1 void
+type Sonstige_Zeit_V1 { leistung: UUID }
+type Pause_V1 void
+type Unterbrechung_V1 void
+
+type Soll_Ist_Abgleich_Verarbeitungsergebnis_V1 (Verarbeitet_V1 | Dienstplanabschluss_verhindert_Verarbeitung_V1)
+type Verarbeitet_V1 void
+type Dienstplanabschluss_verhindert_Verarbeitung_V1 []Dienstplanabschluss_V1
+
+type Dienstplanabschluss_V1 {
+	mitarbeiter: UUID
+	mandant: UUID
+	datum: Datum
+}
+
 type UUID data<16>
 type Datum { tag: u8 monat: u8 jahr: u16 }
 type Uhrzeit { stunden: u8 minuten: u8 }
 type Zeitpunkt { datum: Datum uhrzeit: Uhrzeit }
+type Relative_Zeit { zeit: Uhrzeit amFolgetag: bool }
 type Datenstand u64
