@@ -106,6 +106,7 @@ namespace DM7_PPLUS_Integration.Implementierung
         private readonly List<Daten_mit_Version<Dienst>> _dienste;
         private readonly Dictionary<(Guid mandant, Datum tag), List<Dienstbuchung>> _dienstbuchungen;
         private readonly Dictionary<Guid, List<Abwesenheit>> _abwesenheiten;
+        private readonly List<Dienstplanabschluss> _dienstplanabschlüsse = new List<Dienstplanabschluss>();
 
         public Test_PPLUS_Handler(
             string user,
@@ -207,6 +208,11 @@ namespace DM7_PPLUS_Integration.Implementierung
 
         private Soll_Ist_Abgleich_Verarbeitungsergebnis Verarbeite_Soll_Ist_Abgleich(Soll_Ist_Abgleich abgleich)
         {
+            if (_dienstplanabschlüsse.Any())
+            {
+                return new Dienstplanabschluss_verhindert_Verarbeitung(new ReadOnlyCollection<Dienstplanabschluss>(_dienstplanabschlüsse));
+            }
+
             foreach (var nichtGefahreneTour in abgleich.Nicht_gefahrene_Touren)
             {
                 var key = (nichtGefahreneTour.MandantId, nichtGefahreneTour.Datum);
@@ -409,6 +415,17 @@ namespace DM7_PPLUS_Integration.Implementierung
             if (_abwesenheiten.ContainsKey(mandant)) _abwesenheiten[mandant].RemoveAll(abwesenheit => abwesenheit.MitarbeiterId == mitarbeiter);
         }
 
+        public void Dienstplanbschlüsse_zum_verhindern_der_Soll_Ist_Abgleich_Verarbeitung(IEnumerable<Dienstplanabschluss> abschlüsse)
+        {
+            _dienstplanabschlüsse.Clear();
+            _dienstplanabschlüsse.AddRange(abschlüsse);
+        }
+
+        public void Soll_Ist_Abgleich_Verarbeitung_nicht_verhindern()
+        {
+            _dienstplanabschlüsse.Clear();
+        }
+
         private static Datenstand Höchster_Datenstand<T>(List<Daten_mit_Version<T>> daten) =>
             daten.Any() ? new Datenstand(daten.Max(_ => _.Version)) : new Datenstand(0);
 
@@ -503,6 +520,16 @@ namespace DM7_PPLUS_Integration.Implementierung
         public void Abwesenheiten_streichen_von(Guid mandantId, Guid mitarbeiter)
         {
             _pplusHandler.Abwesenheiten_streichen_von(mandantId, mitarbeiter);
+        }
+
+        public void Dienstplanbschlüsse_zum_verhindern_der_Soll_Ist_Abgleich_Verarbeitung(params Dienstplanabschluss[] abschlüsse)
+        {
+            _pplusHandler.Dienstplanbschlüsse_zum_verhindern_der_Soll_Ist_Abgleich_Verarbeitung(abschlüsse);
+        }
+
+        public void Soll_Ist_Abgleich_Verarbeitung_nicht_verhindern()
+        {
+            _pplusHandler.Soll_Ist_Abgleich_Verarbeitung_nicht_verhindern();
         }
 
         public List<Dienst> Dienste() => _pplusHandler.Dienste_abrufen().ToList();

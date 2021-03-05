@@ -86,6 +86,13 @@ namespace Demo_Implementierung
                 Console.WriteLine("\n### Abwesenheiten zum 04.02.2021 nach Eintragung");
                 Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(04, 02, 2021), api);
 
+                testServer.Dienstplanbschlüsse_zum_verhindern_der_Soll_Ist_Abgleich_Verarbeitung(
+                    Dienstplanabschluss(Mandant_1, Helmig(), Heute()),
+                    Dienstplanabschluss(Mandant_2, Willenborg(), Datum.DD_MM_YYYY(22, 05, 2021)));
+                Console.WriteLine("\n### Soll/Ist Abgleich freigeben mit Dienstplanabschlüssen");
+                Soll_Ist_Abgleich_freigeben(api);
+                testServer.Soll_Ist_Abgleich_Verarbeitung_nicht_verhindern();
+
                 testServer.Dienste_buchen(Mandant_1, Heute(), Fährt_Frühtour(Heimeshoff()));
                 Console.WriteLine("\n### Dienstbuchungen vor Soll/Ist Abgleich");
                 Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
@@ -195,6 +202,8 @@ namespace Demo_Implementierung
             return Datum.DD_MM_YYYY(heute.Day, heute.Month, heute.Year);
         }
 
+        private static Dienstplanabschluss Dienstplanabschluss(Guid mandant, Mitarbeiter mitarbeiter, Datum datum) =>
+            new Dienstplanabschluss(mitarbeiter.Id, mandant, datum);
         private static Mitarbeiter Heimeshoff() =>
             new Mitarbeiter(
                 Guid.Parse("36A19CB3-8969-435A-A00E-B5CE3A71E6CD"),
