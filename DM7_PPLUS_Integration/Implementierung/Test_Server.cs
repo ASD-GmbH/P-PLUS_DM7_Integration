@@ -107,6 +107,7 @@ namespace DM7_PPLUS_Integration.Implementierung
         private readonly Dictionary<(Guid mandant, Datum tag), List<Dienstbuchung>> _dienstbuchungen;
         private readonly Dictionary<Guid, List<Abwesenheit>> _abwesenheiten;
         private readonly List<Dienstplanabschluss> _dienstplanabschlüsse = new List<Dienstplanabschluss>();
+        private Soll_Ist_Abgleich? _letzter_Soll_Ist_Abgleich;
 
         public Test_PPLUS_Handler(
             string user,
@@ -196,6 +197,7 @@ namespace DM7_PPLUS_Integration.Implementierung
                     case Soll_Ist_Abgleich_freigeben_V1 c:
                     {
                         var abgleich = Message_mapper.Soll_Ist_Abgleich_aus(c.Value);
+                        _letzter_Soll_Ist_Abgleich = abgleich;
                         var ergebnis = Verarbeite_Soll_Ist_Abgleich(abgleich);
                         return Message_mapper.Soll_Ist_Abgleich_Verarbeitungsergebnis_als_Message(ergebnis);
                     }
@@ -311,11 +313,8 @@ namespace DM7_PPLUS_Integration.Implementierung
             );
         }
 
-        public Stammdaten<Mitarbeiter> Mitarbeiter_abrufen()
-        {
-            return new Stammdaten<Mitarbeiter>(_mitarbeiter.Select(_ => _.Data).ToList(),
-                Höchster_Datenstand(_mitarbeiter));
-        }
+        public Stammdaten<Mitarbeiter> Mitarbeiter_abrufen() =>
+            new Stammdaten<Mitarbeiter>(_mitarbeiter.Select(_ => _.Data).ToList(), Höchster_Datenstand(_mitarbeiter));
 
         public Stammdaten<Mitarbeiter> Mitarbeiter_abrufen_ab(Datenstand stand)
         {
@@ -327,10 +326,8 @@ namespace DM7_PPLUS_Integration.Implementierung
             return new Stammdaten<Mitarbeiter>(mitarbeiter, Höchster_Datenstand(_mitarbeiter));
         }
 
-        public Stammdaten<Dienst> Dienste_abrufen()
-        {
-            return new Stammdaten<Dienst>(_dienste.Select(_ => _.Data).ToList(), Höchster_Datenstand(_dienste));
-        }
+        public Stammdaten<Dienst> Dienste_abrufen() =>
+            new Stammdaten<Dienst>(_dienste.Select(_ => _.Data).ToList(), Höchster_Datenstand(_dienste));
 
         public Stammdaten<Dienst> Dienste_abrufen_ab(Datenstand stand)
         {
@@ -425,6 +422,8 @@ namespace DM7_PPLUS_Integration.Implementierung
         {
             _dienstplanabschlüsse.Clear();
         }
+
+        public Soll_Ist_Abgleich? Letzter_Soll_Ist_Abgleich() => _letzter_Soll_Ist_Abgleich;
 
         private static Datenstand Höchster_Datenstand<T>(List<Daten_mit_Version<T>> daten) =>
             daten.Any() ? new Datenstand(daten.Max(_ => _.Version)) : new Datenstand(0);
@@ -536,6 +535,7 @@ namespace DM7_PPLUS_Integration.Implementierung
         public List<Mitarbeiter> Mitarbeiter() => _pplusHandler.Mitarbeiter_abrufen().ToList();
         public List<(Guid MandantId, Datum datum, Dienstbuchung dienstbuchung)> Dienstbuchungen() => _pplusHandler.Dienstbuchungen_abrufen();
         public List<(Guid mandantId, Abwesenheit abwesenheit)> Abwesenheiten() => _pplusHandler.Abwesenheiten_abrufen();
+        public Soll_Ist_Abgleich? Letzter_Soll_Ist_Abgleich() => _pplusHandler.Letzter_Soll_Ist_Abgleich();
 
         public void Dispose()
         {
