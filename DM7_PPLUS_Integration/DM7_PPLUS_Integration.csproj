@@ -15,7 +15,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BareNET" Version="0.1.2" />
+    <PackageReference Include="BareNET" Version="0.2.0" />
     <PackageReference Include="NetMQ" Version="4.0.1.6" />
   </ItemGroup>
 

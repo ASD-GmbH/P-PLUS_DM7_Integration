@@ -2,12 +2,13 @@
 using System.Collections.ObjectModel;
 using System.Security.Authentication;
 using System.Threading.Tasks;
-using Bare.Msg;
 using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung;
-using Datum = DM7_PPLUS_Integration.Daten.Datum;
 using System.Collections.Generic;
 using System.Linq;
+using DM7_PPLUS_Integration.Messages;
+using Datenstand = DM7_PPLUS_Integration.Daten.Datenstand;
+using Datum = DM7_PPLUS_Integration.Daten.Datum;
 
 namespace DM7_PPLUS_Integration
 {
@@ -113,8 +114,8 @@ namespace DM7_PPLUS_Integration
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.MITARBEITER_V1))
-                return Handle_Query<Mitarbeiterliste_V1, Stammdaten<Mitarbeiter>>(
-                    new Mitarbeiter_abrufen_V1(),
+                return Handle_Query<MitarbeiterlisteV1, Stammdaten<Mitarbeiter>>(
+                    new MitarbeiterAbrufenV1(),
                     Message_mapper.Mitarbeiterlist_als_Stammdaten);
             
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
@@ -126,8 +127,8 @@ namespace DM7_PPLUS_Integration
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.MITARBEITER_V1))
-                return Handle_Query<Mitarbeiterliste_V1, Stammdaten<Mitarbeiter>>(
-                    new Mitarbeiter_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand)),
+                return Handle_Query<MitarbeiterlisteV1, Stammdaten<Mitarbeiter>>(
+                    new MitarbeiterAbrufenAbV1(Message_mapper.Stand_als_Message(stand)),
                     Message_mapper.Mitarbeiterlist_als_Stammdaten);
             
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
@@ -139,8 +140,8 @@ namespace DM7_PPLUS_Integration
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.DIENSTE_V1))
-                return Handle_Query<Dienste_V1, Stammdaten<Dienst>>(
-                    new Dienste_abrufen_V1(),
+                return Handle_Query<DiensteV1, Stammdaten<Dienst>>(
+                    new DiensteAbrufenV1(),
                     Message_mapper.Dienste_als_Stammdaten);
 
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
@@ -152,8 +153,8 @@ namespace DM7_PPLUS_Integration
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.DIENSTE_V1))
-                return Handle_Query<Dienste_V1, Stammdaten<Dienst>>(
-                    new Dienste_abrufen_ab_V1(Message_mapper.Stand_als_Message(stand)),
+                return Handle_Query<DiensteV1, Stammdaten<Dienst>>(
+                    new DiensteAbrufenAbV1(Message_mapper.Stand_als_Message(stand)),
                     Message_mapper.Dienste_als_Stammdaten);
             
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
@@ -165,8 +166,8 @@ namespace DM7_PPLUS_Integration
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.DIENSTBUCHUNGEN_V1))
-                return Handle_Query<Dienstbuchungen_V1, ReadOnlyCollection<Dienstbuchung>>(
-                    new Dienstbuchungen_zum_Stichtag_V1(Message_mapper.Datum_als_Message(stichtag), Message_mapper.UUID_aus(mandantId)),
+                return Handle_Query<DienstbuchungenV1, ReadOnlyCollection<Dienstbuchung>>(
+                    new DienstbuchungenZumStichtagV1(Message_mapper.Datum_als_Message(stichtag), Message_mapper.UUID_aus(mandantId)),
                     Message_mapper.Dienstbuchungen);
 
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
@@ -178,8 +179,8 @@ namespace DM7_PPLUS_Integration
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.ABWESENHEITEN_V1))
-                return Handle_Query<Abwesenheiten_V1, ReadOnlyCollection<Abwesenheit>>(
-                new Abwesenheiten_zum_Stichtag_V1(Message_mapper.Datum_als_Message(stichtag), Message_mapper.UUID_aus(mandantId)),
+                return Handle_Query<AbwesenheitenV1, ReadOnlyCollection<Abwesenheit>>(
+                new AbwesenheitenZumStichtagV1(Message_mapper.Datum_als_Message(stichtag), Message_mapper.UUID_aus(mandantId)),
                 Message_mapper.Abwesenheiten);
 
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
@@ -191,8 +192,8 @@ namespace DM7_PPLUS_Integration
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.SOLL_IST_ABGLEICH_V1))
-                return Handle_Command<Soll_Ist_Abgleich_Verarbeitungsergebnis_V1, Soll_Ist_Abgleich_Verarbeitungsergebnis>(
-                    new Soll_Ist_Abgleich_freigeben_V1(Message_mapper.Soll_Ist_Abgleich_als_Message(abgleich)),
+                return Handle_Command<SollIstAbgleichVerarbeitungsergebnisV1, Soll_Ist_Abgleich_Verarbeitungsergebnis>(
+                    new SollIstAbgleichFreigebenV1(Message_mapper.Soll_Ist_Abgleich_als_Message(abgleich)),
                     Message_mapper.Soll_Ist_Abgleich_Verarbeitungsergebnis);
 
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
@@ -208,7 +209,7 @@ namespace DM7_PPLUS_Integration
                     return handler(message);
                 }
 
-                case IO_Fehler error:
+                case IOFehler error:
                 {
                     throw new Exception(error.Reason);
                 }
@@ -227,7 +228,7 @@ namespace DM7_PPLUS_Integration
                     return handler(message);
                 }
 
-                case IO_Fehler error:
+                case IOFehler error:
                 {
                     throw new Exception(error.Reason);
                 }

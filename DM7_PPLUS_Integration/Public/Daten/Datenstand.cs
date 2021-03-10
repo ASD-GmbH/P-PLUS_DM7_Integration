@@ -1,4 +1,4 @@
-﻿namespace DM7_PPLUS_Integration
+﻿namespace DM7_PPLUS_Integration.Daten
 {
     public readonly struct Datenstand
     {

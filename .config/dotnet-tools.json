@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "bare-cli": {
+      "version": "0.3.0",
+      "commands": [
+        "bare"
+      ]
+    }
+  }
+}

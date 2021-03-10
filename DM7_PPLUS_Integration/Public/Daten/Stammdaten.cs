@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace DM7_PPLUS_Integration
+namespace DM7_PPLUS_Integration.Daten
 {
     public class Stammdaten<T> : ReadOnlyCollection<T>
     {

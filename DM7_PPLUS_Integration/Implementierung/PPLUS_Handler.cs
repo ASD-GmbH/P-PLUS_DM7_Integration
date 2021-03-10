@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Bare.Msg;
+using DM7_PPLUS_Integration.Messages;
 
 namespace DM7_PPLUS_Integration.Implementierung
 {
@@ -7,7 +7,7 @@ namespace DM7_PPLUS_Integration.Implementierung
     {
         Task<Token?> Authenticate(string user, string password);
         Task<Capabilities> Capabilities();
-        Task<Query_Result> HandleQuery(Token token, Query query);
-        Task<Command_Result> HandleCommand(Token token, Command command);
+        Task<QueryResult> HandleQuery(Token token, Query query);
+        Task<CommandResult> HandleCommand(Token token, Command command);
     }
 }

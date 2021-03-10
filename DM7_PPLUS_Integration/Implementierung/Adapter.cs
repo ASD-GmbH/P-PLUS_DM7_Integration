@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Threading;
-using Bare.Msg;
+using DM7_PPLUS_Integration.Messages;
 using NetMQ;
 using NetMQ.Sockets;
 
@@ -64,24 +64,24 @@ namespace DM7_PPLUS_Integration.Implementierung
 
             using (var encryption = Encryption.From_encoded_Key(_encryptionKey))
             {
-                Bare.Msg.Authentication_Result message;
+                AuthenticationResult message;
                 try
                 {
-                    var request = Authentication_Request.Decoded(encryption.Decrypt(socket.ReceiveFrameBytes()));
+                    var request = AuthenticationRequest.Decoded(encryption.Decrypt(socket.ReceiveFrameBytes()));
                     var token = _pplusHandler.Authenticate(request.User, request.Password).Result;
                     message =
                         token.HasValue
-                            ? (Bare.Msg.Authentication_Result)new Authentication_Succeeded(token.Value.Value)
-                            : new Authentication_Failed("Zugriff nicht zugelassen.");
+                            ? (AuthenticationResult) new AuthenticationSucceeded(token.Value.Value)
+                            : new AuthenticationFailed("Zugriff nicht zugelassen.");
                 }
                 catch (CryptographicException)
                 {
-                    message = new Authentication_Failed("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab.");
+                    message = new AuthenticationFailed("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab.");
                 }
 
                 socket.SendMoreFrame(caller);
                 socket.SendMoreFrameEmpty();
-                socket.SendFrame(Encoding.Authentication_Result_Encoded(message));
+                socket.SendFrame(Encoding.AuthenticationResult_Encoded(message));
             }
         }
 
@@ -104,23 +104,23 @@ namespace DM7_PPLUS_Integration.Implementierung
             {
                 var caller = socket.ReceiveFrameBytes();
                 socket.SkipFrame();
-                var message = Query_Message.Decoded(socket.ReceiveFrameBytes());
+                var message = QueryMessage.Decoded(socket.ReceiveFrameBytes());
 
-                Response_Message response;
+                ResponseMessage response;
                 try
                 {
                     var query = Encoding.Query_Decoded(encryption.Decrypt(message.Query));
                     var result = _pplusHandler.HandleQuery(Message_mapper.Token_aus(message), query).Result;
-                    response = new Query_Succeeded(encryption.Encrypt(Encoding.Query_Result_Encoded(result)));
+                    response = new QuerySucceeded(encryption.Encrypt(Encoding.QueryResult_Encoded(result)));
                 }
                 catch (CryptographicException)
                 {
-                    response = new Query_Failed("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab.");
+                    response = new QueryFailed("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab.");
                 }
 
                 socket.SendMoreFrame(caller);
                 socket.SendMoreFrameEmpty();
-                socket.SendFrame(Encoding.Response_Message_Encoded(response));
+                socket.SendFrame(Encoding.ResponseMessage_Encoded(response));
             }
         }
 
@@ -130,23 +130,23 @@ namespace DM7_PPLUS_Integration.Implementierung
             {
                 var caller = socket.ReceiveFrameBytes();
                 socket.SkipFrame();
-                var message = Command_Message.Decoded(socket.ReceiveFrameBytes());
+                var message = CommandMessage.Decoded(socket.ReceiveFrameBytes());
 
-                Command_Response_Message response;
+                CommandResponseMessage response;
                 try
                 {
                     var command = Encoding.Command_Decoded(encryption.Decrypt(message.Command));
                     var result = _pplusHandler.HandleCommand(Message_mapper.Token_aus(message), command).Result;
-                    response = new Command_Succeeded(encryption.Encrypt(Encoding.Command_Result_Encoded(result)));
+                    response = new CommandSucceeded(encryption.Encrypt(Encoding.CommandResult_Encoded(result)));
                 }
                 catch (CryptographicException)
                 {
-                    response = new Command_Failed("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab.");
+                    response = new CommandFailed("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab.");
                 }
 
                 socket.SendMoreFrame(caller);
                 socket.SendMoreFrameEmpty();
-                socket.SendFrame(Encoding.Command_Response_Message_Encoded(response));
+                socket.SendFrame(Encoding.CommandResponseMessage_Encoded(response));
             }
         }
 

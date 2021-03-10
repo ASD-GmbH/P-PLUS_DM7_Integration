@@ -1,30 +1,30 @@
 ﻿### Port & Adapter Messages ###
-type Authentication_Request {
+type AuthenticationRequest {
 	user: string
 	password: string
 }
 
-type Authentication_Result (Authentication_Succeeded | Authentication_Failed)
-type Authentication_Succeeded { token: i32 }
-type Authentication_Failed { reason: string }
+type AuthenticationResult (AuthenticationSucceeded | AuthenticationFailed)
+type AuthenticationSucceeded { token: i32 }
+type AuthenticationFailed { reason: string }
 
-type Query_Message {
+type QueryMessage {
 	token: i32
 	query: data # Verschlüsselte Query
 }
 
-type Response_Message (Query_Succeeded | Query_Failed)
-type Query_Succeeded data # Enthält verschlüsseltes Query_Result
-type Query_Failed { reason: string }
+type ResponseMessage (QuerySucceeded | QueryFailed)
+type QuerySucceeded data # Enthält verschlüsseltes QueryResult
+type QueryFailed { reason: string }
 
-type Command_Message {
+type CommandMessage {
 	token: i32
 	command: data # Verschlüsseltes Command
 }
 
-type Command_Response_Message (Command_Succeeded | Command_Failed)
-type Command_Succeeded data # Enthält verschlüsseltes Command_Result
-type Command_Failed { reason: string }
+type CommandResponseMessage (CommandSucceeded | CommandFailed)
+type CommandSucceeded data # Enthält verschlüsseltes CommandResult
+type CommandFailed { reason: string }
 
 type Capabilities []Capability
 
@@ -39,83 +39,83 @@ enum Capability {
 
 ### Queries ###
 type Query (
-	Mitarbeiter_abrufen_V1
-	| Mitarbeiter_abrufen_ab_V1
-	| Dienste_abrufen_V1
-	| Dienste_abrufen_ab_V1
-	| Dienstbuchungen_zum_Stichtag_V1
-	| Abwesenheiten_zum_Stichtag_V1
+	MitarbeiterAbrufenV1
+	| MitarbeiterAbrufenAbV1
+	| DiensteAbrufenV1
+	| DiensteAbrufenAbV1
+	| DienstbuchungenZumStichtagV1
+	| AbwesenheitenZumStichtagV1
 )
 
-type Mitarbeiter_abrufen_V1 void
-type Mitarbeiter_abrufen_ab_V1 Datenstand
-type Dienste_abrufen_V1 void
-type Dienste_abrufen_ab_V1 Datenstand
-type Abwesenheiten_zum_Stichtag_V1 {
+type MitarbeiterAbrufenV1 void
+type MitarbeiterAbrufenAbV1 Datenstand
+type DiensteAbrufenV1 void
+type DiensteAbrufenAbV1 Datenstand
+type DienstbuchungenZumStichtagV1 {
 	stichtag: Datum
 	mandant: UUID
 }
-type Dienstbuchungen_zum_Stichtag_V1 {
+type AbwesenheitenZumStichtagV1 {
 	stichtag: Datum
 	mandant: UUID
 }
 
-type Query_Result (
-	IO_Fehler
-	| Mitarbeiterliste_V1
-	| Dienste_V1
-	| Dienstbuchungen_V1
-	| Abwesenheiten_V1
+type QueryResult (
+	IOFehler
+	| MitarbeiterlisteV1
+	| DiensteV1
+	| DienstbuchungenV1
+	| AbwesenheitenV1
 )
 
-type IO_Fehler { reason: string }
+type IOFehler { reason: string }
 
-type Mitarbeiterliste_V1 {
-	mitarbeiter: []Mitarbeiter_V1
+type MitarbeiterlisteV1 {
+	mitarbeiter: []MitarbeiterV1
 	stand: Datenstand
 }
 
-type Dienste_V1 {
-	dienste: []Dienst_V1
+type DiensteV1 {
+	dienste: []DienstV1
 	stand: Datenstand
 }
 
-type Dienstbuchungen_V1 []Dienstbuchung_V1
+type DienstbuchungenV1 []DienstbuchungV1
 
-type Abwesenheiten_V1 []Abwesenheit_V1
+type AbwesenheitenV1 []AbwesenheitV1
 
 ### Commands ###
-type Command (Soll_Ist_Abgleich_freigeben_V1)
+type Command (SollIstAbgleichFreigebenV1)
 
-type Command_Result (IO_Fehler | Soll_Ist_Abgleich_Verarbeitungsergebnis_V1)
+type CommandResult (IOFehler | SollIstAbgleichVerarbeitungsergebnisV1)
 
-type Soll_Ist_Abgleich_freigeben_V1 Soll_Ist_Abgleich_V1
+type SollIstAbgleichFreigebenV1 SollIstAbgleichV1
 
 ### Daten ###
-type Mitarbeiter_V1 {
+type MitarbeiterV1 {
 	id: UUID
-	mandantenzugehoerigkeiten: []DM7_Mandantenzugehoerigkeit_V1
+	mandantenzugehoerigkeiten: []DM7MandantenzugehoerigkeitV1
 	titel: UUID
 	vorname: string
 	nachname: string
-	postanschrift: optional<Postanschrift_V1>
+	postanschrift: optional<PostanschriftV1>
 	geburtstag: optional<Datum>
 	familienstand: UUID
 	konfession: UUID
-	qualifikationen: []Qualifikation_V1
+	qualifikationen: []QualifikationV1
 	handzeichen: string
 	personalnummer: string
 	geschlecht: UUID
-	kontakte: []Kontakt_V1
+	kontakte: []KontaktV1
 }
 
-type DM7_Mandantenzugehoerigkeit_V1 {
+type DM7MandantenzugehoerigkeitV1 {
 	mandantId: UUID
 	gueltigAb: Datum
 	gueltigBis: optional<Datum>
 }
 
-type Postanschrift_V1 {
+type PostanschriftV1 {
 	id: UUID
 	strasse: string
 	postleitzahl: string
@@ -123,29 +123,29 @@ type Postanschrift_V1 {
 	land: string
 }
 
-type Qualifikation_V1 {
+type QualifikationV1 {
 	stufe: u8
 	bezeichnung: string
 	gueltigAb: Datum
 	gueltigBis: optional<Datum>
 }
 
-type Kontakt_V1 {
+type KontaktV1 {
 	art: UUID
 	form: UUID
 	eintrag: string
 }
 
-type Dienst_V1 {
+type DienstV1 {
 	id: uint
-	mandantenzugehoerigkeiten: []DM7_Mandantenzugehoerigkeit_V1
+	mandantenzugehoerigkeiten: []DM7MandantenzugehoerigkeitV1
 	kurzbezeichnung: string
 	bezeichnung: string
-	gueltigAn: Dienst_Gueltigkeit_V1
+	gueltigAn: DienstGueltigkeitV1
 	geloescht: bool
 }
 
-type Dienst_Gueltigkeit_V1 {
+type DienstGueltigkeitV1 {
 	montag: bool
 	dienstag: bool
 	mittwoch: bool
@@ -156,72 +156,72 @@ type Dienst_Gueltigkeit_V1 {
 	feiertags: bool
 }
 
-type Dienstbuchung_V1 {
+type DienstbuchungV1 {
 	mitarbeiter: UUID
 	dienst: int
 	beginntUm: Uhrzeit
 }
 
-type Abwesenheit_V1 {
+type AbwesenheitV1 {
 	mitarbeiter: UUID
 	abwesendAb: Zeitpunkt
 	vorraussichtlichWiederVerfuegbarAb: Zeitpunkt
 	grund: string
-	art: Abwesenheitsart_V1
+	art: AbwesenheitsartV1
 }
 
-enum Abwesenheitsart_V1 {
+enum AbwesenheitsartV1 {
 	FEHLZEIT
 	ANDERSWEITIG_VERPLANT
 }
 
-type Soll_Ist_Abgleich_V1 {
-	ungeplanteTourenOhneTourenstamm: []Ungeplante_Tour_V1
-	geplanteTouren: []Geplante_Tour_V1
-	nichtGefahreneTouren: []Nicht_gefahrene_Tour_V1
+type SollIstAbgleichV1 {
+	ungeplanteTourenOhneTourenstamm: []UngeplanteTourV1
+	geplanteTouren: []GeplanteTourV1
+	nichtGefahreneTouren: []NichtGefahreneTourV1
 }
 
-type Ungeplante_Tour_V1 {
+type UngeplanteTourV1 {
 	mitarbeiter: UUID
 	mandant: UUID
 	beginn: Zeitpunkt
-	einsaetze: []Einsatz_V1
+	einsaetze: []EinsatzV1
 }
 
-type Geplante_Tour_V1 {
+type GeplanteTourV1 {
 	mitarbeiter: UUID
 	mandant: UUID
 	dienst: int
 	beginn: Zeitpunkt
-	einsaetze: []Einsatz_V1
+	einsaetze: []EinsatzV1
 }
 
-type Nicht_gefahrene_Tour_V1 {
+type NichtGefahreneTourV1 {
 	mitarbeiter: UUID
 	mandant: UUID
 	dienst: int
 	datum: Datum
 }
 
-type Einsatz_V1 {
-	beginn: Relative_Zeit
+type EinsatzV1 {
+	beginn: RelativeZeit
 	dauerInMinuten: uint
 	anfahrtsdauerInMinuten: uint
 	abfahrtsdauerInMinuten: uint
-	art: Einsatzart_V1
+	art: EinsatzartV1
 }
 
-type Einsatzart_V1 (Klient_Einsatz_V1 | Sonstige_Zeit_V1 | Pause_V1 | Unterbrechung_V1)
-type Klient_Einsatz_V1 void
-type Sonstige_Zeit_V1 { leistung: UUID }
-type Pause_V1 void
-type Unterbrechung_V1 void
+type EinsatzartV1 (KlientEinsatzV1 | SonstigeZeitV1 | PauseV1 | UnterbrechungV1)
+type KlientEinsatzV1 void
+type SonstigeZeitV1 { leistung: UUID }
+type PauseV1 void
+type UnterbrechungV1 void
 
-type Soll_Ist_Abgleich_Verarbeitungsergebnis_V1 (Verarbeitet_V1 | Dienstplanabschluss_verhindert_Verarbeitung_V1)
-type Verarbeitet_V1 void
-type Dienstplanabschluss_verhindert_Verarbeitung_V1 []Dienstplanabschluss_V1
+type SollIstAbgleichVerarbeitungsergebnisV1 (VerarbeitetV1 | DienstplanabschlussVerhindertVerarbeitungV1)
+type VerarbeitetV1 void
+type DienstplanabschlussVerhindertVerarbeitungV1 []DienstplanabschlussV1
 
-type Dienstplanabschluss_V1 {
+type DienstplanabschlussV1 {
 	mitarbeiter: UUID
 	mandant: UUID
 	datum: Datum
@@ -231,5 +231,5 @@ type UUID data<16>
 type Datum { tag: u8 monat: u8 jahr: u16 }
 type Uhrzeit { stunden: u8 minuten: u8 }
 type Zeitpunkt { datum: Datum uhrzeit: Uhrzeit }
-type Relative_Zeit { zeit: Uhrzeit amFolgetag: bool }
+type RelativeZeit { zeit: Uhrzeit amFolgetag: bool }
 type Datenstand u64

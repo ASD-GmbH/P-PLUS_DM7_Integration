@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Bare.Msg;
+using DM7_PPLUS_Integration.Messages;
 using NetMQ;
 using NetMQ.Sockets;
 
@@ -29,17 +29,17 @@ namespace DM7_PPLUS_Integration.Implementierung
                 using (var encryption = Encryption.From_encoded_Key(_encryptionKey))
                 {
                     _log.Debug("Authenticate");
-                    socket.SendFrame(encryption.Encrypt(new Authentication_Request(user, password).Encoded()));
-                    var result= Encoding.Authentication_Result_Decoded(socket.ReceiveFrameBytes());
+                    socket.SendFrame(encryption.Encrypt(new AuthenticationRequest(user, password).Encoded()));
+                    var result= Encoding.AuthenticationResult_Decoded(socket.ReceiveFrameBytes());
 
                     switch (result)
                     {
-                        case Authentication_Succeeded succeeded:
+                        case AuthenticationSucceeded succeeded:
                         {
                             _log.Debug("Authenticated");
                             return new Token(succeeded.Token);
                         }
-                        case Authentication_Failed failed:
+                        case AuthenticationFailed failed:
                         {
                             _log.Info($"Nicht authentifiziert: {failed.Reason}");
                             return null;
@@ -58,7 +58,7 @@ namespace DM7_PPLUS_Integration.Implementierung
                 {
                     _log.Debug("Capabilities laden...");
                     socket.SendFrameEmpty();
-                    var capabilities = Bare.Msg.Capabilities.Decoded(socket.ReceiveFrameBytes());
+                    var capabilities = Messages.Capabilities.Decoded(socket.ReceiveFrameBytes());
                     _log.Debug("Capabilities geladen:");
                     foreach (var capability in capabilities.Value) _log.Debug($" - {capability}");
                     return capabilities;
@@ -66,7 +66,7 @@ namespace DM7_PPLUS_Integration.Implementierung
             });
         }
 
-        public Task<Query_Result> HandleQuery(Token token, Query query)
+        public Task<QueryResult> HandleQuery(Token token, Query query)
         {
             return Task.Run(() =>
             {
@@ -74,37 +74,37 @@ namespace DM7_PPLUS_Integration.Implementierung
                 using (var encryption = Encryption.From_encoded_Key(_encryptionKey))
                 {
                     _log.Debug($"QUERY: '{query.GetType()}'");
-                    socket.SendFrame(new Query_Message(token.Value, encryption.Encrypt(Encoding.Query_Encoded(query))).Encoded());
-                    var message = Encoding.Response_Message_Decoded(socket.ReceiveFrameBytes());
+                    socket.SendFrame(new QueryMessage(token.Value, encryption.Encrypt(Encoding.Query_Encoded(query))).Encoded());
+                    var message = Encoding.ResponseMessage_Decoded(socket.ReceiveFrameBytes());
 
                     switch (message)
                     {
-                        case Query_Failed failed:
-                            return new IO_Fehler(failed.Reason);
+                        case QueryFailed failed:
+                            return new IOFehler(failed.Reason);
 
-                        case Query_Succeeded succeeded:
+                        case QuerySucceeded succeeded:
                         {
                             try
                             {
-                                var response = Encoding.Query_Result_Decoded(encryption.Decrypt(succeeded.Value));
+                                var response = Encoding.QueryResult_Decoded(encryption.Decrypt(succeeded.Value));
                                 _log.Debug($"RESPONSE: '{response.GetType()}'");
                                 return response;
                             }
                             catch (CryptographicException e)
                             {
                                 _log.Info($"Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab: {e.Message}");
-                                return new IO_Fehler("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab");
+                                return new IOFehler("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab");
                             }
                         }
 
                         default:
-                            return new IO_Fehler($"'{message.GetType()}' wurde in 'HandleQuery' im Port nicht behandelt");
+                            return new IOFehler($"'{message.GetType()}' wurde in 'HandleQuery' im Port nicht behandelt");
                     }
                 }
             });
         }
 
-        public Task<Command_Result> HandleCommand(Token token, Command command)
+        public Task<CommandResult> HandleCommand(Token token, Command command)
         {
             return Task.Run(() =>
             {
@@ -112,31 +112,31 @@ namespace DM7_PPLUS_Integration.Implementierung
                 using (var encryption = Encryption.From_encoded_Key(_encryptionKey))
                 {
                     _log.Debug($"COMMAND: '{command.GetType()}'");
-                    socket.SendFrame(new Command_Message(token.Value, encryption.Encrypt(Encoding.Command_Encoded(command))).Encoded());
-                    var message = Encoding.Command_Response_Message_Decoded(socket.ReceiveFrameBytes());
+                    socket.SendFrame(new CommandMessage(token.Value, encryption.Encrypt(Encoding.Command_Encoded(command))).Encoded());
+                    var message = Encoding.CommandResponseMessage_Decoded(socket.ReceiveFrameBytes());
 
                     switch (message)
                     {
-                        case Command_Failed failed:
-                            return new IO_Fehler(failed.Reason);
+                        case CommandFailed failed:
+                            return new IOFehler(failed.Reason);
 
-                        case Command_Succeeded succeeded:
+                        case CommandSucceeded succeeded:
                         {
                             try
                             {
-                                var response = Encoding.Command_Result_Decoded(encryption.Decrypt(succeeded.Value));
+                                var response = Encoding.CommandResult_Decoded(encryption.Decrypt(succeeded.Value));
                                 _log.Debug($"RESPONSE: '{response.GetType()}'");
                                 return response;
                             }
                             catch (CryptographicException e)
                             {
                                 _log.Info($"Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab: {e.Message}");
-                                return new IO_Fehler("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab");
+                                return new IOFehler("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab");
                             }
                         }
 
                         default:
-                            return new IO_Fehler($"'{message.GetType()}' wurde in 'HandleCommand' im Port nicht behandelt");
+                            return new IOFehler($"'{message.GetType()}' wurde in 'HandleCommand' im Port nicht behandelt");
                     }
                 }
             });

@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Bare.Msg;
 using DM7_PPLUS_Integration.Daten;
+using DM7_PPLUS_Integration.Messages;
+using Datenstand = DM7_PPLUS_Integration.Daten.Datenstand;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
 
 namespace DM7_PPLUS_Integration.Implementierung
@@ -145,56 +146,56 @@ namespace DM7_PPLUS_Integration.Implementierung
                 Capability.ABWESENHEITEN_V1,
                 Capability.DIENSTBUCHUNGEN_V1,
                 Capability.SOLL_IST_ABGLEICH_V1
-            }));
+            }.ToList()));
         }
 
-        public Task<Query_Result> HandleQuery(Token token, Query query)
+        public Task<QueryResult> HandleQuery(Token token, Query query)
         {
-            return Task.Run<Query_Result>(() =>
+            return Task.Run<QueryResult>(() =>
             {
                 if (_token.HasValue == false || _token.Value != token)
                 {
-                    return new IO_Fehler("Unberechtigter Zugriff");
+                    return new IOFehler("Unberechtigter Zugriff");
                 }
 
                 switch (query)
                 {
-                    case Mitarbeiter_abrufen_V1 _:
+                    case MitarbeiterAbrufenV1 _:
                         return Message_mapper.Mitarbeiterstammdaten_als_Message(Mitarbeiter_abrufen());
 
-                    case Mitarbeiter_abrufen_ab_V1 q:
+                    case MitarbeiterAbrufenAbV1 q:
                         return Message_mapper.Mitarbeiterstammdaten_als_Message(Mitarbeiter_abrufen_ab(Message_mapper.Stand_aus(q.Value)));
 
-                    case Dienste_abrufen_V1 _:
+                    case DiensteAbrufenV1 _:
                         return Message_mapper.Dienste_als_Message(Dienste_abrufen());
 
-                    case Dienste_abrufen_ab_V1 q:
+                    case DiensteAbrufenAbV1 q:
                         return Message_mapper.Dienste_als_Message(Dienste_abrufen_ab(Message_mapper.Stand_aus(q.Value)));
 
-                    case Dienstbuchungen_zum_Stichtag_V1 q:
+                    case DienstbuchungenZumStichtagV1 q:
                         return Message_mapper.Dienstbuchungen_als_Message(Dienstbuchungen_zum_Stichtag(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Stichtag)));
 
-                    case Abwesenheiten_zum_Stichtag_V1 q:
+                    case AbwesenheitenZumStichtagV1 q:
                         return Message_mapper.Abwesenheiten_als_Message(Abwesenheiten_zum_Stichtag(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Stichtag)));
 
                     default:
-                        return new IO_Fehler($"Query '{query.GetType()}' nicht behandelt");
+                        return new IOFehler($"Query '{query.GetType()}' nicht behandelt");
                 }
             });
         }
 
-        public Task<Command_Result> HandleCommand(Token token, Command command)
+        public Task<CommandResult> HandleCommand(Token token, Command command)
         {
-            return Task.Run<Command_Result>(() =>
+            return Task.Run<CommandResult>(() =>
             {
                 if (_token.HasValue == false || _token.Value != token)
                 {
-                    return new IO_Fehler("Unberechtigter Zugriff");
+                    return new IOFehler("Unberechtigter Zugriff");
                 }
 
                 switch (command)
                 {
-                    case Soll_Ist_Abgleich_freigeben_V1 c:
+                    case SollIstAbgleichFreigebenV1 c:
                     {
                         var abgleich = Message_mapper.Soll_Ist_Abgleich_aus(c.Value);
                         _letzter_Soll_Ist_Abgleich = abgleich;
@@ -203,7 +204,7 @@ namespace DM7_PPLUS_Integration.Implementierung
                     }
 
                     default:
-                        return new IO_Fehler($"Command '{command.GetType()}' nicht behandelt");
+                        return new IOFehler($"Command '{command.GetType()}' nicht behandelt");
                 }
             });
         }
