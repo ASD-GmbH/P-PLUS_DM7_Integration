@@ -218,7 +218,7 @@ namespace DM7_PPLUS_Integration.Implementierung
 
             foreach (var nichtGefahreneTour in abgleich.Nicht_gefahrene_Touren)
             {
-                var key = (nichtGefahreneTour.MandantId, nichtGefahreneTour.Datum);
+                var key = (nichtGefahreneTour.MandantId, abgleich.Datum);
                 if (!_dienstbuchungen.ContainsKey(key)) continue;
                 _dienstbuchungen[key].RemoveAll(db => db.MitarbeiterId == nichtGefahreneTour.MitarbeiterId && db.DienstId == nichtGefahreneTour.Dienst);
             }

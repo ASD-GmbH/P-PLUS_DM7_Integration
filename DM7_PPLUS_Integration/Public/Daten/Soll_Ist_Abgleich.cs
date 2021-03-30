@@ -5,12 +5,14 @@ namespace DM7_PPLUS_Integration.Daten
 {
     public readonly struct Soll_Ist_Abgleich
     {
+        public readonly Datum Datum;
         public readonly ReadOnlyCollection<Ungeplante_Tour> Ungeplante_Touren_ohne_Tourenstamm;
         public readonly ReadOnlyCollection<Geplante_Tour> Geplante_Touren;
         public readonly ReadOnlyCollection<Nicht_gefahrene_Tour> Nicht_gefahrene_Touren;
 
-        public Soll_Ist_Abgleich(ReadOnlyCollection<Ungeplante_Tour> ungeplante_Touren_ohne_Tourenstamm, ReadOnlyCollection<Geplante_Tour> geplante_Touren, ReadOnlyCollection<Nicht_gefahrene_Tour> nicht_gefahrene_Touren)
+        public Soll_Ist_Abgleich(Datum datum, ReadOnlyCollection<Ungeplante_Tour> ungeplante_Touren_ohne_Tourenstamm, ReadOnlyCollection<Geplante_Tour> geplante_Touren, ReadOnlyCollection<Nicht_gefahrene_Tour> nicht_gefahrene_Touren)
         {
+            Datum = datum;
             Ungeplante_Touren_ohne_Tourenstamm = ungeplante_Touren_ohne_Tourenstamm;
             Geplante_Touren = geplante_Touren;
             Nicht_gefahrene_Touren = nicht_gefahrene_Touren;
@@ -21,14 +23,12 @@ namespace DM7_PPLUS_Integration.Daten
     {
         public readonly Guid MitarbeiterId;
         public readonly Guid MandantId;
-        public readonly Zeitpunkt Beginn;
         public readonly ReadOnlyCollection<Einsatz> Einsätze;
 
-        public Ungeplante_Tour(Guid mitarbeiterId, Guid mandantId, Zeitpunkt beginn, ReadOnlyCollection<Einsatz> einsätze)
+        public Ungeplante_Tour(Guid mitarbeiterId, Guid mandantId, ReadOnlyCollection<Einsatz> einsätze)
         {
             MitarbeiterId = mitarbeiterId;
             MandantId = mandantId;
-            Beginn = beginn;
             Einsätze = einsätze;
         }
     }
@@ -38,15 +38,13 @@ namespace DM7_PPLUS_Integration.Daten
         public readonly Guid MitarbeiterId;
         public readonly Guid MandantId;
         public readonly int Dienst;
-        public readonly Zeitpunkt Beginn;
         public readonly ReadOnlyCollection<Einsatz> Einsätze;
 
-        public Geplante_Tour(Guid mitarbeiterId, Guid mandantId, int dienst, Zeitpunkt beginn, ReadOnlyCollection<Einsatz> einsätze)
+        public Geplante_Tour(Guid mitarbeiterId, Guid mandantId, int dienst, ReadOnlyCollection<Einsatz> einsätze)
         {
             MitarbeiterId = mitarbeiterId;
             MandantId = mandantId;
             Dienst = dienst;
-            Beginn = beginn;
             Einsätze = einsätze;
         }
     }
@@ -56,14 +54,12 @@ namespace DM7_PPLUS_Integration.Daten
         public readonly Guid MitarbeiterId;
         public readonly Guid MandantId;
         public readonly int Dienst;
-        public readonly Datum Datum;
 
-        public Nicht_gefahrene_Tour(Guid mitarbeiterId, Guid mandantId, int dienst, Datum datum)
+        public Nicht_gefahrene_Tour(Guid mitarbeiterId, Guid mandantId, int dienst)
         {
             MitarbeiterId = mitarbeiterId;
             MandantId = mandantId;
             Dienst = dienst;
-            Datum = datum;
         }
     }
 

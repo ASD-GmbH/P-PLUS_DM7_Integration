@@ -175,9 +175,10 @@ namespace Demo_Implementierung
             var nicht_gefahrene_Touren =
                 new[]
                 {
-                    new Nicht_gefahrene_Tour(Heimeshoff().Id, Mandant_1, Frühtour().Id, Heute())
+                    new Nicht_gefahrene_Tour(Heimeshoff().Id, Mandant_1, Frühtour().Id)
                 };
             var abgleich = new Soll_Ist_Abgleich(
+                Heute(),
                 new ReadOnlyCollection<Ungeplante_Tour>(new List<Ungeplante_Tour>()),
                 new ReadOnlyCollection<Geplante_Tour>(new List<Geplante_Tour>()),
                 new ReadOnlyCollection<Nicht_gefahrene_Tour>(nicht_gefahrene_Touren));

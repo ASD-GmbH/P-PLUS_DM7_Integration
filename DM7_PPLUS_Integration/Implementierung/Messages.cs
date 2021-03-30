@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 10.03.2021 18:50 //
+// Generated code by BareNET - 23.03.2021 15:29 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
@@ -988,12 +988,14 @@ namespace DM7_PPLUS_Integration.Messages
 
 	public readonly struct SollIstAbgleichV1
 	{
+		public readonly Datum Datum;
 		public readonly List<UngeplanteTourV1> UngeplanteTourenOhneTourenstamm;
 		public readonly List<GeplanteTourV1> GeplanteTouren;
 		public readonly List<NichtGefahreneTourV1> NichtGefahreneTouren;
 	
-		public SollIstAbgleichV1(List<UngeplanteTourV1> ungeplanteTourenOhneTourenstamm, List<GeplanteTourV1> geplanteTouren, List<NichtGefahreneTourV1> nichtGefahreneTouren)
+		public SollIstAbgleichV1(Datum datum, List<UngeplanteTourV1> ungeplanteTourenOhneTourenstamm, List<GeplanteTourV1> geplanteTouren, List<NichtGefahreneTourV1> nichtGefahreneTouren)
 		{
+			Datum = datum;
 			UngeplanteTourenOhneTourenstamm = ungeplanteTourenOhneTourenstamm;
 			GeplanteTouren = geplanteTouren;
 			NichtGefahreneTouren = nichtGefahreneTouren;
@@ -1001,7 +1003,8 @@ namespace DM7_PPLUS_Integration.Messages
 	
 		public byte[] Encoded()
 		{
-			return BareNET.Bare.Encode_list(UngeplanteTourenOhneTourenstamm, UngeplanteTourenOhneTourenstammList => UngeplanteTourenOhneTourenstammList.Encoded())
+			return Datum.Encoded()
+				.Concat(BareNET.Bare.Encode_list(UngeplanteTourenOhneTourenstamm, UngeplanteTourenOhneTourenstammList => UngeplanteTourenOhneTourenstammList.Encoded()))
 				.Concat(BareNET.Bare.Encode_list(GeplanteTouren, GeplanteTourenList => GeplanteTourenList.Encoded()))
 				.Concat(BareNET.Bare.Encode_list(NichtGefahreneTouren, NichtGefahreneTourenList => NichtGefahreneTourenList.Encoded()))
 				.ToArray();
@@ -1011,11 +1014,12 @@ namespace DM7_PPLUS_Integration.Messages
 	
 		public static ValueTuple<SollIstAbgleichV1, byte[]> Decode(byte[] data)
 		{
-			var ungeplanteTourenOhneTourenstamm = BareNET.Bare.Decode_list(data, dataList => UngeplanteTourV1.Decode(dataList));
+			var datum = Datum.Decode(data);
+			var ungeplanteTourenOhneTourenstamm = BareNET.Bare.Decode_list(datum.Item2, datumList => UngeplanteTourV1.Decode(datumList));
 			var geplanteTouren = BareNET.Bare.Decode_list(ungeplanteTourenOhneTourenstamm.Item2, ungeplanteTourenOhneTourenstammList => GeplanteTourV1.Decode(ungeplanteTourenOhneTourenstammList));
 			var nichtGefahreneTouren = BareNET.Bare.Decode_list(geplanteTouren.Item2, geplanteTourenList => NichtGefahreneTourV1.Decode(geplanteTourenList));
 			return new ValueTuple<SollIstAbgleichV1, byte[]>(
-				new SollIstAbgleichV1(ungeplanteTourenOhneTourenstamm.Item1.ToList(), geplanteTouren.Item1.ToList(), nichtGefahreneTouren.Item1.ToList()),
+				new SollIstAbgleichV1(datum.Item1, ungeplanteTourenOhneTourenstamm.Item1.ToList(), geplanteTouren.Item1.ToList(), nichtGefahreneTouren.Item1.ToList()),
 				nichtGefahreneTouren.Item2);
 		}
 	}
@@ -1024,14 +1028,12 @@ namespace DM7_PPLUS_Integration.Messages
 	{
 		public readonly UUID Mitarbeiter;
 		public readonly UUID Mandant;
-		public readonly Zeitpunkt Beginn;
 		public readonly List<EinsatzV1> Einsaetze;
 	
-		public UngeplanteTourV1(UUID mitarbeiter, UUID mandant, Zeitpunkt beginn, List<EinsatzV1> einsaetze)
+		public UngeplanteTourV1(UUID mitarbeiter, UUID mandant, List<EinsatzV1> einsaetze)
 		{
 			Mitarbeiter = mitarbeiter;
 			Mandant = mandant;
-			Beginn = beginn;
 			Einsaetze = einsaetze;
 		}
 	
@@ -1039,7 +1041,6 @@ namespace DM7_PPLUS_Integration.Messages
 		{
 			return Mitarbeiter.Encoded()
 				.Concat(Mandant.Encoded())
-				.Concat(Beginn.Encoded())
 				.Concat(BareNET.Bare.Encode_list(Einsaetze, EinsaetzeList => EinsaetzeList.Encoded()))
 				.ToArray();
 		}
@@ -1050,10 +1051,9 @@ namespace DM7_PPLUS_Integration.Messages
 		{
 			var mitarbeiter = UUID.Decode(data);
 			var mandant = UUID.Decode(mitarbeiter.Item2);
-			var beginn = Zeitpunkt.Decode(mandant.Item2);
-			var einsaetze = BareNET.Bare.Decode_list(beginn.Item2, beginnList => EinsatzV1.Decode(beginnList));
+			var einsaetze = BareNET.Bare.Decode_list(mandant.Item2, mandantList => EinsatzV1.Decode(mandantList));
 			return new ValueTuple<UngeplanteTourV1, byte[]>(
-				new UngeplanteTourV1(mitarbeiter.Item1, mandant.Item1, beginn.Item1, einsaetze.Item1.ToList()),
+				new UngeplanteTourV1(mitarbeiter.Item1, mandant.Item1, einsaetze.Item1.ToList()),
 				einsaetze.Item2);
 		}
 	}
@@ -1063,15 +1063,13 @@ namespace DM7_PPLUS_Integration.Messages
 		public readonly UUID Mitarbeiter;
 		public readonly UUID Mandant;
 		public readonly long Dienst;
-		public readonly Zeitpunkt Beginn;
 		public readonly List<EinsatzV1> Einsaetze;
 	
-		public GeplanteTourV1(UUID mitarbeiter, UUID mandant, long dienst, Zeitpunkt beginn, List<EinsatzV1> einsaetze)
+		public GeplanteTourV1(UUID mitarbeiter, UUID mandant, long dienst, List<EinsatzV1> einsaetze)
 		{
 			Mitarbeiter = mitarbeiter;
 			Mandant = mandant;
 			Dienst = dienst;
-			Beginn = beginn;
 			Einsaetze = einsaetze;
 		}
 	
@@ -1080,7 +1078,6 @@ namespace DM7_PPLUS_Integration.Messages
 			return Mitarbeiter.Encoded()
 				.Concat(Mandant.Encoded())
 				.Concat(BareNET.Bare.Encode_int(Dienst))
-				.Concat(Beginn.Encoded())
 				.Concat(BareNET.Bare.Encode_list(Einsaetze, EinsaetzeList => EinsaetzeList.Encoded()))
 				.ToArray();
 		}
@@ -1092,10 +1089,9 @@ namespace DM7_PPLUS_Integration.Messages
 			var mitarbeiter = UUID.Decode(data);
 			var mandant = UUID.Decode(mitarbeiter.Item2);
 			var dienst = BareNET.Bare.Decode_int(mandant.Item2);
-			var beginn = Zeitpunkt.Decode(dienst.Item2);
-			var einsaetze = BareNET.Bare.Decode_list(beginn.Item2, beginnList => EinsatzV1.Decode(beginnList));
+			var einsaetze = BareNET.Bare.Decode_list(dienst.Item2, dienstList => EinsatzV1.Decode(dienstList));
 			return new ValueTuple<GeplanteTourV1, byte[]>(
-				new GeplanteTourV1(mitarbeiter.Item1, mandant.Item1, dienst.Item1, beginn.Item1, einsaetze.Item1.ToList()),
+				new GeplanteTourV1(mitarbeiter.Item1, mandant.Item1, dienst.Item1, einsaetze.Item1.ToList()),
 				einsaetze.Item2);
 		}
 	}
@@ -1105,14 +1101,12 @@ namespace DM7_PPLUS_Integration.Messages
 		public readonly UUID Mitarbeiter;
 		public readonly UUID Mandant;
 		public readonly long Dienst;
-		public readonly Datum Datum;
 	
-		public NichtGefahreneTourV1(UUID mitarbeiter, UUID mandant, long dienst, Datum datum)
+		public NichtGefahreneTourV1(UUID mitarbeiter, UUID mandant, long dienst)
 		{
 			Mitarbeiter = mitarbeiter;
 			Mandant = mandant;
 			Dienst = dienst;
-			Datum = datum;
 		}
 	
 		public byte[] Encoded()
@@ -1120,7 +1114,6 @@ namespace DM7_PPLUS_Integration.Messages
 			return Mitarbeiter.Encoded()
 				.Concat(Mandant.Encoded())
 				.Concat(BareNET.Bare.Encode_int(Dienst))
-				.Concat(Datum.Encoded())
 				.ToArray();
 		}
 	
@@ -1131,10 +1124,9 @@ namespace DM7_PPLUS_Integration.Messages
 			var mitarbeiter = UUID.Decode(data);
 			var mandant = UUID.Decode(mitarbeiter.Item2);
 			var dienst = BareNET.Bare.Decode_int(mandant.Item2);
-			var datum = Datum.Decode(dienst.Item2);
 			return new ValueTuple<NichtGefahreneTourV1, byte[]>(
-				new NichtGefahreneTourV1(mitarbeiter.Item1, mandant.Item1, dienst.Item1, datum.Item1),
-				datum.Item2);
+				new NichtGefahreneTourV1(mitarbeiter.Item1, mandant.Item1, dienst.Item1),
+				dienst.Item2);
 		}
 	}
 

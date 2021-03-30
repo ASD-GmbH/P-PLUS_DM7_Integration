@@ -176,6 +176,7 @@ enum AbwesenheitsartV1 {
 }
 
 type SollIstAbgleichV1 {
+	datum: Datum
 	ungeplanteTourenOhneTourenstamm: []UngeplanteTourV1
 	geplanteTouren: []GeplanteTourV1
 	nichtGefahreneTouren: []NichtGefahreneTourV1
@@ -184,7 +185,6 @@ type SollIstAbgleichV1 {
 type UngeplanteTourV1 {
 	mitarbeiter: UUID
 	mandant: UUID
-	beginn: Zeitpunkt
 	einsaetze: []EinsatzV1
 }
 
@@ -192,7 +192,6 @@ type GeplanteTourV1 {
 	mitarbeiter: UUID
 	mandant: UUID
 	dienst: int
-	beginn: Zeitpunkt
 	einsaetze: []EinsatzV1
 }
 
@@ -200,7 +199,6 @@ type NichtGefahreneTourV1 {
 	mitarbeiter: UUID
 	mandant: UUID
 	dienst: int
-	datum: Datum
 }
 
 type EinsatzV1 {

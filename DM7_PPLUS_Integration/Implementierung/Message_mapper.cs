@@ -44,12 +44,14 @@ namespace DM7_PPLUS_Integration.Implementierung
 
         public static SollIstAbgleichV1 Soll_Ist_Abgleich_als_Message(Soll_Ist_Abgleich abgleich) =>
             new SollIstAbgleichV1(
+                Datum_als_Message(abgleich.Datum),
                 Liste_als_Message(abgleich.Ungeplante_Touren_ohne_Tourenstamm, Ungeplante_Tour_als_Message),
                 Liste_als_Message(abgleich.Geplante_Touren, Geplante_Tour_als_Message),
                 Liste_als_Message(abgleich.Nicht_gefahrene_Touren, Nicht_gefahrene_Tour_als_Message));
 
         public static Soll_Ist_Abgleich Soll_Ist_Abgleich_aus(SollIstAbgleichV1 abgleich) =>
             new Soll_Ist_Abgleich(
+                Datum_aus(abgleich.Datum),
                 Liste_aus(abgleich.UngeplanteTourenOhneTourenstamm, Ungeplante_Tour_aus),
                 Liste_aus(abgleich.GeplanteTouren, Geplante_Tour_aus),
                 Liste_aus(abgleich.NichtGefahreneTouren, Nicht_gefahrene_Tour_aus));
@@ -254,14 +256,12 @@ namespace DM7_PPLUS_Integration.Implementierung
             new UngeplanteTourV1(
                 UUID_aus(tour.MitarbeiterId),
                 UUID_aus(tour.MandantId),
-                Zeitpunkt_als_Message(tour.Beginn),
                 Liste_als_Message(tour.Einsätze, Einsatz_als_Message));
         
         private static Ungeplante_Tour Ungeplante_Tour_aus(UngeplanteTourV1 tour) =>
             new Ungeplante_Tour(
                 Guid_aus(tour.Mitarbeiter),
                 Guid_aus(tour.Mandant),
-                Zeitpunkt_aus(tour.Beginn),
                 Liste_aus(tour.Einsaetze, Einsatz_aus));
 
         private static GeplanteTourV1 Geplante_Tour_als_Message(Geplante_Tour tour) =>
@@ -269,7 +269,6 @@ namespace DM7_PPLUS_Integration.Implementierung
                 UUID_aus(tour.MitarbeiterId),
                 UUID_aus(tour.MandantId),
                 tour.Dienst,
-                Zeitpunkt_als_Message(tour.Beginn),
                 Liste_als_Message(tour.Einsätze, Einsatz_als_Message));
 
         private static Geplante_Tour Geplante_Tour_aus(GeplanteTourV1 tour) =>
@@ -277,22 +276,19 @@ namespace DM7_PPLUS_Integration.Implementierung
                 Guid_aus(tour.Mitarbeiter),
                 Guid_aus(tour.Mandant),
                 (int) tour.Dienst,
-                Zeitpunkt_aus(tour.Beginn),
                 Liste_aus(tour.Einsaetze, Einsatz_aus));
 
         private static NichtGefahreneTourV1 Nicht_gefahrene_Tour_als_Message(Nicht_gefahrene_Tour tour) =>
             new NichtGefahreneTourV1(
                 UUID_aus(tour.MitarbeiterId),
                 UUID_aus(tour.MandantId),
-                tour.Dienst,
-                Datum_als_Message(tour.Datum));
+                tour.Dienst);
 
         private static Nicht_gefahrene_Tour Nicht_gefahrene_Tour_aus(NichtGefahreneTourV1 tour) =>
             new Nicht_gefahrene_Tour(
                 Guid_aus(tour.Mitarbeiter),
                 Guid_aus(tour.Mandant),
-                (int) tour.Dienst,
-                Datum_aus(tour.Datum));
+                (int) tour.Dienst);
 
         private static EinsatzV1 Einsatz_als_Message(Einsatz einsatz) =>
             new EinsatzV1(
