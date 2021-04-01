@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using DM7_PPLUS_Integration;
@@ -16,6 +17,7 @@ namespace Stammdatenexport_Überprüfung
         Dienste,
         Dienstdetails,
         Dienstbuchungen,
+        Abwesenheiten,
         Debug_umschalten,
         Quit,
         Unbekannt
@@ -73,6 +75,10 @@ namespace Stammdatenexport_Überprüfung
                         Dienstbuchungen_abfragen(api);
                         Console.ReadKey();
                         break;
+                    case Auswahl.Abwesenheiten:
+                        Abwesenheiten_abfragen(api);
+                        Console.ReadKey();
+                        break;
                     case Auswahl.Debug_umschalten:
                         debug_aktiv = !debug_aktiv;
                         break;
@@ -94,6 +100,7 @@ namespace Stammdatenexport_Überprüfung
                 Auswahl.Dienste, 
                 Auswahl.Dienstdetails, 
                 Auswahl.Dienstbuchungen,
+                Auswahl.Abwesenheiten,
                 Auswahl.Debug_umschalten,
                 Auswahl.Quit
             })
@@ -326,7 +333,47 @@ namespace Stammdatenexport_Überprüfung
 
         private static void Dienstbuchungen_abfragen(DM7_PPLUS_API api)
         {
+            Console.WriteLine("ID des Mandanten, für den die Dienstbuchungen abgefragt werden: ");
+            Guid gewünschter_Mandant;
+            try
+            {
+                gewünschter_Mandant = Guid.Parse(Console.ReadLine() ?? "");
+                Console.Clear();
+            }
+            catch (Exception)
+            {
+                Console.Clear();
+                Console.WriteLine("Keine gültige Mandant ID. Bitte versuchen Sie es erneut");
+                Console.ReadKey();
+                return;
+            }
+
             var stichtag = DateTime.Now;
+            Console.WriteLine($"Stichtag [{stichtag:dd.MM.yyyy}]: ");
+            try
+            {
+                var text = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    stichtag = DateTime.Parse(text);
+                }
+                Console.Clear();
+            }
+            catch (Exception)
+            {
+                Console.Clear();
+                Console.WriteLine("Keine gültiges Datum. Bitte versuchen Sie es erneut");
+                Console.ReadKey();
+                return;
+            }
+
+            var dienstbuchungen = api.Dienstbuchungen_zum_Stichtag(DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(stichtag.Day, stichtag.Month, stichtag.Year), gewünschter_Mandant).Result;
+            if (dienstbuchungen.Count == 0)
+            {
+                Console.WriteLine($"Keine Dienstbuchungen zum Stichtag {stichtag.ToLongDateString()} übertragen");
+                return;
+            }
+
             var mitarbeiterLookup =
                 api.Mitarbeiter_abrufen()
                     .Result
@@ -335,12 +382,6 @@ namespace Stammdatenexport_Überprüfung
                 api.Dienste_abrufen()
                     .Result
                     .ToDictionary(_ => _.Id);
-            var dienstbuchungen = api.Dienstbuchungen_zum_Stichtag(DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(stichtag.Day, stichtag.Month, stichtag.Year), Guid.Parse("86ea0418-2492-4153-b541-3e4b6b99030a")).Result;
-            if (dienstbuchungen.Count == 0)
-            {
-                Console.WriteLine($"Keine Dienstbuchungen zum Stichtag {stichtag.ToLongDateString()} übertragen");
-                return;
-            }
 
             Console.WriteLine($"Übertragene Dienstbuchungen {dienstbuchungen.Count} zum {stichtag.ToLongDateString()}");
             var ausgabe =
@@ -358,6 +399,74 @@ namespace Stammdatenexport_Überprüfung
                                 dienstbuchungen_pro_Mitarbeiter.dienstbuchungen
                                     .OrderBy(_ => _.Beginnt_um.Stunden*60+_.Beginnt_um.Minuten)
                                     .Select(dienstbuchung => $"\t{dienstbuchung.Beginnt_um.Stunden:00}:{dienstbuchung.Beginnt_um.Minuten:00} Uhr geplant für '{diensteLookup[dienstbuchung.DienstId].Bezeichnung}'"));
+                            return sb.ToString();
+                        }));
+            Console.WriteLine(ausgabe);
+        }
+
+        private static void Abwesenheiten_abfragen(DM7_PPLUS_API api)
+        {
+            Console.WriteLine("ID des Mandanten, für den die Abwesenheiten abgefragt werden: ");
+            Guid gewünschter_Mandant;
+            try
+            {
+                gewünschter_Mandant = Guid.Parse(Console.ReadLine() ?? "");
+                Console.Clear();
+            }
+            catch (Exception)
+            {
+                Console.Clear();
+                Console.WriteLine("Keine gültige Mandant ID. Bitte versuchen Sie es erneut");
+                Console.ReadKey();
+                return;
+            }
+
+            var stichtag = DateTime.Now;
+            Console.WriteLine($"Stichtag [{stichtag:dd.MM.yyyy}]: ");
+            try
+            {
+                var text = Console.ReadLine();
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    stichtag = DateTime.Parse(text);
+                }
+                Console.Clear();
+            }
+            catch (Exception)
+            {
+                Console.Clear();
+                Console.WriteLine("Keine gültiges Datum. Bitte versuchen Sie es erneut");
+                Console.ReadKey();
+                return;
+            }
+
+            var abwesenheiten = api.Abwesenheiten_zum_Stichtag(DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(stichtag.Day, stichtag.Month, stichtag.Year), gewünschter_Mandant).Result;
+            if (abwesenheiten.Count == 0)
+            {
+                Console.WriteLine($"Keine Abwesenheiten zum Stichtag {stichtag.ToLongDateString()} übertragen");
+                return;
+            }
+
+            var mitarbeiterLookup =
+                api.Mitarbeiter_abrufen()
+                    .Result
+                    .ToDictionary(_ => _.Id);
+
+            Console.WriteLine($"Übertragene Abwesenheiten {abwesenheiten.Count} zum {stichtag.ToLongDateString()}");
+            var ausgabe =
+                string.Join("\n-----------\n",
+                    abwesenheiten
+                        .GroupBy(_ => _.MitarbeiterId)
+                        .Select(_ => new { mitarbeiter = mitarbeiterLookup[_.Key], abwesenheiten = _.ToList() })
+                        .OrderBy(_ => _.mitarbeiter.Nachname)
+                        .Select(abwesenheiten_pro_Mitarbeiter =>
+                        {
+                            var sb = new StringBuilder();
+                            sb.AppendLine($"{abwesenheiten_pro_Mitarbeiter.mitarbeiter.Nachname}, {abwesenheiten_pro_Mitarbeiter.mitarbeiter.Vorname}");
+                            sb.AppendJoin(
+                                Environment.NewLine,
+                                abwesenheiten_pro_Mitarbeiter.abwesenheiten
+                                    .Select(abwesenheit => $"\t{abwesenheit.Art}: {abwesenheit.Grund}"));
                             return sb.ToString();
                         }));
             Console.WriteLine(ausgabe);
