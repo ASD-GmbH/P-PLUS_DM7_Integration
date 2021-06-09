@@ -1,7 +1,6 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using DM7_PPLUS_Integration;
@@ -21,6 +20,55 @@ namespace Stammdatenexport_Überprüfung
         Debug_umschalten,
         Quit,
         Unbekannt
+    }
+
+    internal interface Geplante_Touren {}
+    internal readonly struct Geplante_Touren_mit_Mitarbeiter : Geplante_Touren
+    {
+        public readonly Mitarbeiter Mitarbeiter;
+        public readonly List<Dienstbuchung> Dienstbuchungen;
+
+        public Geplante_Touren_mit_Mitarbeiter(Mitarbeiter mitarbeiter, List<Dienstbuchung> dienstbuchungen)
+        {
+            Mitarbeiter = mitarbeiter;
+            Dienstbuchungen = dienstbuchungen;
+        }
+    }
+    internal readonly struct Geplante_Touren_ohne_exportierten_Mitarbeiter : Geplante_Touren
+    {
+        public readonly Guid Mitarbeiter;
+        public readonly List<Dienstbuchung> Dienstbuchungen;
+
+        public Geplante_Touren_ohne_exportierten_Mitarbeiter(Guid mitarbeiter, List<Dienstbuchung> dienstbuchungen)
+        {
+            Mitarbeiter = mitarbeiter;
+            Dienstbuchungen = dienstbuchungen;
+        }
+    }
+
+    internal interface Abwesenheiten {}
+
+    internal readonly struct Abwesenheiten_mit_Mitarbeiter : Abwesenheiten
+    {
+        public readonly Mitarbeiter Mitarbeiter;
+        public readonly List<Abwesenheit> Abwesenheiten;
+
+        public Abwesenheiten_mit_Mitarbeiter(Mitarbeiter mitarbeiter, List<Abwesenheit> abwesenheiten)
+        {
+            Mitarbeiter = mitarbeiter;
+            Abwesenheiten = abwesenheiten;
+        }
+    }
+    internal readonly struct Abwesenheiten_ohne_exportierten_Mitarbeiter : Abwesenheiten
+    {
+        public readonly Guid Mitarbeiter;
+        public readonly List<Abwesenheit> Abwesenheiten;
+
+        public Abwesenheiten_ohne_exportierten_Mitarbeiter(Guid mitarbeiter, List<Abwesenheit> abwesenheiten)
+        {
+            Mitarbeiter = mitarbeiter;
+            Abwesenheiten = abwesenheiten;
+        }
     }
 
     internal class Program
@@ -193,77 +241,77 @@ namespace Stammdatenexport_Überprüfung
 
         private static string Titel(Guid titel) => titel switch
         {
-            { } __ when __ == Auswahllisten_1.Titel.Dr => "Dr.",
-            { } __ when __ == Auswahllisten_1.Titel.Prof => "Prof.",
-            { } __ when __ == Auswahllisten_1.Titel.Prof_Dr => "Prof. Dr.",
-            { } __ when __ == Auswahllisten_1.Titel.Kein => "",
+            var __ when __ == Auswahllisten_1.Titel.Dr => "Dr.",
+            var __ when __ == Auswahllisten_1.Titel.Prof => "Prof.",
+            var __ when __ == Auswahllisten_1.Titel.Prof_Dr => "Prof. Dr.",
+            var __ when __ == Auswahllisten_1.Titel.Kein => "",
             _ => "Unbekannter Titel"
         };
 
         private static string Geschlecht(Guid geschlecht) => geschlecht switch
         {
-            { } __ when __ == Auswahllisten_1.Geschlecht.Maennlich => "Männlich",
-            { } __ when __ == Auswahllisten_1.Geschlecht.Weiblich => "Weiblich",
-            { } __ when __ == Auswahllisten_1.Geschlecht.Divers => "Divers",
-            { } __ when __ == Auswahllisten_1.Geschlecht.NichtAngegeben => "Nicht angegeben",
+            var __ when __ == Auswahllisten_1.Geschlecht.Maennlich => "Männlich",
+            var __ when __ == Auswahllisten_1.Geschlecht.Weiblich => "Weiblich",
+            var __ when __ == Auswahllisten_1.Geschlecht.Divers => "Divers",
+            var __ when __ == Auswahllisten_1.Geschlecht.NichtAngegeben => "Nicht angegeben",
             _ => "Unbekannt"
         };
 
         private static string Familienstand(Guid stand) => stand switch
         {
-            { } __ when __ == Auswahllisten_1.Familienstand.Entpartnert => "Entpartnert",
-            { } __ when __ == Auswahllisten_1.Familienstand.Geschieden => "Geschieden",
-            { } __ when __ == Auswahllisten_1.Familienstand.Getrennt_lebend => "Getrennt lebend",
-            { } __ when __ == Auswahllisten_1.Familienstand.Ledig => "Ledig",
-            { } __ when __ == Auswahllisten_1.Familienstand.Partnerhinterbliebend => "Partnerhinterbliebend",
-            { } __ when __ == Auswahllisten_1.Familienstand.Verheiratet => "Verheiratet",
-            { } __ when __ == Auswahllisten_1.Familienstand.Verpartnert => "Verpartnert",
-            { } __ when __ == Auswahllisten_1.Familienstand.Verwitwet => "Verwitwet",
+            var __ when __ == Auswahllisten_1.Familienstand.Entpartnert => "Entpartnert",
+            var __ when __ == Auswahllisten_1.Familienstand.Geschieden => "Geschieden",
+            var __ when __ == Auswahllisten_1.Familienstand.Getrennt_lebend => "Getrennt lebend",
+            var __ when __ == Auswahllisten_1.Familienstand.Ledig => "Ledig",
+            var __ when __ == Auswahllisten_1.Familienstand.Partnerhinterbliebend => "Partnerhinterbliebend",
+            var __ when __ == Auswahllisten_1.Familienstand.Verheiratet => "Verheiratet",
+            var __ when __ == Auswahllisten_1.Familienstand.Verpartnert => "Verpartnert",
+            var __ when __ == Auswahllisten_1.Familienstand.Verwitwet => "Verwitwet",
             _ => "Unbekannt"
         };
 
         private static string Konfession(Guid konfession) => konfession switch
         {
-            { } __ when __ == Auswahllisten_1.Konfession.Keine => "Keine",
-            { } __ when __ == Auswahllisten_1.Konfession.altkatholische_Kirchensteuer => "altkatholische Kirchensteuer",
-            { } __ when __ == Auswahllisten_1.Konfession.evangelische_Kirchensteuer => "evangelische Kirchensteuer",
-            { } __ when __ == Auswahllisten_1.Konfession.freie_Religionsgemeinschaft_Alzey => "freie Religionsgemeinschaft Alzey",
-            { } __ when __ == Auswahllisten_1.Konfession.Kirchensteuer_der_Freireligioesen_Landesgemeinde_Baden => "Kirchensteuer der Freireligiösen Landesgemeinde Baden",
-            { } __ when __ == Auswahllisten_1.Konfession.freireligioese_Landesgemeinde_Pfalz => "freireligiöse Landesgemeinde Pfalz",
-            { } __ when __ == Auswahllisten_1.Konfession.freireligioese_Gemeinde_Mainz => "freireligiöse Gemeinde Mainz",
-            { } __ when __ == Auswahllisten_1.Konfession.franzoesisch_reformiert => "französisch reformiert",
-            { } __ when __ == Auswahllisten_1.Konfession.freireligioese_Gemeinde_Offenbach_Mainz => "freireligiöse Gemeinde Offenbach Mainz",
-            { } __ when __ == Auswahllisten_1.Konfession.griechisch_orthodox => "griechisch orthodox",
-            { } __ when __ == Auswahllisten_1.Konfession.Kirchensteuer_der_Israelitischen_Religionsgemeinschaft_Baden => "Kirchensteuer der Isrälitischen Religionsgemeinschaft Baden",
-            { } __ when __ == Auswahllisten_1.Konfession.israelitische_Kultussteuer_der_Kultusberechtigten_Gemeinden => "isrälitische Kultussteuer der Kultusberechtigten Gemeinden",
-            { } __ when __ == Auswahllisten_1.Konfession.israelitische_Kultussteuer => "isrälitische Kultussteuer",
-            { } __ when __ == Auswahllisten_1.Konfession.Kirchensteuer_der_Israelitischen_Religionsgemeinschaft_Wuerttemberg => "Kirchensteuer der Isrälitischen Religionsgemeinschaft Württemberg",
-            { } __ when __ == Auswahllisten_1.Konfession.juedische_Kultussteuer => "jüdische Kultussteuer",
-            { } __ when __ == Auswahllisten_1.Konfession.evangelisch_lutherisch => "evangelisch lutherisch",
-            { } __ when __ == Auswahllisten_1.Konfession.muslimisch => "muslimisch",
-            { } __ when __ == Auswahllisten_1.Konfession.evangelisch_reformiert => "evangelisch reformiert",
-            { } __ when __ == Auswahllisten_1.Konfession.roemisch_katholische_Kirchensteuer => "römisch katholische Kirchensteuer",
-            { } __ when __ == Auswahllisten_1.Konfession.russisch_orthodox => "russisch orthodox",
-            { } __ when __ == Auswahllisten_1.Konfession.unitarische_Religionsgemeinschaft_freie_Protestanten => "unitarische Religionsgemeinschaft freie Protestanten",
+            var __ when __ == Auswahllisten_1.Konfession.Keine => "Keine",
+            var __ when __ == Auswahllisten_1.Konfession.altkatholische_Kirchensteuer => "altkatholische Kirchensteuer",
+            var __ when __ == Auswahllisten_1.Konfession.evangelische_Kirchensteuer => "evangelische Kirchensteuer",
+            var __ when __ == Auswahllisten_1.Konfession.freie_Religionsgemeinschaft_Alzey => "freie Religionsgemeinschaft Alzey",
+            var __ when __ == Auswahllisten_1.Konfession.Kirchensteuer_der_Freireligioesen_Landesgemeinde_Baden => "Kirchensteuer der Freireligiösen Landesgemeinde Baden",
+            var __ when __ == Auswahllisten_1.Konfession.freireligioese_Landesgemeinde_Pfalz => "freireligiöse Landesgemeinde Pfalz",
+            var __ when __ == Auswahllisten_1.Konfession.freireligioese_Gemeinde_Mainz => "freireligiöse Gemeinde Mainz",
+            var __ when __ == Auswahllisten_1.Konfession.franzoesisch_reformiert => "französisch reformiert",
+            var __ when __ == Auswahllisten_1.Konfession.freireligioese_Gemeinde_Offenbach_Mainz => "freireligiöse Gemeinde Offenbach Mainz",
+            var __ when __ == Auswahllisten_1.Konfession.griechisch_orthodox => "griechisch orthodox",
+            var __ when __ == Auswahllisten_1.Konfession.Kirchensteuer_der_Israelitischen_Religionsgemeinschaft_Baden => "Kirchensteuer der Isrälitischen Religionsgemeinschaft Baden",
+            var __ when __ == Auswahllisten_1.Konfession.israelitische_Kultussteuer_der_Kultusberechtigten_Gemeinden => "isrälitische Kultussteuer der Kultusberechtigten Gemeinden",
+            var __ when __ == Auswahllisten_1.Konfession.israelitische_Kultussteuer => "isrälitische Kultussteuer",
+            var __ when __ == Auswahllisten_1.Konfession.Kirchensteuer_der_Israelitischen_Religionsgemeinschaft_Wuerttemberg => "Kirchensteuer der Isrälitischen Religionsgemeinschaft Württemberg",
+            var __ when __ == Auswahllisten_1.Konfession.juedische_Kultussteuer => "jüdische Kultussteuer",
+            var __ when __ == Auswahllisten_1.Konfession.evangelisch_lutherisch => "evangelisch lutherisch",
+            var __ when __ == Auswahllisten_1.Konfession.muslimisch => "muslimisch",
+            var __ when __ == Auswahllisten_1.Konfession.evangelisch_reformiert => "evangelisch reformiert",
+            var __ when __ == Auswahllisten_1.Konfession.roemisch_katholische_Kirchensteuer => "römisch katholische Kirchensteuer",
+            var __ when __ == Auswahllisten_1.Konfession.russisch_orthodox => "russisch orthodox",
+            var __ when __ == Auswahllisten_1.Konfession.unitarische_Religionsgemeinschaft_freie_Protestanten => "unitarische Religionsgemeinschaft freie Protestanten",
             _ => "Unbekannt"
         };
 
         private static string Kontaktform(Guid form) => form switch
         {
-            { } __ when __ == Auswahllisten_1.Kontaktform.Privat => "Privat",
-            { } __ when __ == Auswahllisten_1.Kontaktform.Geschaeftlich => "Geschäftlich",
-            { } __ when __ == Auswahllisten_1.Kontaktform.Bereitschaft => "Bereitschaft",
+            var __ when __ == Auswahllisten_1.Kontaktform.Privat => "Privat",
+            var __ when __ == Auswahllisten_1.Kontaktform.Geschaeftlich => "Geschäftlich",
+            var __ when __ == Auswahllisten_1.Kontaktform.Bereitschaft => "Bereitschaft",
             _ => ""
         };
 
         private static string Kontaktart(Guid kontaktart) => kontaktart switch
         {
-            { } __ when __ == Auswahllisten_1.Kontaktart.Email => "E-Mail",
-            { } __ when __ == Auswahllisten_1.Kontaktart.Fax => "Fax",
-            { } __ when __ == Auswahllisten_1.Kontaktart.Funkruf => "Funkruf",
-            { } __ when __ == Auswahllisten_1.Kontaktart.Telefon => "Telefon",
-            { } __ when __ == Auswahllisten_1.Kontaktart.Web => "Web",
-            { } __ when __ == Auswahllisten_1.Kontaktart.Zusaetzlich => "Zusätzlich",
+            var __ when __ == Auswahllisten_1.Kontaktart.Email => "E-Mail",
+            var __ when __ == Auswahllisten_1.Kontaktart.Fax => "Fax",
+            var __ when __ == Auswahllisten_1.Kontaktart.Funkruf => "Funkruf",
+            var __ when __ == Auswahllisten_1.Kontaktart.Telefon => "Telefon",
+            var __ when __ == Auswahllisten_1.Kontaktart.Web => "Web",
+            var __ when __ == Auswahllisten_1.Kontaktart.Zusaetzlich => "Zusätzlich",
             _ => ""
         };
 
@@ -367,8 +415,8 @@ namespace Stammdatenexport_Überprüfung
                 return;
             }
 
-            var dienstbuchungen = api.Dienstbuchungen_zum_Stichtag(DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(stichtag.Day, stichtag.Month, stichtag.Year), gewünschter_Mandant).Result;
-            if (dienstbuchungen.Count == 0)
+            var alle_dienstbuchungen = api.Dienstbuchungen_zum_Stichtag(DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(stichtag.Day, stichtag.Month, stichtag.Year), gewünschter_Mandant).Result;
+            if (alle_dienstbuchungen.Count == 0)
             {
                 Console.WriteLine($"Keine Dienstbuchungen zum Stichtag {stichtag.ToLongDateString()} übertragen");
                 return;
@@ -383,25 +431,42 @@ namespace Stammdatenexport_Überprüfung
                     .Result
                     .ToDictionary(_ => _.Id);
 
-            Console.WriteLine($"Übertragene Dienstbuchungen {dienstbuchungen.Count} zum {stichtag.ToLongDateString()}");
-            var ausgabe =
-                string.Join("\n-----------\n",
+            var geplante_Touren =
+                alle_dienstbuchungen
+                    .GroupBy(_ => _.MitarbeiterId)
+                    .Select(_ => mitarbeiterLookup.ContainsKey(_.Key)
+                        ? (Geplante_Touren) new Geplante_Touren_mit_Mitarbeiter(mitarbeiterLookup[_.Key], _.ToList())
+                        : new Geplante_Touren_ohne_exportierten_Mitarbeiter(_.Key, _.ToList()))
+                    .ToList();
+
+            string Dienstbezeichnung(int id)
+            {
+                return diensteLookup.ContainsKey(id) ? diensteLookup[id].Bezeichnung : "[Nicht exportierter Dienst]";
+            }
+
+            string Dienstbuchungsinfo(string mitarbeiter, IEnumerable<Dienstbuchung> dienstbuchungen)
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine(mitarbeiter);
+                sb.AppendJoin(
+                    Environment.NewLine,
                     dienstbuchungen
-                        .GroupBy(_ => _.MitarbeiterId)
-                        .Select(_ => new { mitarbeiter = mitarbeiterLookup[_.Key], dienstbuchungen = _.ToList() })
-                        .OrderBy(_ => _.mitarbeiter.Nachname)
-                        .Select(dienstbuchungen_pro_Mitarbeiter =>
-                        {
-                            var sb = new StringBuilder();
-                            sb.AppendLine($"{dienstbuchungen_pro_Mitarbeiter.mitarbeiter.Nachname}, {dienstbuchungen_pro_Mitarbeiter.mitarbeiter.Vorname}");
-                            sb.AppendJoin(
-                                Environment.NewLine,
-                                dienstbuchungen_pro_Mitarbeiter.dienstbuchungen
-                                    .OrderBy(_ => _.Beginnt_um.Stunden*60+_.Beginnt_um.Minuten)
-                                    .Select(dienstbuchung => $"\t{dienstbuchung.Beginnt_um.Stunden:00}:{dienstbuchung.Beginnt_um.Minuten:00} Uhr geplant für '{diensteLookup[dienstbuchung.DienstId].Bezeichnung}'"));
-                            return sb.ToString();
-                        }));
-            Console.WriteLine(ausgabe);
+                        .OrderBy(_ => _.Beginnt_um.Stunden * 60 + _.Beginnt_um.Minuten)
+                        .Select(dienstbuchung => $"\t{dienstbuchung.Beginnt_um.Stunden:00}:{dienstbuchung.Beginnt_um.Minuten:00} Uhr geplant für '{Dienstbezeichnung(dienstbuchung.DienstId)}'"));
+                return sb.ToString();
+            }
+
+            Console.WriteLine($"Übertragene Dienstbuchungen {alle_dienstbuchungen.Count} zum {stichtag.ToLongDateString()}");
+            Console.WriteLine(
+                string.Join("\n-----------\n",
+                    geplante_Touren
+                        .OfType<Geplante_Touren_mit_Mitarbeiter>()
+                        .OrderBy(_ => _.Mitarbeiter.Nachname)
+                        .Select(dienstbuchungen_pro_Mitarbeiter => Dienstbuchungsinfo($"{dienstbuchungen_pro_Mitarbeiter.Mitarbeiter.Nachname}, {dienstbuchungen_pro_Mitarbeiter.Mitarbeiter.Vorname}", dienstbuchungen_pro_Mitarbeiter.Dienstbuchungen))
+                        .Concat(
+                            geplante_Touren
+                                .OfType<Geplante_Touren_ohne_exportierten_Mitarbeiter>()
+                                .Select(_ => Dienstbuchungsinfo($"Nicht exportierter Mitarbeiter {_.Mitarbeiter}", _.Dienstbuchungen)))));
         }
 
         private static void Abwesenheiten_abfragen(DM7_PPLUS_API api)
@@ -440,8 +505,8 @@ namespace Stammdatenexport_Überprüfung
                 return;
             }
 
-            var abwesenheiten = api.Abwesenheiten_zum_Stichtag(DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(stichtag.Day, stichtag.Month, stichtag.Year), gewünschter_Mandant).Result;
-            if (abwesenheiten.Count == 0)
+            var alle_abwesenheiten = api.Abwesenheiten_zum_Stichtag(DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(stichtag.Day, stichtag.Month, stichtag.Year), gewünschter_Mandant).Result;
+            if (alle_abwesenheiten.Count == 0)
             {
                 Console.WriteLine($"Keine Abwesenheiten zum Stichtag {stichtag.ToLongDateString()} übertragen");
                 return;
@@ -452,25 +517,43 @@ namespace Stammdatenexport_Überprüfung
                     .Result
                     .ToDictionary(_ => _.Id);
 
-            Console.WriteLine($"Übertragene Abwesenheiten {abwesenheiten.Count} zum {stichtag.ToLongDateString()}");
-            var ausgabe =
+            static string Abwesenheiteninfo(string mitarbeiter, IEnumerable<Abwesenheit> abwesenheiten)
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine(mitarbeiter);
+                sb.AppendJoin(
+                    Environment.NewLine,
+                    abwesenheiten.Select(abwesenheit => $"\t{abwesenheit.Art}: {abwesenheit.Grund}\n\tAb {Zeitpunkt_als_Text(abwesenheit.Abwesend_ab)}\n\tBis {Zeitpunkt_als_Text(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab)}"));
+                return sb.ToString();
+            }
+
+            var abwesenheiten_pro_Mitarbeiter =
+                alle_abwesenheiten
+                    .GroupBy(_ => _.MitarbeiterId)
+                    .Select(_ =>
+                        mitarbeiterLookup.ContainsKey(_.Key)
+                            ? (Abwesenheiten) new Abwesenheiten_mit_Mitarbeiter(mitarbeiterLookup[_.Key], _.ToList())
+                            : new Abwesenheiten_ohne_exportierten_Mitarbeiter(_.Key, _.ToList()))
+                    .ToList();
+
+            Console.WriteLine($"Übertragene Abwesenheiten {alle_abwesenheiten.Count} zum {stichtag.ToLongDateString()}");
+            Console.WriteLine(
                 string.Join("\n-----------\n",
-                    abwesenheiten
-                        .GroupBy(_ => _.MitarbeiterId)
-                        .Select(_ => new { mitarbeiter = mitarbeiterLookup[_.Key], abwesenheiten = _.ToList() })
-                        .OrderBy(_ => _.mitarbeiter.Nachname)
-                        .Select(abwesenheiten_pro_Mitarbeiter =>
-                        {
-                            var sb = new StringBuilder();
-                            sb.AppendLine($"{abwesenheiten_pro_Mitarbeiter.mitarbeiter.Nachname}, {abwesenheiten_pro_Mitarbeiter.mitarbeiter.Vorname}");
-                            sb.AppendJoin(
-                                Environment.NewLine,
-                                abwesenheiten_pro_Mitarbeiter.abwesenheiten
-                                    .Select(abwesenheit => $"\t{abwesenheit.Art}: {abwesenheit.Grund}"));
-                            return sb.ToString();
-                        }));
-            Console.WriteLine(ausgabe);
+                    abwesenheiten_pro_Mitarbeiter
+                        .OfType<Abwesenheiten_mit_Mitarbeiter>()
+                        .OrderBy(_ => _.Mitarbeiter.Nachname)
+                        .Select(_ =>
+                            Abwesenheiteninfo($"{_.Mitarbeiter.Nachname}, {_.Mitarbeiter.Vorname}", _.Abwesenheiten))
+                        .Concat(
+                            abwesenheiten_pro_Mitarbeiter
+                                .OfType<Abwesenheiten_ohne_exportierten_Mitarbeiter>()
+                                .Select(_ => Abwesenheiteninfo($"Nicht exportierter Mitarbeiter {_.Mitarbeiter}",
+                                    _.Abwesenheiten))
+                        )));
         }
+
+        private static string Zeitpunkt_als_Text(Zeitpunkt zeitpunkt) =>
+            $"{zeitpunkt.Datum.Tag:00}.{zeitpunkt.Datum.Monat:00}.{zeitpunkt.Datum.Jahr:0000} {zeitpunkt.Uhrzeit.Stunden:00}:{zeitpunkt.Uhrzeit.Minuten:00}";
     }
 
     internal class Logger : Log
