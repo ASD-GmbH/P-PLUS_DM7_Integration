@@ -221,7 +221,7 @@ namespace Stammdatenexport_Überprüfung
             if (ma.Kontakte.Count > 0)
             {
                 Console.WriteLine("Erreichbar unter");
-                foreach (var kontakt in ma.Kontakte) Console.WriteLine($"\t{Kontaktform(kontakt.Kontaktform)} {Kontaktart(kontakt.Kontaktart)}: {kontakt.Eintrag}");
+                foreach (var kontakt in ma.Kontakte) Console.WriteLine($"\t{(kontakt.Hauptkontakt ? "Hauptkontakt " : "")}{Kontaktform(kontakt.Kontaktform)} {Kontaktart(kontakt.Kontaktart)}: {kontakt.Eintrag}");
             }
             Console.WriteLine($"Personalnummer: {ma.Personalnummer}, Handzeichen: {ma.Handzeichen}");
             if (ma.Qualifikationen.Count > 0)

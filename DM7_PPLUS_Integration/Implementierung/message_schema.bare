@@ -134,6 +134,7 @@ type KontaktV1 {
 	art: UUID
 	form: UUID
 	eintrag: string
+	hauptkontakt: bool
 }
 
 type DienstV1 {

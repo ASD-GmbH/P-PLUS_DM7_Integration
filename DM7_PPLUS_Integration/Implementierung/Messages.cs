@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 23.03.2021 15:29 //
+// Generated code by BareNET - 21.06.2021 16:41 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
@@ -775,12 +775,14 @@ namespace DM7_PPLUS_Integration.Messages
 		public readonly UUID Art;
 		public readonly UUID Form;
 		public readonly string Eintrag;
+		public readonly bool Hauptkontakt;
 	
-		public KontaktV1(UUID art, UUID form, string eintrag)
+		public KontaktV1(UUID art, UUID form, string eintrag, bool hauptkontakt)
 		{
 			Art = art;
 			Form = form;
 			Eintrag = eintrag;
+			Hauptkontakt = hauptkontakt;
 		}
 	
 		public byte[] Encoded()
@@ -788,6 +790,7 @@ namespace DM7_PPLUS_Integration.Messages
 			return Art.Encoded()
 				.Concat(Form.Encoded())
 				.Concat(BareNET.Bare.Encode_string(Eintrag))
+				.Concat(BareNET.Bare.Encode_bool(Hauptkontakt))
 				.ToArray();
 		}
 	
@@ -798,9 +801,10 @@ namespace DM7_PPLUS_Integration.Messages
 			var art = UUID.Decode(data);
 			var form = UUID.Decode(art.Item2);
 			var eintrag = BareNET.Bare.Decode_string(form.Item2);
+			var hauptkontakt = BareNET.Bare.Decode_bool(eintrag.Item2);
 			return new ValueTuple<KontaktV1, byte[]>(
-				new KontaktV1(art.Item1, form.Item1, eintrag.Item1),
-				eintrag.Item2);
+				new KontaktV1(art.Item1, form.Item1, eintrag.Item1, hauptkontakt.Item1),
+				hauptkontakt.Item2);
 		}
 	}
 

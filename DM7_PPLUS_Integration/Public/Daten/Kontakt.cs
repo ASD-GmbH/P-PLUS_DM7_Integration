@@ -7,11 +7,12 @@ namespace DM7_PPLUS_Integration.Daten
     /// </summary>
     public readonly struct Kontakt
     {
-        public Kontakt(Guid kontaktart, Guid kontaktform, string eintrag)
+        public Kontakt(Guid kontaktart, Guid kontaktform, string eintrag, bool hauptkontakt)
         {
             Kontaktart = kontaktart;
             Kontaktform = kontaktform;
             Eintrag = eintrag;
+            Hauptkontakt = hauptkontakt;
         }
 
         /// <summary>
@@ -28,5 +29,10 @@ namespace DM7_PPLUS_Integration.Daten
         /// Eintrag, z.B. 04474-94800, info@dm-edv.de, ...
         /// </summary>
         public readonly string Eintrag;
+
+        /// <summary>
+        /// Gibt an, ob dieser Kontakt der hinterlegte Hauptkontakt ist
+        /// </summary>
+        public readonly bool Hauptkontakt;
     }
 }

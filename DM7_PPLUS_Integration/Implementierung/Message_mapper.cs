@@ -110,8 +110,8 @@ namespace DM7_PPLUS_Integration.Implementierung
                 Liste_aus(mitarbeiter.Qualifikationen, Qualifikation_aus),
                 Liste_aus(mitarbeiter.Kontakte, Kontakt_aus));
 
-        private static KontaktV1 Kontakt_als_Message(Kontakt kontakt) => new KontaktV1(UUID_aus(kontakt.Kontaktart), UUID_aus(kontakt.Kontaktform), kontakt.Eintrag);
-        private static Kontakt Kontakt_aus(KontaktV1 kontakt) => new Kontakt(Guid_aus(kontakt.Art), Guid_aus(kontakt.Form), kontakt.Eintrag);
+        private static KontaktV1 Kontakt_als_Message(Kontakt kontakt) => new KontaktV1(UUID_aus(kontakt.Kontaktart), UUID_aus(kontakt.Kontaktform), kontakt.Eintrag, kontakt.Hauptkontakt);
+        private static Kontakt Kontakt_aus(KontaktV1 kontakt) => new Kontakt(Guid_aus(kontakt.Art), Guid_aus(kontakt.Form), kontakt.Eintrag, kontakt.Hauptkontakt);
 
         private static QualifikationV1 Qualifikation_als_Message(Qualifikation qualifikation) =>
             new QualifikationV1(
