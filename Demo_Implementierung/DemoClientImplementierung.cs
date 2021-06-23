@@ -40,6 +40,11 @@ namespace Demo_Implementierung
 
             using (testServer)
             {
+                // Beispiel für Verbindung mit Timeout
+                var timeoutTest = Verbinden_mit_Timeout(TimeSpan.FromSeconds(1));
+                if (timeoutTest == null) Console.WriteLine("Keine Verbindung zu P-PLUS");
+                else Console.WriteLine("Verbindung zu P-PLUS hergestellt");
+
                 //var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("0123456789abcdef0123456789abcdef")), logger).Result;
                 var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", key, logger).Result;
                 Console.WriteLine($"Daten arbeiten mit Auswahllisten Version {api.Auswahllisten_Version}");
@@ -111,6 +116,19 @@ namespace Demo_Implementierung
 
             Console.WriteLine("Beliebige Taste drücken zum Beenden...");
             Console.ReadKey();
+        }
+
+        private static PPLUS Verbinden_mit_Timeout(TimeSpan timeout)
+        {
+            try
+            {
+                return PPLUS.Connect("tcp://127.0.0.1:1234", "user", "password", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("0123456789abcdef0123456789abcdef")), new NoLogger(),
+                    timeout).Result;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private static void Mitarbeiter_anzeigen(DM7_PPLUS_API api)

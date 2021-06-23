@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Messages;
 using NetMQ;
@@ -21,7 +22,7 @@ namespace DM7_PPLUS_Integration.Implementierung
             _log = log;
         }
 
-        public Task<Token?> Authenticate(string user, string password)
+        public Task<Token?> Authenticate(string user, string password, TimeSpan? timeout = null)
         {
             return Task.Run<Token?>(() =>
             {
@@ -30,7 +31,7 @@ namespace DM7_PPLUS_Integration.Implementierung
                 {
                     _log.Debug("Authenticate");
                     socket.SendFrame(encryption.Encrypt(new AuthenticationRequest(user, password).Encoded()));
-                    var result= Encoding.AuthenticationResult_Decoded(socket.ReceiveFrameBytes());
+                    var result = Encoding.AuthenticationResult_Decoded(ReceiveBytes(socket, timeout));
 
                     switch (result)
                     {
@@ -50,7 +51,7 @@ namespace DM7_PPLUS_Integration.Implementierung
             });
         }
 
-        public Task<Capabilities> Capabilities()
+        public Task<Capabilities> Capabilities(TimeSpan? timeout = null)
         {
             return Task.Run(() =>
             {
@@ -58,7 +59,7 @@ namespace DM7_PPLUS_Integration.Implementierung
                 {
                     _log.Debug("Capabilities laden...");
                     socket.SendFrameEmpty();
-                    var capabilities = Messages.Capabilities.Decoded(socket.ReceiveFrameBytes());
+                    var capabilities = Messages.Capabilities.Decoded(ReceiveBytes(socket, timeout));
                     _log.Debug("Capabilities geladen:");
                     foreach (var capability in capabilities.Value) _log.Debug($" - {capability}");
                     return capabilities;
@@ -66,7 +67,7 @@ namespace DM7_PPLUS_Integration.Implementierung
             });
         }
 
-        public Task<QueryResult> HandleQuery(Token token, Query query)
+        public Task<QueryResult> HandleQuery(Token token, Query query, TimeSpan? timeout = null)
         {
             return Task.Run(() =>
             {
@@ -75,7 +76,7 @@ namespace DM7_PPLUS_Integration.Implementierung
                 {
                     _log.Debug($"QUERY: '{query.GetType()}'");
                     socket.SendFrame(new QueryMessage(token.Value, encryption.Encrypt(Encoding.Query_Encoded(query))).Encoded());
-                    var message = Encoding.ResponseMessage_Decoded(socket.ReceiveFrameBytes());
+                    var message = Encoding.ResponseMessage_Decoded(ReceiveBytes(socket, timeout));
 
                     switch (message)
                     {
@@ -104,7 +105,7 @@ namespace DM7_PPLUS_Integration.Implementierung
             });
         }
 
-        public Task<CommandResult> HandleCommand(Token token, Command command)
+        public Task<CommandResult> HandleCommand(Token token, Command command, TimeSpan? timeout = null)
         {
             return Task.Run(() =>
             {
@@ -113,7 +114,7 @@ namespace DM7_PPLUS_Integration.Implementierung
                 {
                     _log.Debug($"COMMAND: '{command.GetType()}'");
                     socket.SendFrame(new CommandMessage(token.Value, encryption.Encrypt(Encoding.Command_Encoded(command))).Encoded());
-                    var message = Encoding.CommandResponseMessage_Decoded(socket.ReceiveFrameBytes());
+                    var message = Encoding.CommandResponseMessage_Decoded(ReceiveBytes(socket, timeout));
 
                     switch (message)
                     {
@@ -140,6 +141,13 @@ namespace DM7_PPLUS_Integration.Implementierung
                     }
                 }
             });
+        }
+
+        private static byte[] ReceiveBytes(NetMQSocket socket, TimeSpan? timeout = null)
+        {
+            if (!timeout.HasValue) return socket.ReceiveFrameBytes();
+            if (socket.TryReceiveFrameBytes(timeout.Value, out var bytes)) return bytes;
+            throw new TimeoutException();
         }
     }
 }

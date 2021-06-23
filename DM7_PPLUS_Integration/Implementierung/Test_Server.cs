@@ -126,7 +126,7 @@ namespace DM7_PPLUS_Integration.Implementierung
             _abwesenheiten = abwesenheiten;
         }
 
-        public Task<Token?> Authenticate(string user, string password)
+        public Task<Token?> Authenticate(string user, string password, TimeSpan? timeout = null)
         {
             return Task.Run(() =>
             {
@@ -137,7 +137,7 @@ namespace DM7_PPLUS_Integration.Implementierung
             });
         }
 
-        public Task<Capabilities> Capabilities()
+        public Task<Capabilities> Capabilities(TimeSpan? timeout = null)
         {
             return Task.FromResult(new Capabilities(new[]
             {
@@ -149,7 +149,7 @@ namespace DM7_PPLUS_Integration.Implementierung
             }.ToList()));
         }
 
-        public Task<QueryResult> HandleQuery(Token token, Query query)
+        public Task<QueryResult> HandleQuery(Token token, Query query, TimeSpan? timeout = null)
         {
             return Task.Run<QueryResult>(() =>
             {
@@ -184,7 +184,7 @@ namespace DM7_PPLUS_Integration.Implementierung
             });
         }
 
-        public Task<CommandResult> HandleCommand(Token token, Command command)
+        public Task<CommandResult> HandleCommand(Token token, Command command, TimeSpan? timeout = null)
         {
             return Task.Run<CommandResult>(() =>
             {

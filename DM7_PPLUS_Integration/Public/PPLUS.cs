@@ -30,21 +30,21 @@ namespace DM7_PPLUS_Integration
 
     public class PPLUS : DM7_PPLUS_API
     {
-        public static Task<PPLUS> Connect(string address, string user, string password, string encryptionKey, Log log)
+        public static Task<PPLUS> Connect(string address, string user, string password, string encryptionKey, Log log, TimeSpan? timeout = null)
         {
             if (!Uri.TryCreate(address, UriKind.Absolute, out var uri)) throw new ArgumentException($"'{address}' ist keine gültige Addresse", nameof(address));
 
             return Task.Run(() =>
             {
                 log.Debug($"Verbinde mit Server {address}");
-                switch (Authenticate(uri, user, password, encryptionKey, log))
+                switch (Authenticate(uri, user, password, encryptionKey, log, timeout))
                 {
                     case Authenticated authenticated:
-                    {
-                        var (_, missing_capabilities) = Negotiate_capabilities(authenticated.Handler.Capabilities().Result.Value.ToList());
-                        Guard_no_missing_capabilities(missing_capabilities);
-                        return new PPLUS(authenticated.Handler, authenticated.Token);
-                    }
+                        {
+                            var (_, missing_capabilities) = Negotiate_capabilities(authenticated.Handler.Capabilities(timeout).Result.Value.ToList());
+                            Guard_no_missing_capabilities(missing_capabilities);
+                            return new PPLUS(authenticated.Handler, authenticated.Token, timeout);
+                        }
 
                     case Not_Authenticated _:
                         throw new AuthenticationException("Nicht authentifiziert");
@@ -82,10 +82,10 @@ namespace DM7_PPLUS_Integration
             return (best_fitting_capabilites, missing_capabilities);
         }
 
-        private static Authentication_Result Authenticate(Uri uri, string user, string password, string encryptionKey, Log log)
+        private static Authentication_Result Authenticate(Uri uri, string user, string password, string encryptionKey, Log log, TimeSpan? timeout)
         {
             var pplusHandler = new Port($"{uri.Scheme}://{uri.Host}", uri.Port, encryptionKey, log);
-            var token = pplusHandler.Authenticate(user, password).Result;
+            var token = pplusHandler.Authenticate(user, password, timeout).Result;
 
             return token.HasValue
                 ? (Authentication_Result) new Authenticated(pplusHandler, token.Value)
@@ -99,44 +99,46 @@ namespace DM7_PPLUS_Integration
 
         private readonly PPLUS_Handler _pplusHandler;
         private readonly Token _token;
+        private readonly TimeSpan? _timeout;
 
-        private PPLUS(PPLUS_Handler pplusHandler, Token token)
+        private PPLUS(PPLUS_Handler pplusHandler, Token token, TimeSpan? timeout)
         {
             _pplusHandler = pplusHandler;
             _token = token;
+            _timeout = timeout;
         }
 
         public int Auswahllisten_Version => 1;
 
         public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen()
         {
-            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities().Result.Value.ToList());
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.MITARBEITER_V1))
                 return Handle_Query<MitarbeiterlisteV1, Stammdaten<Mitarbeiter>>(
                     new MitarbeiterAbrufenV1(),
                     Message_mapper.Mitarbeiterlist_als_Stammdaten);
-            
+
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }
 
         public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen_ab(Datenstand stand)
         {
-            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities().Result.Value.ToList());
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.MITARBEITER_V1))
                 return Handle_Query<MitarbeiterlisteV1, Stammdaten<Mitarbeiter>>(
                     new MitarbeiterAbrufenAbV1(Message_mapper.Stand_als_Message(stand)),
                     Message_mapper.Mitarbeiterlist_als_Stammdaten);
-            
+
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }
 
         public Task<Stammdaten<Dienst>> Dienste_abrufen()
         {
-            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities().Result.Value.ToList());
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.DIENSTE_V1))
@@ -149,20 +151,20 @@ namespace DM7_PPLUS_Integration
 
         public Task<Stammdaten<Dienst>> Dienste_abrufen_ab(Datenstand stand)
         {
-            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities().Result.Value.ToList());
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.DIENSTE_V1))
                 return Handle_Query<DiensteV1, Stammdaten<Dienst>>(
                     new DiensteAbrufenAbV1(Message_mapper.Stand_als_Message(stand)),
                     Message_mapper.Dienste_als_Stammdaten);
-            
+
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }
 
         public Task<ReadOnlyCollection<Dienstbuchung>> Dienstbuchungen_zum_Stichtag(Datum stichtag, Guid mandantId)
         {
-            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities().Result.Value.ToList());
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.DIENSTBUCHUNGEN_V1))
@@ -175,20 +177,20 @@ namespace DM7_PPLUS_Integration
 
         public Task<ReadOnlyCollection<Abwesenheit>> Abwesenheiten_zum_Stichtag(Datum stichtag, Guid mandantId)
         {
-            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities().Result.Value.ToList());
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.ABWESENHEITEN_V1))
                 return Handle_Query<AbwesenheitenV1, ReadOnlyCollection<Abwesenheit>>(
-                new AbwesenheitenZumStichtagV1(Message_mapper.Datum_als_Message(stichtag), Message_mapper.UUID_aus(mandantId)),
-                Message_mapper.Abwesenheiten);
+                    new AbwesenheitenZumStichtagV1(Message_mapper.Datum_als_Message(stichtag), Message_mapper.UUID_aus(mandantId)),
+                    Message_mapper.Abwesenheiten);
 
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }
 
         public Task<Soll_Ist_Abgleich_Verarbeitungsergebnis> Soll_Ist_Abgleich_freigeben(Soll_Ist_Abgleich abgleich)
         {
-            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities().Result.Value.ToList());
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.SOLL_IST_ABGLEICH_V1))
@@ -201,7 +203,7 @@ namespace DM7_PPLUS_Integration
 
         private async Task<TResult> Handle_Query<TResponse, TResult>(Query query, Func<TResponse, TResult> handler)
         {
-            var response = await _pplusHandler.HandleQuery(_token, query);
+            var response = await _pplusHandler.HandleQuery(_token, query, _timeout);
             switch (response)
             {
                 case TResponse message:
@@ -220,7 +222,7 @@ namespace DM7_PPLUS_Integration
         }
         private async Task<TResult> Handle_Command<TResponse, TResult>(Command command, Func<TResponse, TResult> handler)
         {
-            var response = await _pplusHandler.HandleCommand(_token, command);
+            var response = await _pplusHandler.HandleCommand(_token, command, _timeout);
             switch (response)
             {
                 case TResponse message:
