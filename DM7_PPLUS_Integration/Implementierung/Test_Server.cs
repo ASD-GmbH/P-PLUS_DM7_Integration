@@ -209,6 +209,9 @@ namespace DM7_PPLUS_Integration.Implementierung
             });
         }
 
+        public event Action Mitarbeiteränderungen_liegen_bereit;
+        public event Action Dienständerungen_liegen_bereit;
+
         private Soll_Ist_Abgleich_Verarbeitungsergebnis Verarbeite_Soll_Ist_Abgleich(Soll_Ist_Abgleich abgleich)
         {
             if (_dienstplanabschlüsse.Any())
@@ -230,12 +233,14 @@ namespace DM7_PPLUS_Integration.Implementierung
             var nächste_Version = Nächste_Version(_dienste);
             _dienste.Clear();
             _dienste.AddRange(dienste.Select(_ => new Daten_mit_Version<Dienst>(_, nächste_Version)));
+            Dienständerungen_liegen_bereit?.Invoke();
         }
 
         public void Dienste_hinzufügen(IEnumerable<Dienst> dienste)
         {
             var nächste_Version = Nächste_Version(_dienste);
             _dienste.AddRange(dienste.Select(_ => new Daten_mit_Version<Dienst>(_, nächste_Version)));
+            Dienständerungen_liegen_bereit?.Invoke();
         }
 
         public void Dienst_löschen(int dienst)
@@ -247,6 +252,7 @@ namespace DM7_PPLUS_Integration.Implementierung
                     .ToList();
             _dienste.Clear();
             _dienste.AddRange(neue_Dienste.Select(_ => new Daten_mit_Version<Dienst>(_, nächste_Version)));
+            Dienständerungen_liegen_bereit?.Invoke();
         }
 
         private static Dienst Dienst_als_gelöscht(Dienst dienst)
@@ -266,12 +272,14 @@ namespace DM7_PPLUS_Integration.Implementierung
             var nächste_Version = Nächste_Version(_mitarbeiter);
             _mitarbeiter.Clear();
             _mitarbeiter.AddRange(mitarbeiter.Select(_ => new Daten_mit_Version<Mitarbeiter>(_, nächste_Version)));
+            Mitarbeiteränderungen_liegen_bereit?.Invoke();
         }
 
         public void Mitarbeiter_hinzufügen(IEnumerable<Mitarbeiter> mitarbeiter)
         {
             var nächste_Version = Nächste_Version(_mitarbeiter);
             _mitarbeiter.AddRange(mitarbeiter.Select(_ => new Daten_mit_Version<Mitarbeiter>(_, nächste_Version)));
+            Mitarbeiteränderungen_liegen_bereit?.Invoke();
         }
 
         public void Mitarbeiter_austreten_zum(Datum austrittsdatum, Guid mitarbeiter)
@@ -288,6 +296,7 @@ namespace DM7_PPLUS_Integration.Implementierung
 
             _mitarbeiter.Clear();
             _mitarbeiter.AddRange(neue_Mitarbeiter);
+            Mitarbeiteränderungen_liegen_bereit?.Invoke();
         }
 
         private static Mitarbeiter Mit_Mandantenzugehörigkeit_bis_zum(Datum austrittsdatum, Mitarbeiter mitarbeiter)
@@ -436,6 +445,10 @@ namespace DM7_PPLUS_Integration.Implementierung
         {
             _token = null;
         }
+
+        public void Dispose()
+        {
+        }
     }
 
     public class Test_Host : IDisposable
@@ -541,6 +554,7 @@ namespace DM7_PPLUS_Integration.Implementierung
         public void Dispose()
         {
             _host?.Dispose();
+            _pplusHandler?.Dispose();
         }
     }
 }

@@ -104,11 +104,15 @@ namespace DM7_PPLUS_Integration
         private PPLUS(PPLUS_Handler pplusHandler, Token token, TimeSpan? timeout)
         {
             _pplusHandler = pplusHandler;
+            pplusHandler.Dienständerungen_liegen_bereit += () => Dienständerungen_liegen_bereit?.Invoke();
+            pplusHandler.Mitarbeiteränderungen_liegen_bereit += () => Mitarbeiteränderungen_liegen_bereit?.Invoke();
             _token = token;
             _timeout = timeout;
         }
 
         public int Auswahllisten_Version => 1;
+        public event Action Mitarbeiteränderungen_liegen_bereit;
+        public event Action Dienständerungen_liegen_bereit;
 
         public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen()
         {
@@ -238,6 +242,11 @@ namespace DM7_PPLUS_Integration
                 default:
                     throw new Exception($"Unerwartetes Response '{response.GetType()}' erhalten");
             }
+        }
+
+        public void Dispose()
+        {
+            _pplusHandler?.Dispose();
         }
     }
 }

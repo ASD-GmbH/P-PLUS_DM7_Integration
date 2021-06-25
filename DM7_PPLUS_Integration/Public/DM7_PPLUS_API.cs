@@ -5,12 +5,22 @@ using DM7_PPLUS_Integration.Daten;
 
 namespace DM7_PPLUS_Integration
 {
-    public interface DM7_PPLUS_API
+    public interface DM7_PPLUS_API : IDisposable
     {
         /// <summary>
         /// Vom Server verwendete Version der GUID-basierten Merkmale
         /// </summary>
         int Auswahllisten_Version { get; }
+
+        /// <summary>
+        /// Meldet wenn auf P-PLUS Seite geänderte oder neue Mitarbeiter vorliegen
+        /// </summary>
+        event Action Mitarbeiteränderungen_liegen_bereit;
+
+        /// <summary>
+        /// Meldet wenn auf P-PLUS Seite geänderte oder neue Dienste vorliegen
+        /// </summary>
+        event Action Dienständerungen_liegen_bereit;
 
         /// <summary>
         /// Abruf aller Mitarbeiterdatensätze

@@ -45,73 +45,88 @@ namespace Demo_Implementierung
                 if (timeoutTest == null) Console.WriteLine("Keine Verbindung zu P-PLUS");
                 else Console.WriteLine("Verbindung zu P-PLUS hergestellt");
 
-                //var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("0123456789abcdef0123456789abcdef")), logger).Result;
-                var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", key, logger).Result;
-                Console.WriteLine($"Daten arbeiten mit Auswahllisten Version {api.Auswahllisten_Version}");
+                //using (var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("0123456789abcdef0123456789abcdef")), logger).Result)
+                using (var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", key, logger).Result)
+                {
+                    api.Mitarbeiteränderungen_liegen_bereit += () => Console.WriteLine("Es liegen neue Mitarbeiter vor");
+                    api.Dienständerungen_liegen_bereit += () => Console.WriteLine("Es liegen neue Dienste vor");
 
-                Console.WriteLine("### Initiale Mitarbeiter");
-                var mitarbeiter = api.Mitarbeiter_abrufen().Result;
-                Mitarbeiter_anzeigen(mitarbeiter);
+                    Console.WriteLine($"Daten arbeiten mit Auswahllisten Version {api.Auswahllisten_Version}");
 
-                testServer.Mitarbeiter_hinzufügen(Willenborg());
-                Console.WriteLine("\n### Mitarbeiter nach Hinzufügen");
-                Mitarbeiter_anzeigen(api);
+                    Console.WriteLine("### Initiale Mitarbeiter");
+                    var mitarbeiter = api.Mitarbeiter_abrufen().Result;
+                    Mitarbeiter_anzeigen(mitarbeiter);
 
-                Console.WriteLine("\n### Nur Mitarbeiter seit neuen Stand");
-                Mitarbeiter_anzeigen(api.Mitarbeiter_abrufen_ab(mitarbeiter.Stand).Result);
+                    testServer.Mitarbeiter_hinzufügen(Willenborg());
+                    Console.WriteLine("\n### Mitarbeiter nach Hinzufügen");
+                    Mitarbeiter_anzeigen(api);
 
-                Console.WriteLine("\n### Initiale Dienste");
-                Dienste_anzeigen(api);
+                    Console.WriteLine("\n### Nur Mitarbeiter seit neuen Stand");
+                    Mitarbeiter_anzeigen(api.Mitarbeiter_abrufen_ab(mitarbeiter.Stand).Result);
 
-                testServer.Dienste_anlegen(Frühtour());
-                Console.WriteLine("\n### Dienste nach Neuanlage");
-                Dienste_anzeigen(api);
+                    testServer.Mitarbeiter_austreten_zum(Heute(), Willenborg().Id);
+                    Console.WriteLine("\n### Mitarbeiter nach Austritt");
+                    Mitarbeiter_anzeigen(api);
 
-                Console.WriteLine("\n### Initiale Dienstbuchungen");
-                Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
+                    Console.WriteLine("\n### Initiale Dienste");
+                    Dienste_anzeigen(api);
 
-                testServer.Dienste_buchen(Mandant_1, Heute(), Fährt_Frühtour(Willenborg()));
-                Console.WriteLine("\n### Dienstbuchungen nach Buchung");
-                Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
+                    testServer.Dienste_anlegen(Frühtour());
+                    Console.WriteLine("\n### Dienste nach Neuanlage");
+                    Dienste_anzeigen(api);
 
-                testServer.Dienst_streichen(Mandant_1, Heute(), Testdienst().Id);
-                Console.WriteLine("\n### Dienstbuchungen nach Streichung");
-                Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
+                    Console.WriteLine("\n### Initiale Dienstbuchungen");
+                    Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
 
-                Console.WriteLine("\n### Initiale Abwesenheiten zum 04.02.2021");
-                Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(04, 02, 2021), api);
+                    testServer.Dienste_buchen(Mandant_1, Heute(), Fährt_Frühtour(Willenborg()));
+                    Console.WriteLine("\n### Dienstbuchungen nach Buchung");
+                    Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
 
-                Console.WriteLine("\n### Initiale Abwesenheiten zum 10.02.2021");
-                Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(10, 02, 2021), api);
+                    testServer.Dienst_streichen(Mandant_1, Heute(), Testdienst().Id);
+                    Console.WriteLine("\n### Dienstbuchungen nach Streichung");
+                    Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
 
-                testServer.Abwesenheiten_eintragen(Mandant_1, Urlaub(Willenborg()));
-                Console.WriteLine("\n### Abwesenheiten zum 20.02.2021 nach Eintragung");
-                Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(20, 02, 2021), api);
+                    Console.WriteLine("\n### Initiale Abwesenheiten zum 04.02.2021");
+                    Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(04, 02, 2021), api);
 
-                Console.WriteLine("\n### Abwesenheiten zum 04.02.2021 nach Eintragung");
-                Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(04, 02, 2021), api);
+                    Console.WriteLine("\n### Initiale Abwesenheiten zum 10.02.2021");
+                    Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(10, 02, 2021), api);
 
-                testServer.Dienstplanbschlüsse_zum_verhindern_der_Soll_Ist_Abgleich_Verarbeitung(
-                    Dienstplanabschluss(Mandant_1, Helmig(), Heute()),
-                    Dienstplanabschluss(Mandant_2, Willenborg(), Datum.DD_MM_YYYY(22, 05, 2021)));
-                Console.WriteLine("\n### Soll/Ist Abgleich freigeben mit Dienstplanabschlüssen");
-                Soll_Ist_Abgleich_freigeben(api);
-                testServer.Soll_Ist_Abgleich_Verarbeitung_nicht_verhindern();
+                    testServer.Abwesenheiten_eintragen(Mandant_1, Urlaub(Willenborg()));
+                    Console.WriteLine("\n### Abwesenheiten zum 20.02.2021 nach Eintragung");
+                    Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(20, 02, 2021), api);
 
-                testServer.Dienste_buchen(Mandant_1, Heute(), Fährt_Frühtour(Heimeshoff()));
-                Console.WriteLine("\n### Dienstbuchungen vor Soll/Ist Abgleich");
-                Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
+                    Console.WriteLine("\n### Abwesenheiten zum 04.02.2021 nach Eintragung");
+                    Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(04, 02, 2021), api);
 
-                Console.WriteLine("\n### Soll/Ist Abgleich freigeben");
-                Soll_Ist_Abgleich_freigeben(api);
+                    testServer.Dienstplanbschlüsse_zum_verhindern_der_Soll_Ist_Abgleich_Verarbeitung(
+                        Dienstplanabschluss(Mandant_1, Helmig(), Heute()),
+                        Dienstplanabschluss(Mandant_2, Willenborg(), Datum.DD_MM_YYYY(22, 05, 2021)));
+                    Console.WriteLine("\n### Soll/Ist Abgleich freigeben mit Dienstplanabschlüssen");
+                    Soll_Ist_Abgleich_freigeben(api);
+                    testServer.Soll_Ist_Abgleich_Verarbeitung_nicht_verhindern();
 
-                Console.WriteLine("\n### Dienstbuchungen nach Soll/Ist Abgleich");
-                Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
+                    testServer.Dienste_buchen(Mandant_1, Heute(), Fährt_Frühtour(Heimeshoff()));
+                    Console.WriteLine("\n### Dienstbuchungen vor Soll/Ist Abgleich");
+                    Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
 
-                testServer.Revoke_Token();
-                Console.WriteLine("\n### Token revoked");
-                try { Mitarbeiter_anzeigen(api); }
-                catch (AggregateException e) { Console.WriteLine(e.InnerExceptions.First().Message); }
+                    Console.WriteLine("\n### Soll/Ist Abgleich freigeben");
+                    Soll_Ist_Abgleich_freigeben(api);
+
+                    Console.WriteLine("\n### Dienstbuchungen nach Soll/Ist Abgleich");
+                    Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
+
+                    testServer.Revoke_Token();
+                    Console.WriteLine("\n### Token revoked");
+                    try
+                    {
+                        Mitarbeiter_anzeigen(api);
+                    }
+                    catch (AggregateException e)
+                    {
+                        Console.WriteLine(e.InnerExceptions.First().Message);
+                    }
+                }
             }
 
             Console.WriteLine("Beliebige Taste drücken zum Beenden...");

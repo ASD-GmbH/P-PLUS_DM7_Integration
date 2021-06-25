@@ -13,6 +13,9 @@ namespace DM7_PPLUS_Integration.Implementierung
         public static int Capabilities_Port(int portRangeStart) => portRangeStart + 1;
         public static int Query_Port(int portRangeStart) => portRangeStart + 2;
         public static int Command_Port(int portRangeStart) => portRangeStart + 3;
+        public static int Notification_Port(int portRangeStart) => portRangeStart + 4;
+        public const string Mitarbeiter_Topic = "Mitarbeiter";
+        public const string Dienste_Topic = "Dienste";
 
         private readonly PPLUS_Handler _pplusHandler;
         private readonly string _encryptionKey;
@@ -27,29 +30,35 @@ namespace DM7_PPLUS_Integration.Implementierung
             _poller = new NetMQPoller();
             _thread = new Thread(() =>
             {
-                using (var authenticationSocket = new RouterSocket())
+                using (var authentication_socket = new RouterSocket())
                 using (var capability_socket = new RouterSocket())
-                using (var querySocket = new RouterSocket())
-                using (var commandSocket = new RouterSocket())
+                using (var query_socket = new RouterSocket())
+                using (var command_socket = new RouterSocket())
+                using (var notification_socket = new PublisherSocket())
                 {
-                    authenticationSocket.Bind($"tcp://{address}:{Authentication_Port(port_range_start)}");
-                    authenticationSocket.ReceiveReady += (_, args) => Authenticate(args.Socket);
+                    authentication_socket.Bind($"tcp://{address}:{Authentication_Port(port_range_start)}");
+                    authentication_socket.ReceiveReady += (_, args) => Authenticate(args.Socket);
 
                     capability_socket.Bind($"tcp://{address}:{Capabilities_Port(port_range_start)}");
                     capability_socket.ReceiveReady += (_, args) => Handle_Capabilities(args.Socket);
 
-                    querySocket.Bind($"tcp://{address}:{Query_Port(port_range_start)}");
-                    querySocket.ReceiveReady += (_, args) => Handle_Query(args.Socket);
+                    query_socket.Bind($"tcp://{address}:{Query_Port(port_range_start)}");
+                    query_socket.ReceiveReady += (_, args) => Handle_Query(args.Socket);
 
-                    commandSocket.Bind($"tcp://{address}:{Command_Port(port_range_start)}");
-                    commandSocket.ReceiveReady += (_, args) => Handle_Command(args.Socket);
+                    command_socket.Bind($"tcp://{address}:{Command_Port(port_range_start)}");
+                    command_socket.ReceiveReady += (_, args) => Handle_Command(args.Socket);
+
+                    notification_socket.Bind($"tcp://*:{Notification_Port(port_range_start)}");
+                    pplusHandler.Mitarbeiteränderungen_liegen_bereit += () => notification_socket.SendMoreFrame(Mitarbeiter_Topic).SendFrameEmpty();
+                    pplusHandler.Dienständerungen_liegen_bereit += () => notification_socket.SendMoreFrame(Dienste_Topic).SendFrameEmpty();
 
                     using (_poller)
                     {
-                        _poller.Add(authenticationSocket);
+                        _poller.Add(authentication_socket);
                         _poller.Add(capability_socket);
-                        _poller.Add(querySocket);
-                        _poller.Add(commandSocket);
+                        _poller.Add(query_socket);
+                        _poller.Add(command_socket);
+                        _poller.Add(notification_socket);
                         _poller.Run();
                     }
                 }

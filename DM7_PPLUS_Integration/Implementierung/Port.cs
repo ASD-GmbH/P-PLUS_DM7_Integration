@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Messages;
 using NetMQ;
@@ -13,6 +14,8 @@ namespace DM7_PPLUS_Integration.Implementierung
         private readonly int _port_range_start;
         private readonly string _encryptionKey;
         private readonly Log _log;
+        private readonly NetMQPoller _poller;
+        private readonly Thread _thread;
 
         public Port(string address, int portRangeStart, string encryptionKey, Log log)
         {
@@ -20,13 +23,41 @@ namespace DM7_PPLUS_Integration.Implementierung
             _port_range_start = portRangeStart;
             _encryptionKey = encryptionKey;
             _log = log;
+
+            _poller = new NetMQPoller();
+            _thread = new Thread(() =>
+            {
+                using (var notification_socket = new SubscriberSocket($"{_address}:{Adapter.Notification_Port(_port_range_start)}"))
+                {
+                    notification_socket.Subscribe(Adapter.Dienste_Topic);
+                    notification_socket.Subscribe(Adapter.Mitarbeiter_Topic);
+                    notification_socket.ReceiveReady += (_, e) => Notification_empfangen(e.Socket);
+
+                    using (_poller)
+                    {
+                        _poller.Add(notification_socket);
+                        _poller.Run();
+                    }
+                }
+            });
+            _thread.Start();
+            
+        }
+
+        private void Notification_empfangen(NetMQSocket socket)
+        {
+            var topic = socket.ReceiveFrameString();
+            socket.SkipFrame(); // Benachrichtigungen haben keinen Payload
+
+            if (string.Equals(topic, Adapter.Dienste_Topic)) Dienständerungen_liegen_bereit?.Invoke();
+            if (string.Equals(topic, Adapter.Mitarbeiter_Topic)) Mitarbeiteränderungen_liegen_bereit?.Invoke();
         }
 
         public Task<Token?> Authenticate(string user, string password, TimeSpan? timeout = null)
         {
             return Task.Run<Token?>(() =>
             {
-                using (var socket = new RequestSocket($"{_address}:{Adapter.Authentication_Port(_port_range_start) }"))
+                using (var socket = new RequestSocket($"{_address}:{Adapter.Authentication_Port(_port_range_start)}"))
                 using (var encryption = Encryption.From_encoded_Key(_encryptionKey))
                 {
                     _log.Debug("Authenticate");
@@ -55,7 +86,7 @@ namespace DM7_PPLUS_Integration.Implementierung
         {
             return Task.Run(() =>
             {
-                using (var socket = new RequestSocket($"{_address}:{Adapter.Capabilities_Port(_port_range_start) }"))
+                using (var socket = new RequestSocket($"{_address}:{Adapter.Capabilities_Port(_port_range_start)}"))
                 {
                     _log.Debug("Capabilities laden...");
                     socket.SendFrameEmpty();
@@ -143,11 +174,21 @@ namespace DM7_PPLUS_Integration.Implementierung
             });
         }
 
+        public event Action Mitarbeiteränderungen_liegen_bereit;
+        public event Action Dienständerungen_liegen_bereit;
+
         private static byte[] ReceiveBytes(NetMQSocket socket, TimeSpan? timeout = null)
         {
             if (!timeout.HasValue) return socket.ReceiveFrameBytes();
             if (socket.TryReceiveFrameBytes(timeout.Value, out var bytes)) return bytes;
             throw new TimeoutException();
+        }
+
+        public void Dispose()
+        {
+            _poller?.Stop();
+            var gracefullyStopped = _thread.Join(TimeSpan.FromSeconds(10));
+            if (!gracefullyStopped) _thread.Abort();
         }
     }
 }
