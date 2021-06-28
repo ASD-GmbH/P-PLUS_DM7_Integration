@@ -48,7 +48,7 @@ namespace Demo_Implementierung
                 //using (var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("0123456789abcdef0123456789abcdef")), logger).Result)
                 using (var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", key, logger).Result)
                 {
-                    api.Mitarbeiteränderungen_liegen_bereit += () => Console.WriteLine("Es liegen neue Mitarbeiter vor");
+                    api.Mitarbeiteränderungen_liegen_bereit += () => Console.WriteLine($"Jetzt sind es {api.Mitarbeiter_abrufen().Result.Count} Mitarbeiter");
                     api.Dienständerungen_liegen_bereit += () => Console.WriteLine("Es liegen neue Dienste vor");
 
                     Console.WriteLine($"Daten arbeiten mit Auswahllisten Version {api.Auswahllisten_Version}");

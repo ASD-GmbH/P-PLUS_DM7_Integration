@@ -48,7 +48,7 @@ namespace DM7_PPLUS_Integration.Implementierung
                     command_socket.Bind($"tcp://{address}:{Command_Port(port_range_start)}");
                     command_socket.ReceiveReady += (_, args) => Handle_Command(args.Socket);
 
-                    notification_socket.Bind($"tcp://*:{Notification_Port(port_range_start)}");
+                    notification_socket.Bind($"tcp://{address}:{Notification_Port(port_range_start)}");
                     pplusHandler.Mitarbeiteränderungen_liegen_bereit += () => notification_socket.SendMoreFrame(Mitarbeiter_Topic).SendFrameEmpty();
                     pplusHandler.Dienständerungen_liegen_bereit += () => notification_socket.SendMoreFrame(Dienste_Topic).SendFrameEmpty();
 

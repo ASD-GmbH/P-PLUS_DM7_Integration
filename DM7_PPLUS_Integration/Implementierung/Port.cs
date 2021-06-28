@@ -49,8 +49,11 @@ namespace DM7_PPLUS_Integration.Implementierung
             var topic = socket.ReceiveFrameString();
             socket.SkipFrame(); // Benachrichtigungen haben keinen Payload
 
-            if (string.Equals(topic, Adapter.Dienste_Topic)) Dienständerungen_liegen_bereit?.Invoke();
-            if (string.Equals(topic, Adapter.Mitarbeiter_Topic)) Mitarbeiteränderungen_liegen_bereit?.Invoke();
+            new Thread(() =>
+            {
+                if (string.Equals(topic, Adapter.Dienste_Topic)) Dienständerungen_liegen_bereit?.Invoke();
+                if (string.Equals(topic, Adapter.Mitarbeiter_Topic)) Mitarbeiteränderungen_liegen_bereit?.Invoke();
+            }).Start();
         }
 
         public Task<Token?> Authenticate(string user, string password, TimeSpan? timeout = null)
