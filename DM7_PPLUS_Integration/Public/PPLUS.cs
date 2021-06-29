@@ -6,7 +6,8 @@ using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung;
 using System.Collections.Generic;
 using System.Linq;
-using DM7_PPLUS_Integration.Messages;
+using DM7_PPLUS_Integration.Implementierung.PPLUS;
+using DM7_PPLUS_Integration.Messages.PPLUS;
 using Datenstand = DM7_PPLUS_Integration.Daten.Datenstand;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
 
@@ -28,7 +29,7 @@ namespace DM7_PPLUS_Integration
 
     internal readonly struct Not_Authenticated : Authentication_Result { }
 
-    public class PPLUS : DM7_PPLUS_API
+    public class PPLUS : PPLUS_API
     {
         public static Task<PPLUS> Connect(string address, string user, string password, string encryptionKey, Log log, TimeSpan? timeout = null)
         {

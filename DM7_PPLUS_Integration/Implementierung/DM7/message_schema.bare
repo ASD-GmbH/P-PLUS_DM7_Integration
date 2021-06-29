@@ -1,0 +1,51 @@
+﻿### Port & Adapter Messages ###
+type QueryMessage {
+	token: i32
+	query: data # Verschlüsselte Query
+}
+
+type ResponseMessage (QuerySucceeded | QueryFailed)
+type QuerySucceeded data # Enthält verschlüsseltes QueryResult
+type QueryFailed { reason: string }
+
+type Capabilities []Capability
+
+# Neue Capabilities nur anhängen !! Nicht ändern !!
+enum Capability {
+	ALLE_LEISTUNGEN_V1
+	ALLE_MANDANTEN_V1
+}
+
+### Queries ###
+type Query (
+	AlleLeistungenV1
+	| AlleMandantenV1
+)
+
+type AlleLeistungenV1 void
+type AlleMandantenV1 void
+
+type QueryResult (
+	IOFehler
+	| LeistungenV1
+	| MandantenV1
+)
+
+type IOFehler { reason: string }
+
+type LeistungenV1 []LeistungV1
+
+type MandantenV1 []MandantV1
+
+### Daten ###
+type LeistungV1 {
+	Id: UUID
+	Bezeichnung: string
+}
+
+type MandantV1 {
+	Id: UUID
+	Bezeichnung: string
+}
+
+type UUID data<16>

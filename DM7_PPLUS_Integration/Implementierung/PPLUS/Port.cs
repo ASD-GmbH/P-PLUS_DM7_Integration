@@ -2,11 +2,11 @@
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using DM7_PPLUS_Integration.Messages;
+using DM7_PPLUS_Integration.Messages.PPLUS;
 using NetMQ;
 using NetMQ.Sockets;
 
-namespace DM7_PPLUS_Integration.Implementierung
+namespace DM7_PPLUS_Integration.Implementierung.PPLUS
 {
     public class Port : PPLUS_Handler
     {
@@ -93,7 +93,7 @@ namespace DM7_PPLUS_Integration.Implementierung
                 {
                     _log.Debug("Capabilities laden...");
                     socket.SendFrameEmpty();
-                    var capabilities = Messages.Capabilities.Decoded(ReceiveBytes(socket, timeout));
+                    var capabilities = Messages.PPLUS.Capabilities.Decoded(ReceiveBytes(socket, timeout));
                     _log.Debug("Capabilities geladen:");
                     foreach (var capability in capabilities.Value) _log.Debug($" - {capability}");
                     return capabilities;

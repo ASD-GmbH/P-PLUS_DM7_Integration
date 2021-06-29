@@ -5,7 +5,7 @@ using System.Linq;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Auswahllisten;
 using DM7_PPLUS_Integration.Daten;
-using DM7_PPLUS_Integration.Implementierung;
+using DM7_PPLUS_Integration.Implementierung.PPLUS;
 
 namespace Demo_Implementierung
 {
@@ -146,7 +146,7 @@ namespace Demo_Implementierung
             }
         }
 
-        private static void Mitarbeiter_anzeigen(DM7_PPLUS_API api)
+        private static void Mitarbeiter_anzeigen(PPLUS_API api)
         {
             var alle_Mitarbeiter = api.Mitarbeiter_abrufen().Result;
             Mitarbeiter_anzeigen(alle_Mitarbeiter);
@@ -161,7 +161,7 @@ namespace Demo_Implementierung
             }
         }
 
-        private static void Dienste_anzeigen(DM7_PPLUS_API api)
+        private static void Dienste_anzeigen(PPLUS_API api)
         {
             var dienste = api.Dienste_abrufen().Result;
             foreach (var dienst in dienste)
@@ -170,7 +170,7 @@ namespace Demo_Implementierung
             }
         }
 
-        private static void Dienstbuchungen_anzeigen(Guid mandantId, Datum stichtag, DM7_PPLUS_API api)
+        private static void Dienstbuchungen_anzeigen(Guid mandantId, Datum stichtag, PPLUS_API api)
         {
             var mitarbeiter_lookup = api.Mitarbeiter_abrufen().Result.ToDictionary(_ => _.Id, _ => $"{_.Nachname}, {_.Vorname}");
             var dienst_lookup = api.Dienste_abrufen().Result.ToDictionary(_ => _.Id, _ => _.Bezeichnung);
@@ -189,7 +189,7 @@ namespace Demo_Implementierung
             }
         }
 
-        private static void Abwesenheiten_anzeigen(Guid mandantId, Datum stichtag, DM7_PPLUS_API api)
+        private static void Abwesenheiten_anzeigen(Guid mandantId, Datum stichtag, PPLUS_API api)
         {
             var mitarbeiter_lookup = api.Mitarbeiter_abrufen().Result.ToDictionary(_ => _.Id, _ => $"{_.Nachname}, {_.Vorname}");
             var abwesenheiten = api.Abwesenheiten_zum_Stichtag(stichtag, mandantId).Result;
@@ -203,7 +203,7 @@ namespace Demo_Implementierung
             }
         }
 
-        private static void Soll_Ist_Abgleich_freigeben(DM7_PPLUS_API api)
+        private static void Soll_Ist_Abgleich_freigeben(PPLUS_API api)
         {
             var nicht_gefahrene_Touren =
                 new[]

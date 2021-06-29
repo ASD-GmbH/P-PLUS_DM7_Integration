@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Threading;
-using DM7_PPLUS_Integration.Messages;
+using DM7_PPLUS_Integration.Messages.PPLUS;
 using NetMQ;
 using NetMQ.Sockets;
 
-namespace DM7_PPLUS_Integration.Implementierung
+namespace DM7_PPLUS_Integration.Implementierung.PPLUS
 {
     public class Adapter : IDisposable
     {

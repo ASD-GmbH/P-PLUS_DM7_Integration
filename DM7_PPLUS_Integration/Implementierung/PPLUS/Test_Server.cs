@@ -4,11 +4,11 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Daten;
-using DM7_PPLUS_Integration.Messages;
+using DM7_PPLUS_Integration.Messages.PPLUS;
 using Datenstand = DM7_PPLUS_Integration.Daten.Datenstand;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
 
-namespace DM7_PPLUS_Integration.Implementierung
+namespace DM7_PPLUS_Integration.Implementierung.PPLUS
 {
     public class Test_Server
     {

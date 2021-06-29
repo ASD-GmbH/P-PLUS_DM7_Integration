@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using DM7_PPLUS_Integration.Daten;
-using DM7_PPLUS_Integration.Messages;
+using DM7_PPLUS_Integration.Messages.PPLUS;
 using Datenstand = DM7_PPLUS_Integration.Daten.Datenstand;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
 using Uhrzeit = DM7_PPLUS_Integration.Daten.Uhrzeit;
 using Zeitpunkt = DM7_PPLUS_Integration.Daten.Zeitpunkt;
 
-namespace DM7_PPLUS_Integration.Implementierung
+namespace DM7_PPLUS_Integration.Implementierung.PPLUS
 {
     public static class Message_mapper
     {
@@ -33,8 +33,8 @@ namespace DM7_PPLUS_Integration.Implementierung
                 Liste_aus(dienste.Dienste, Dienst_aus),
                 Stand_aus(dienste.Stand));
 
-        public static Messages.Datenstand Stand_als_Message(Datenstand stand) => new Messages.Datenstand(stand.Value);
-        public static Datenstand Stand_aus(Messages.Datenstand stand) => new Datenstand(stand.Value);
+        public static Messages.PPLUS.Datenstand Stand_als_Message(Datenstand stand) => new Messages.PPLUS.Datenstand(stand.Value);
+        public static Datenstand Stand_aus(Messages.PPLUS.Datenstand stand) => new Datenstand(stand.Value);
 
         public static ReadOnlyCollection<Dienstbuchung> Dienstbuchungen(DienstbuchungenV1 dienstbuchungen) => Liste_aus(dienstbuchungen.Value, Dienstbuchung_aus);
         public static DienstbuchungenV1 Dienstbuchungen_als_Message(ReadOnlyCollection<Dienstbuchung> dienstbuchungen) => new DienstbuchungenV1(Liste_als_Message(dienstbuchungen, Dienstbuchung_als_Message));
@@ -344,13 +344,13 @@ namespace DM7_PPLUS_Integration.Implementierung
 
         public static Guid Guid_aus(UUID uuid) => new Guid(uuid.Value);
         public static UUID UUID_aus(Guid guid) => new UUID(guid.ToByteArray());
-        public static Datum Datum_aus(Messages.Datum datum) => Datum.DD_MM_YYYY(datum.Tag, datum.Monat, datum.Jahr);
-        public static Messages.Datum Datum_als_Message(Datum datum) => new Messages.Datum((byte) datum.Tag, (byte) datum.Monat, (ushort) datum.Jahr);
+        public static Datum Datum_aus(Messages.PPLUS.Datum datum) => Datum.DD_MM_YYYY(datum.Tag, datum.Monat, datum.Jahr);
+        public static Messages.PPLUS.Datum Datum_als_Message(Datum datum) => new Messages.PPLUS.Datum((byte) datum.Tag, (byte) datum.Monat, (ushort) datum.Jahr);
 
-        private static Messages.Zeitpunkt Zeitpunkt_als_Message(Zeitpunkt zeitpunkt) => new Messages.Zeitpunkt(Datum_als_Message(zeitpunkt.Datum), Uhrzeit_als_Message(zeitpunkt.Uhrzeit));
-        private static Zeitpunkt Zeitpunkt_aus(Messages.Zeitpunkt zeitpunkt) => new Zeitpunkt(Datum_aus(zeitpunkt.Datum), Uhrzeit_aus(zeitpunkt.Uhrzeit));
-        private static Messages.Uhrzeit Uhrzeit_als_Message(Uhrzeit uhrzeit) => new Messages.Uhrzeit((byte) uhrzeit.Stunden, (byte) uhrzeit.Minuten);
-        private static Uhrzeit Uhrzeit_aus(Messages.Uhrzeit uhrzeit) => Uhrzeit.HH_MM(uhrzeit.Stunden, uhrzeit.Minuten);
+        private static Messages.PPLUS.Zeitpunkt Zeitpunkt_als_Message(Zeitpunkt zeitpunkt) => new Messages.PPLUS.Zeitpunkt(Datum_als_Message(zeitpunkt.Datum), Uhrzeit_als_Message(zeitpunkt.Uhrzeit));
+        private static Zeitpunkt Zeitpunkt_aus(Messages.PPLUS.Zeitpunkt zeitpunkt) => new Zeitpunkt(Datum_aus(zeitpunkt.Datum), Uhrzeit_aus(zeitpunkt.Uhrzeit));
+        private static Messages.PPLUS.Uhrzeit Uhrzeit_als_Message(Uhrzeit uhrzeit) => new Messages.PPLUS.Uhrzeit((byte) uhrzeit.Stunden, (byte) uhrzeit.Minuten);
+        private static Uhrzeit Uhrzeit_aus(Messages.PPLUS.Uhrzeit uhrzeit) => Uhrzeit.HH_MM(uhrzeit.Stunden, uhrzeit.Minuten);
         private static RelativeZeit Relative_Zeit_als_Message(Relative_Zeit zeit) => new RelativeZeit(Uhrzeit_als_Message(zeit.Zeit), zeit.Am_Folgetag);
         private static Relative_Zeit Relative_Zeit_aus(RelativeZeit zeit) => new Relative_Zeit(Uhrzeit_aus(zeit.Zeit), zeit.AmFolgetag);
         private static ReadOnlyCollection<TOut> Liste_aus<TIn, TOut>(IEnumerable<TIn> daten, Func<TIn, TOut> mapper) => new ReadOnlyCollection<TOut>(daten.Select(mapper).ToList());

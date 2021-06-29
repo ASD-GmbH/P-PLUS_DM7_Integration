@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 21.06.2021 16:41 //
+// Generated code by BareNET - 29.06.2021 11:03 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
 using System.Collections.Generic;
-namespace DM7_PPLUS_Integration.Messages
+namespace DM7_PPLUS_Integration.Messages.PPLUS
 {
 	public readonly struct AuthenticationRequest
 	{

@@ -100,40 +100,42 @@ namespace Stammdatenexport_Überprüfung
                 Console.Clear();
                 var auswahl = Auswahlmenu(debug_aktiv);
                 Console.Clear();
-                var api = PPLUS.Connect(address, user, password, encryptionKey, new Logger(debug_aktiv)).Result;
-                switch (auswahl)
+                using (var api = PPLUS.Connect(address, user, password, encryptionKey, new Logger(debug_aktiv)).Result)
                 {
-                    case Auswahl.Mitarbeiter:
-                        Mitarbeiter_abfragen(api);
-                        Console.ReadKey();
-                        break;
-                    case Auswahl.Mitarbeiterdetails:
-                        Mitarbeiterdetails_abfragen(api);
-                        Console.ReadKey();
-                        break;
-                    case Auswahl.Dienste:
-                        Dienste_abfragen(api);
-                        Console.ReadKey();
-                        break;
-                    case Auswahl.Dienstdetails:
-                        Dienstdetails_abfragen(api);
-                        Console.ReadKey();
-                        break;
-                    case Auswahl.Dienstbuchungen:
-                        Dienstbuchungen_abfragen(api);
-                        Console.ReadKey();
-                        break;
-                    case Auswahl.Abwesenheiten:
-                        Abwesenheiten_abfragen(api);
-                        Console.ReadKey();
-                        break;
-                    case Auswahl.Debug_umschalten:
-                        debug_aktiv = !debug_aktiv;
-                        break;
-                    case Auswahl.Quit:
-                        return;
-                    case Auswahl.Unbekannt:
-                        break;
+                    switch (auswahl)
+                    {
+                        case Auswahl.Mitarbeiter:
+                            Mitarbeiter_abfragen(api);
+                            Console.ReadKey();
+                            break;
+                        case Auswahl.Mitarbeiterdetails:
+                            Mitarbeiterdetails_abfragen(api);
+                            Console.ReadKey();
+                            break;
+                        case Auswahl.Dienste:
+                            Dienste_abfragen(api);
+                            Console.ReadKey();
+                            break;
+                        case Auswahl.Dienstdetails:
+                            Dienstdetails_abfragen(api);
+                            Console.ReadKey();
+                            break;
+                        case Auswahl.Dienstbuchungen:
+                            Dienstbuchungen_abfragen(api);
+                            Console.ReadKey();
+                            break;
+                        case Auswahl.Abwesenheiten:
+                            Abwesenheiten_abfragen(api);
+                            Console.ReadKey();
+                            break;
+                        case Auswahl.Debug_umschalten:
+                            debug_aktiv = !debug_aktiv;
+                            break;
+                        case Auswahl.Quit:
+                            return;
+                        case Auswahl.Unbekannt:
+                            break;
+                    }
                 }
             }
         }
@@ -169,7 +171,7 @@ namespace Stammdatenexport_Überprüfung
             }
         }
 
-        private static void Mitarbeiter_abfragen(DM7_PPLUS_API api)
+        private static void Mitarbeiter_abfragen(PPLUS_API api)
         {
             var mitarbeiter = api.Mitarbeiter_abrufen().Result;
             if (mitarbeiter.Count == 0)
@@ -187,7 +189,7 @@ namespace Stammdatenexport_Überprüfung
             Console.WriteLine(ausgabe);
         }
 
-        private static void Mitarbeiterdetails_abfragen(DM7_PPLUS_API api)
+        private static void Mitarbeiterdetails_abfragen(PPLUS_API api)
         {
             Console.WriteLine("Id des gewünschten Mitarbeiters eingeben: ");
             Guid gewünschter_Mitarbeiter;
@@ -330,7 +332,7 @@ namespace Stammdatenexport_Überprüfung
                         }));
             
 
-        private static void Dienste_abfragen(DM7_PPLUS_API api)
+        private static void Dienste_abfragen(PPLUS_API api)
         {
             var dienste = api.Dienste_abrufen().Result;
             if (dienste.Count == 0)
@@ -346,7 +348,7 @@ namespace Stammdatenexport_Überprüfung
                     .Select(dienst => $"{dienst.Id:000} | {dienst.Bezeichnung} ({dienst.Kurzbezeichnung}){(dienst.Gelöscht ? "GELÖSCHT" : "")}")));
         }
 
-        private static void Dienstdetails_abfragen(DM7_PPLUS_API api)
+        private static void Dienstdetails_abfragen(PPLUS_API api)
         {
             Console.WriteLine("Id des gewünschten Dienstes eingeben: ");
             int gewünschter_Dienst;
@@ -379,7 +381,7 @@ namespace Stammdatenexport_Überprüfung
 
         private static string Ausgabe_Option(string option, bool aktiv) => $"{option}: [{(aktiv ? "x" : " ")}]";
 
-        private static void Dienstbuchungen_abfragen(DM7_PPLUS_API api)
+        private static void Dienstbuchungen_abfragen(PPLUS_API api)
         {
             Console.WriteLine("ID des Mandanten, für den die Dienstbuchungen abgefragt werden: ");
             Guid gewünschter_Mandant;
@@ -469,7 +471,7 @@ namespace Stammdatenexport_Überprüfung
                                 .Select(_ => Dienstbuchungsinfo($"Nicht exportierter Mitarbeiter {_.Mitarbeiter}", _.Dienstbuchungen)))));
         }
 
-        private static void Abwesenheiten_abfragen(DM7_PPLUS_API api)
+        private static void Abwesenheiten_abfragen(PPLUS_API api)
         {
             Console.WriteLine("ID des Mandanten, für den die Abwesenheiten abgefragt werden: ");
             Guid gewünschter_Mandant;

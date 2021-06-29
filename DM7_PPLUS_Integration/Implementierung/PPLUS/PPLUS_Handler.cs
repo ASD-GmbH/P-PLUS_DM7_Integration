@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using DM7_PPLUS_Integration.Messages;
+using DM7_PPLUS_Integration.Messages.PPLUS;
 
-namespace DM7_PPLUS_Integration.Implementierung
+namespace DM7_PPLUS_Integration.Implementierung.PPLUS
 {
     public interface PPLUS_Handler : IDisposable
     {
