@@ -70,33 +70,33 @@ namespace DM7_PPLUS_Integration.Implementierung.DM7
             {
                 var caller = socket.ReceiveFrameBytes();
                 socket.SkipFrame();
-                var message = QueryMessage.Decoded(socket.ReceiveFrameBytes());
+                var message = Query_message.Decoded(socket.ReceiveFrameBytes());
 
-                ResponseMessage response;
+                Response_message response;
                 try
                 {
-                    var query = Encoding.Query_Decoded(encryption.Decrypt(message.Query));
+                    var query = Encoding.Query_Decoded(encryption.Decrypt(message.Value));
                     var result = Handle_Query(query).Result;
-                    response = new QuerySucceeded(encryption.Encrypt(Encoding.QueryResult_Encoded(result)));
+                    response = new Query_succeeded(encryption.Encrypt(Encoding.Query_result_Encoded(result)));
                 }
                 catch (CryptographicException)
                 {
-                    response = new QueryFailed("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit DM7 ab.");
+                    response = new Query_failed("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit DM7 ab.");
                 }
 
                 socket.SendMoreFrame(caller);
                 socket.SendMoreFrameEmpty();
-                socket.SendFrame(Encoding.ResponseMessage_Encoded(response));
+                socket.SendFrame(Encoding.Response_message_Encoded(response));
             }
         }
 
-        private Task<QueryResult> Handle_Query(Query query)
+        private Task<Query_result> Handle_Query(Query query)
         {
             return Task.Run(() =>
             {
                 switch (query)
                 {
-                    case AlleLeistungenV1 _:
+                    case Alle_leistungen_V1 _:
                     {
                         try
                         {
@@ -104,24 +104,24 @@ namespace DM7_PPLUS_Integration.Implementierung.DM7
                         }
                         catch (Exception e)
                         {
-                            return new IOFehler($"Abfrage der Leistungen führte zum Problem: {e.Message}");
+                            return new IO_fehler($"Abfrage der Leistungen führte zum Problem: {e.Message}");
                         }
                     }
 
-                    case AlleMandantenV1 _:
+                    case Alle_mandanten_V1 _:
                     {
                         try
                         {
-                            return (QueryResult) Message_mapper.Von_Mandanten(_stammdaten.Alle_Mandanten().Result);
+                            return (Query_result) Message_mapper.Von_Mandanten(_stammdaten.Alle_Mandanten().Result);
                         }
                         catch (Exception e)
                         {
-                            return new IOFehler($"Abfrage der Mandanten führte zum Problem: {e.Message}");
+                            return new IO_fehler($"Abfrage der Mandanten führte zum Problem: {e.Message}");
                         }
                     }
 
                     default:
-                        return new IOFehler($"Query {query.GetType()} wird nicht behandelt");
+                        return new IO_fehler($"Query {query.GetType()} wird nicht behandelt");
                 }
             });
         }

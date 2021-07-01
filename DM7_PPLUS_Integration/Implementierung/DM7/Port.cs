@@ -40,39 +40,39 @@ namespace DM7_PPLUS_Integration.Implementierung.DM7
             });
         }
 
-        public Task<QueryResult> Handle_Query(Query query)
+        public Task<Query_result> Handle_Query(Query query)
         {
             return Task.Run(() =>
             {
-                using (var socket = new RequestSocket(_address))
+                using (var socket = new RequestSocket($"{_address}:{Adapter.Query_Port(_port_range_start)}"))
                 using (var encryption = Encryption.From_encoded_Key(_encryption_key))
                 {
                     _log.Debug($"QUERY: '{query.GetType()}'");
-                    socket.SendFrame(encryption.Encrypt(Encoding.Query_Encoded(query)));
-                    var response = Encoding.ResponseMessage_Decoded(ReceiveBytes(socket, _timeout));
+                    socket.SendFrame(new Query_message(encryption.Encrypt(Encoding.Query_Encoded(query))).Encoded());
+                    var response = Encoding.Response_message_Decoded(ReceiveBytes(socket, _timeout));
 
                     switch (response)
                     {
-                        case QuerySucceeded succeeded:
+                        case Query_succeeded succeeded:
                         {
                             try
                             {
-                                var result = Encoding.QueryResult_Decoded(encryption.Decrypt(succeeded.Value));
+                                var result = Encoding.Query_result_Decoded(encryption.Decrypt(succeeded.Value));
                                 _log.Debug($"RESPONSE: '{result.GetType()}'");
                                 return result;
                             }
                             catch (CryptographicException e)
                             {
                                 _log.Info($"Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab: {e.Message}");
-                                return new IOFehler("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit DM7 ab");
+                                return new IO_fehler("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit DM7 ab");
                             }
                         }
 
-                        case QueryFailed failed:
-                            return new IOFehler(failed.Reason);
+                        case Query_failed failed:
+                            return new IO_fehler(failed.Reason);
 
                         default:
-                            return new IOFehler($"'{response.GetType()}' wurde in 'HandleQuery' im Port nicht behandelt");
+                            return new IO_fehler($"'{response.GetType()}' wurde in 'HandleQuery' im Port nicht behandelt");
                     }
                 }
             });

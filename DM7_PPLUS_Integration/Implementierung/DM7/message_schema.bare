@@ -1,8 +1,5 @@
 ﻿### Port & Adapter Messages ###
-type QueryMessage {
-	token: i32
-	query: data # Verschlüsselte Query
-}
+type QueryMessage data # Verschlüsselte Query
 
 type ResponseMessage (QuerySucceeded | QueryFailed)
 type QuerySucceeded data # Enthält verschlüsseltes QueryResult

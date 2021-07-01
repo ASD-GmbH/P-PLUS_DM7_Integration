@@ -62,8 +62,8 @@ namespace DM7_PPLUS_Integration
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.ALLE_LEISTUNGEN_V1))
-                return Handle_Query<LeistungenV1, List<Leistung>>(
-                    new AlleLeistungenV1(),
+                return Handle_Query<Leistungen_V1, List<Leistung>>(
+                    new Alle_leistungen_V1(),
                     Message_mapper.Als_Leistungen);
 
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
@@ -75,8 +75,8 @@ namespace DM7_PPLUS_Integration
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.ALLE_MANDANTEN_V1))
-                return Handle_Query<MandantenV1, List<DM7_Mandant>>(
-                    new AlleMandantenV1(),
+                return Handle_Query<Mandanten_V1, List<DM7_Mandant>>(
+                    new Alle_mandanten_V1(),
                     Message_mapper.Als_Mandanten);
 
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
@@ -92,7 +92,7 @@ namespace DM7_PPLUS_Integration
                     return handler(message);
                 }
 
-                case IOFehler error:
+                case IO_fehler error:
                 {
                     throw new Exception(error.Reason);
                 }
