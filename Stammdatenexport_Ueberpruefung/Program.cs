@@ -373,8 +373,11 @@ namespace Stammdatenexport_Überprüfung
             }
 
             var dienst = dienste.First();
+            var now = DateTime.Now;
+            var dienstbeginn = api.Dienstbeginn_am(DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(now.Day, now.Month, now.Year), dienst.Id).Result;
             Console.WriteLine($"{dienst.Bezeichnung} ({dienst.Kurzbezeichnung}) {(dienst.Gelöscht ? "GELÖSCHT" : "")}");
             Console.WriteLine($"\t{Ausgabe_Option("Mo", dienst.Gültig_an.Montag)}, {Ausgabe_Option("Di", dienst.Gültig_an.Dienstag)}, {Ausgabe_Option("Mi", dienst.Gültig_an.Mittwoch)}, {Ausgabe_Option("Do", dienst.Gültig_an.Donnerstag)}, {Ausgabe_Option("Fr", dienst.Gültig_an.Freitag)}, {Ausgabe_Option("Sa", dienst.Gültig_an.Samstag)}, {Ausgabe_Option("So", dienst.Gültig_an.Sonntag)}, {Ausgabe_Option("Fei", dienst.Gültig_an.Feiertags)}");
+            Console.WriteLine($"\t{(dienstbeginn.HasValue ? $"Beginnt heute um {Uhrzeit(dienstbeginn.Value)} Uhr" : "Dienst hat heute kein Beginn")}");
             Console.WriteLine("Mandantenzugehörigkeiten");
             Console.WriteLine(Mandantenzugehörigkeiten(dienst.Mandantenzugehörigkeiten));
         }
@@ -555,7 +558,9 @@ namespace Stammdatenexport_Überprüfung
         }
 
         private static string Zeitpunkt_als_Text(Zeitpunkt zeitpunkt) =>
-            $"{zeitpunkt.Datum.Tag:00}.{zeitpunkt.Datum.Monat:00}.{zeitpunkt.Datum.Jahr:0000} {zeitpunkt.Uhrzeit.Stunden:00}:{zeitpunkt.Uhrzeit.Minuten:00}";
+            $"{zeitpunkt.Datum.Tag:00}.{zeitpunkt.Datum.Monat:00}.{zeitpunkt.Datum.Jahr:0000} {Uhrzeit(zeitpunkt.Uhrzeit)}";
+
+        private static string Uhrzeit(Uhrzeit zeit) => $"{zeit.Stunden:00}:{zeit.Minuten:00}";
     }
 
     internal class Logger : Log
