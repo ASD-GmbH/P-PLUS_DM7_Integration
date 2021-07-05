@@ -74,6 +74,9 @@ namespace Demo_Implementierung
                     testServer.Dienste_anlegen(Frühtour());
                     Console.WriteLine("\n### Dienste nach Neuanlage");
                     Dienste_anzeigen(api);
+                    
+                    Console.WriteLine("\n### Heutiger Dienstbeginn");
+                    Beginn_von_Dienst_anzeigen(Frühtour(), Heute(), api);
 
                     Console.WriteLine("\n### Initiale Dienstbuchungen");
                     Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
@@ -131,6 +134,15 @@ namespace Demo_Implementierung
 
             Console.WriteLine("Beliebige Taste drücken zum Beenden...");
             Console.ReadKey();
+        }
+
+        private static void Beginn_von_Dienst_anzeigen(Dienst dienst, Datum stichtag, PPLUS api)
+        {
+            var beginn = api.Dienstbeginn_am(stichtag, dienst.Id).Result;
+            Console.WriteLine(
+                beginn.HasValue
+                    ? $"{dienst.Bezeichnung} beginnt am {Datum_als_Text(stichtag)} um {Uhrzeit_als_Text(beginn.Value)} Uhr"
+                    : $"Kein Beginn vom Dienst {dienst.Bezeichnung} am {Datum_als_Text(stichtag)}");
         }
 
         private static PPLUS Verbinden_mit_Timeout(TimeSpan timeout)

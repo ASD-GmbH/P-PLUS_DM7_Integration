@@ -10,6 +10,7 @@ using DM7_PPLUS_Integration.Implementierung.PPLUS;
 using DM7_PPLUS_Integration.Messages.PPLUS;
 using Datenstand = DM7_PPLUS_Integration.Daten.Datenstand;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
+using Uhrzeit = DM7_PPLUS_Integration.Daten.Uhrzeit;
 
 namespace DM7_PPLUS_Integration
 {
@@ -74,11 +75,12 @@ namespace DM7_PPLUS_Integration
                 missing_capabilities.Add(nicht_zutreffend);
             }
 
-            Evaluate("Mitarbeiter Version 1", Capability.MITARBEITER_V1);
-            Evaluate("Dienste Version 1", Capability.DIENSTE_V1);
-            Evaluate("Abwesenheiten Version 1", Capability.ABWESENHEITEN_V1);
-            Evaluate("Dienstbuchungen Version 1", Capability.DIENSTBUCHUNGEN_V1);
-            Evaluate("Soll/Ist Abgleich Version 1", Capability.SOLL_IST_ABGLEICH_V1);
+            Evaluate("Mitarbeiter - Version 1", Capability.MITARBEITER_V1);
+            Evaluate("Dienste - Version 1", Capability.DIENSTE_V1);
+            Evaluate("Beginn von Dienst - Version 1", Capability.BEGINN_VON_DIENST_V1);
+            Evaluate("Abwesenheiten - Version 1", Capability.ABWESENHEITEN_V1);
+            Evaluate("Dienstbuchungen - Version 1", Capability.DIENSTBUCHUNGEN_V1);
+            Evaluate("Soll/Ist Abgleich - Version 1", Capability.SOLL_IST_ABGLEICH_V1);
 
             return (best_fitting_capabilites, missing_capabilities);
         }
@@ -150,6 +152,21 @@ namespace DM7_PPLUS_Integration
                 return Handle_Query<DiensteV1, Stammdaten<Dienst>>(
                     new DiensteAbrufenV1(),
                     Message_mapper.Dienste_als_Stammdaten);
+
+            throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
+        }
+
+        public Task<Uhrzeit?> Dienstbeginn_am(Datum stichtag, int dienstId)
+        {
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
+            Guard_no_missing_capabilities(missing);
+
+            if (best_fitting.Contains(Capability.BEGINN_VON_DIENST_V1))
+                return Handle_Query<DienstbeginnV1, Uhrzeit?>(
+                    new DienstbeginnZumStichtagV1(
+                        Message_mapper.Datum_als_Message(stichtag),
+                        (ulong) dienstId),
+                    Message_mapper.Dienstbeginn_aus_Message);
 
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }

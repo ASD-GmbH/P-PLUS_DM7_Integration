@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 01.07.2021 12:46 //
+// Generated code by BareNET - 05.07.2021 10:02 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
@@ -281,6 +281,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 	{
 		MITARBEITER_V1,
 		DIENSTE_V1,
+		BEGINN_VON_DIENST_V1,
 		DIENSTBUCHUNGEN_V1,
 		ABWESENHEITEN_V1,
 		SOLL_IST_ABGLEICH_V1
@@ -325,6 +326,36 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 		public byte[] Encoded() { return new byte[0]; }
 		public static DiensteAbrufenV1 Decoded(byte[] data) { return new DiensteAbrufenV1(); }
 		public static ValueTuple<DiensteAbrufenV1, byte[]> Decode(byte[] data) { return new ValueTuple<DiensteAbrufenV1, byte[]>(new DiensteAbrufenV1(), data); }
+	}
+
+	public readonly struct DienstbeginnZumStichtagV1 : Query
+	{
+		public readonly Datum Stichtag;
+		public readonly ulong Dienst;
+	
+		public DienstbeginnZumStichtagV1(Datum stichtag, ulong dienst)
+		{
+			Stichtag = stichtag;
+			Dienst = dienst;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Stichtag.Encoded()
+				.Concat(BareNET.Bare.Encode_uint(Dienst))
+				.ToArray();
+		}
+	
+		public static DienstbeginnZumStichtagV1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<DienstbeginnZumStichtagV1, byte[]> Decode(byte[] data)
+		{
+			var stichtag = Datum.Decode(data);
+			var dienst = BareNET.Bare.Decode_uint(stichtag.Item2);
+			return new ValueTuple<DienstbeginnZumStichtagV1, byte[]>(
+				new DienstbeginnZumStichtagV1(stichtag.Item1, dienst.Item1),
+				dienst.Item2);
+		}
 	}
 
 	public readonly struct DiensteAbrufenAbV1 : Query
@@ -496,6 +527,31 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 			return new ValueTuple<DiensteV1, byte[]>(
 				new DiensteV1(dienste.Item1.ToList(), stand.Item1),
 				stand.Item2);
+		}
+	}
+
+	public readonly struct DienstbeginnV1 : QueryResult
+	{
+		public readonly Uhrzeit? Value;
+	
+		public DienstbeginnV1(Uhrzeit? value)
+		{
+			Value = value;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_optional<Uhrzeit>(Value, ValueOpt => ValueOpt.Encoded());
+		}
+	
+		public static DienstbeginnV1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<DienstbeginnV1, byte[]> Decode(byte[] data)
+		{
+			var value = BareNET.Bare.Decode_optional(data, dataOpt => Uhrzeit.Decode(dataOpt));
+			return new ValueTuple<DienstbeginnV1, byte[]>(
+				new DienstbeginnV1(value.Item1),
+				value.Item2);
 		}
 	}
 
@@ -1554,6 +1610,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 				.With_Case<MitarbeiterAbrufenAbV1>(v => ((MitarbeiterAbrufenAbV1) v).Encoded(), d => { var decoded = MitarbeiterAbrufenAbV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DiensteAbrufenV1>(v => ((DiensteAbrufenV1) v).Encoded(), d => { var decoded = DiensteAbrufenV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DiensteAbrufenAbV1>(v => ((DiensteAbrufenAbV1) v).Encoded(), d => { var decoded = DiensteAbrufenAbV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<DienstbeginnZumStichtagV1>(v => ((DienstbeginnZumStichtagV1) v).Encoded(), d => { var decoded = DienstbeginnZumStichtagV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DienstbuchungenZumStichtagV1>(v => ((DienstbuchungenZumStichtagV1) v).Encoded(), d => { var decoded = DienstbuchungenZumStichtagV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<AbwesenheitenZumStichtagV1>(v => ((AbwesenheitenZumStichtagV1) v).Encoded(), d => { var decoded = AbwesenheitenZumStichtagV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); });
 		
@@ -1578,6 +1635,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 				.With_Case<IOFehler>(v => ((IOFehler) v).Encoded(), d => { var decoded = IOFehler.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<MitarbeiterlisteV1>(v => ((MitarbeiterlisteV1) v).Encoded(), d => { var decoded = MitarbeiterlisteV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DiensteV1>(v => ((DiensteV1) v).Encoded(), d => { var decoded = DiensteV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<DienstbeginnV1>(v => ((DienstbeginnV1) v).Encoded(), d => { var decoded = DienstbeginnV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DienstbuchungenV1>(v => ((DienstbuchungenV1) v).Encoded(), d => { var decoded = DienstbuchungenV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<AbwesenheitenV1>(v => ((AbwesenheitenV1) v).Encoded(), d => { var decoded = AbwesenheitenV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); });
 		

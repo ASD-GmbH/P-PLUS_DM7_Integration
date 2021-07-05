@@ -33,6 +33,12 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                 Liste_aus(dienste.Dienste, Dienst_aus),
                 Stand_aus(dienste.Stand));
 
+        public static DienstbeginnV1 Dienstbeginn_als_Message(Uhrzeit? beginn) =>
+            new DienstbeginnV1(Option_Map(beginn, Uhrzeit_als_Message));
+
+        public static Uhrzeit? Dienstbeginn_aus_Message(DienstbeginnV1 beginn) =>
+            Option_Map(beginn.Value, Uhrzeit_aus);
+
         public static Messages.PPLUS.Datenstand Stand_als_Message(Datenstand stand) => new Messages.PPLUS.Datenstand(stand.Value);
         public static Datenstand Stand_aus(Messages.PPLUS.Datenstand stand) => new Datenstand(stand.Value);
 

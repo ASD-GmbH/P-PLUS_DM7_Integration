@@ -43,6 +43,12 @@ namespace DM7_PPLUS_Integration
         Task<Stammdaten<Dienst>> Dienste_abrufen();
 
         /// <summary>
+        /// Ermittelt den Beginn des Dienstes für den gegebenen Stichtag
+        /// </summary>
+        /// <returns>Beginn des Dienstes</returns>
+        Task<Uhrzeit?> Dienstbeginn_am(Datum stichtag, int dienstId);
+
+        /// <summary>
         /// Abruf aller Dienstbuchungen gültig zum gegebenen Stichtag für den gegebenen Mandanten (mandantId)
         /// <param name="stichtag">Datum zu dem die Dienstbuchung beginnt</param>
         /// <param name="mandantId">MandantId in der die Dienstbuchung geplant ist</param>

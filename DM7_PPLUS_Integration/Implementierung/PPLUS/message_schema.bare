@@ -32,6 +32,7 @@ type Capabilities []Capability
 enum Capability {
 	MITARBEITER_V1
 	DIENSTE_V1
+	BEGINN_VON_DIENST_V1
 	DIENSTBUCHUNGEN_V1
 	ABWESENHEITEN_V1
 	SOLL_IST_ABGLEICH_V1
@@ -43,6 +44,7 @@ type Query (
 	| MitarbeiterAbrufenAbV1
 	| DiensteAbrufenV1
 	| DiensteAbrufenAbV1
+	| DienstbeginnZumStichtagV1
 	| DienstbuchungenZumStichtagV1
 	| AbwesenheitenZumStichtagV1
 )
@@ -50,6 +52,10 @@ type Query (
 type MitarbeiterAbrufenV1 void
 type MitarbeiterAbrufenAbV1 Datenstand
 type DiensteAbrufenV1 void
+type DienstbeginnZumStichtagV1 {
+	stichtag: Datum
+	dienst: uint
+}
 type DiensteAbrufenAbV1 Datenstand
 type DienstbuchungenZumStichtagV1 {
 	stichtag: Datum
@@ -64,6 +70,7 @@ type QueryResult (
 	IOFehler
 	| MitarbeiterlisteV1
 	| DiensteV1
+	| DienstbeginnV1
 	| DienstbuchungenV1
 	| AbwesenheitenV1
 )
@@ -79,6 +86,8 @@ type DiensteV1 {
 	dienste: []DienstV1
 	stand: Datenstand
 }
+
+type DienstbeginnV1 optional<Uhrzeit>
 
 type DienstbuchungenV1 []DienstbuchungV1
 
