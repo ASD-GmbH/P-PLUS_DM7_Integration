@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Daten;
@@ -49,19 +50,21 @@ namespace DM7_PPLUS_Integration
         Task<Uhrzeit?> Dienstbeginn_am(Datum stichtag, int dienstId);
 
         /// <summary>
-        /// Abruf aller Dienstbuchungen gültig zum gegebenen Stichtag für den gegebenen Mandanten (mandantId)
-        /// <param name="stichtag">Datum zu dem die Dienstbuchung beginnt</param>
+        /// Abruf aller Dienstbuchungen gültig im gegebenen Zeitraum für den gegebenen Mandanten (mandantId)
+        /// <param name="von">Startdatum des Zeitraums</param>
+        /// <param name="bis">Statusende des Zeitraums</param>
         /// <param name="mandantId">MandantId in der die Dienstbuchung geplant ist</param>
         /// </summary>
-        Task<ReadOnlyCollection<Dienstbuchung>> Dienstbuchungen_zum_Stichtag(Datum stichtag, Guid mandantId);
+        Task<Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>>> Dienstbuchungen_im_Zeitraum(Datum von, Datum bis, Guid mandantId);
 
         /// <summary>
-        /// Abruf aller Abwesenheiten für Mitarbeiter am Stichtag relevant für den gegebenen Mandanten (mandantId)
+        /// Abruf aller Abwesenheiten für Mitarbeiter im Zeitraum relevant für den gegebenen Mandanten (mandantId)
         /// </summary>
-        /// <param name="stichtag"></param>
+        /// <param name="von">Startdatum des Zeitraums</param>
+        /// <param name="bis">Statusende des Zeitraums</param>
         /// <param name="mandantId">MandantId für den die Abwesenheiten relevant sind</param>
         /// <returns></returns>
-        Task<ReadOnlyCollection<Abwesenheit>> Abwesenheiten_zum_Stichtag(Datum stichtag, Guid mandantId);
+        Task<ReadOnlyCollection<Abwesenheit>> Abwesenheiten_im_Zeitraum(Datum von, Datum bis, Guid mandantId);
 
         // Entscheidung fällt am 02.03. von Willenborg & Fischer
         //Task<bool> Dienstplan_abgeschlossen_am(Datum datum);

@@ -42,8 +42,11 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
         public static Messages.PPLUS.Datenstand Stand_als_Message(Datenstand stand) => new Messages.PPLUS.Datenstand(stand.Value);
         public static Datenstand Stand_aus(Messages.PPLUS.Datenstand stand) => new Datenstand(stand.Value);
 
-        public static ReadOnlyCollection<Dienstbuchung> Dienstbuchungen(DienstbuchungenV1 dienstbuchungen) => Liste_aus(dienstbuchungen.Value, Dienstbuchung_aus);
-        public static DienstbuchungenV1 Dienstbuchungen_als_Message(ReadOnlyCollection<Dienstbuchung> dienstbuchungen) => new DienstbuchungenV1(Liste_als_Message(dienstbuchungen, Dienstbuchung_als_Message));
+        public static Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>> Dienstbuchungen(DienstbuchungenV1 dienstbuchungen) =>
+            Liste_aus(dienstbuchungen.Value, kv => new KeyValuePair<Datum, ReadOnlyCollection<Dienstbuchung>>(Datum_aus(kv.Datum), Liste_aus(kv.Dienstbuchungen, Dienstbuchung_aus)))
+                .ToDictionary(_ => _.Key, _ => _.Value);
+        public static DienstbuchungenV1 Dienstbuchungen_als_Message(Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>> dienstbuchungen) =>
+            new DienstbuchungenV1(Liste_als_Message(dienstbuchungen, kv => new DienstbuchungenV1ValueStruct(Datum_als_Message(kv.Key), Liste_als_Message(kv.Value, Dienstbuchung_als_Message))));
 
         public static ReadOnlyCollection<Abwesenheit> Abwesenheiten(AbwesenheitenV1 abwesenheiten) => Liste_aus(abwesenheiten.Value, Abwesenheit_aus);
         public static AbwesenheitenV1 Abwesenheiten_als_Message(ReadOnlyCollection<Abwesenheit> abwesenheiten) => new AbwesenheitenV1(Liste_als_Message(abwesenheiten, Abwesenheit_als_Message));

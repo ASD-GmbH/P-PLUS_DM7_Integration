@@ -184,27 +184,27 @@ namespace DM7_PPLUS_Integration
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }
 
-        public Task<ReadOnlyCollection<Dienstbuchung>> Dienstbuchungen_zum_Stichtag(Datum stichtag, Guid mandantId)
+        public Task<Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>>> Dienstbuchungen_im_Zeitraum(Datum von, Datum bis, Guid mandantId)
         {
             var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.DIENSTBUCHUNGEN_V1))
-                return Handle_Query<DienstbuchungenV1, ReadOnlyCollection<Dienstbuchung>>(
-                    new DienstbuchungenZumStichtagV1(Message_mapper.Datum_als_Message(stichtag), Message_mapper.UUID_aus(mandantId)),
+                return Handle_Query<DienstbuchungenV1, Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>>>(
+                    new DienstbuchungenImZeitraumV1(Message_mapper.Datum_als_Message(von), Message_mapper.Datum_als_Message(bis), Message_mapper.UUID_aus(mandantId)),
                     Message_mapper.Dienstbuchungen);
 
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }
 
-        public Task<ReadOnlyCollection<Abwesenheit>> Abwesenheiten_zum_Stichtag(Datum stichtag, Guid mandantId)
+        public Task<ReadOnlyCollection<Abwesenheit>> Abwesenheiten_im_Zeitraum(Datum von, Datum bis, Guid mandantId)
         {
             var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
             Guard_no_missing_capabilities(missing);
 
             if (best_fitting.Contains(Capability.ABWESENHEITEN_V1))
                 return Handle_Query<AbwesenheitenV1, ReadOnlyCollection<Abwesenheit>>(
-                    new AbwesenheitenZumStichtagV1(Message_mapper.Datum_als_Message(stichtag), Message_mapper.UUID_aus(mandantId)),
+                    new AbwesenheitenImZeitraumV1(Message_mapper.Datum_als_Message(von), Message_mapper.Datum_als_Message(bis), Message_mapper.UUID_aus(mandantId)),
                     Message_mapper.Abwesenheiten);
 
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);

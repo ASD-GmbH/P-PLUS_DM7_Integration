@@ -420,7 +420,8 @@ namespace Stammdatenexport_Überprüfung
                 return;
             }
 
-            var alle_dienstbuchungen = api.Dienstbuchungen_zum_Stichtag(DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(stichtag.Day, stichtag.Month, stichtag.Year), gewünschter_Mandant).Result;
+            var datum = DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(stichtag.Day, stichtag.Month, stichtag.Year);
+            var alle_dienstbuchungen = api.Dienstbuchungen_im_Zeitraum(datum, datum, gewünschter_Mandant).Result[datum];
             if (alle_dienstbuchungen.Count == 0)
             {
                 Console.WriteLine($"Keine Dienstbuchungen zum Stichtag {stichtag.ToLongDateString()} übertragen");
@@ -510,7 +511,8 @@ namespace Stammdatenexport_Überprüfung
                 return;
             }
 
-            var alle_abwesenheiten = api.Abwesenheiten_zum_Stichtag(DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(stichtag.Day, stichtag.Month, stichtag.Year), gewünschter_Mandant).Result;
+            var datum = DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(stichtag.Day, stichtag.Month, stichtag.Year);
+            var alle_abwesenheiten = api.Abwesenheiten_im_Zeitraum(datum, datum, gewünschter_Mandant).Result;
             if (alle_abwesenheiten.Count == 0)
             {
                 Console.WriteLine($"Keine Abwesenheiten zum Stichtag {stichtag.ToLongDateString()} übertragen");

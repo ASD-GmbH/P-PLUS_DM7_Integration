@@ -45,8 +45,8 @@ type Query (
 	| DiensteAbrufenV1
 	| DiensteAbrufenAbV1
 	| DienstbeginnZumStichtagV1
-	| DienstbuchungenZumStichtagV1
-	| AbwesenheitenZumStichtagV1
+	| DienstbuchungenImZeitraumV1
+	| AbwesenheitenImZeitraumV1
 )
 
 type MitarbeiterAbrufenV1 void
@@ -57,12 +57,14 @@ type DienstbeginnZumStichtagV1 {
 	dienst: uint
 }
 type DiensteAbrufenAbV1 Datenstand
-type DienstbuchungenZumStichtagV1 {
-	stichtag: Datum
+type DienstbuchungenImZeitraumV1 {
+	von: Datum
+	bis: Datum
 	mandant: UUID
 }
-type AbwesenheitenZumStichtagV1 {
-	stichtag: Datum
+type AbwesenheitenImZeitraumV1 {
+	von: Datum
+	bis: Datum
 	mandant: UUID
 }
 
@@ -89,7 +91,7 @@ type DiensteV1 {
 
 type DienstbeginnV1 optional<Uhrzeit>
 
-type DienstbuchungenV1 []DienstbuchungV1
+type DienstbuchungenV1 []{ datum: Datum  dienstbuchungen: []DienstbuchungV1 }
 
 type AbwesenheitenV1 []AbwesenheitV1
 

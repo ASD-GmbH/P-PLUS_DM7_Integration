@@ -186,7 +186,7 @@ namespace Demo_Implementierung
         {
             var mitarbeiter_lookup = api.Mitarbeiter_abrufen().Result.ToDictionary(_ => _.Id, _ => $"{_.Nachname}, {_.Vorname}");
             var dienst_lookup = api.Dienste_abrufen().Result.ToDictionary(_ => _.Id, _ => _.Bezeichnung);
-            var dienstbuchungen = api.Dienstbuchungen_zum_Stichtag(stichtag, mandantId).Result;
+            var dienstbuchungen = api.Dienstbuchungen_im_Zeitraum(stichtag, stichtag, mandantId).Result[stichtag];
             foreach (var dienstbuchung in dienstbuchungen)
             {
                 var mitarbeiter =
@@ -204,7 +204,7 @@ namespace Demo_Implementierung
         private static void Abwesenheiten_anzeigen(Guid mandantId, Datum stichtag, PPLUS_API api)
         {
             var mitarbeiter_lookup = api.Mitarbeiter_abrufen().Result.ToDictionary(_ => _.Id, _ => $"{_.Nachname}, {_.Vorname}");
-            var abwesenheiten = api.Abwesenheiten_zum_Stichtag(stichtag, mandantId).Result;
+            var abwesenheiten = api.Abwesenheiten_im_Zeitraum(stichtag, stichtag, mandantId).Result;
             foreach (var abwesenheit in abwesenheiten)
             {
                 var mitarbeiter =

@@ -177,11 +177,11 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                     case DienstbeginnZumStichtagV1 _:
                         return Message_mapper.Dienstbeginn_als_Message(Uhrzeit.HH_MM(08, 30));
 
-                    case DienstbuchungenZumStichtagV1 q:
-                        return Message_mapper.Dienstbuchungen_als_Message(Dienstbuchungen_zum_Stichtag(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Stichtag)));
+                    case DienstbuchungenImZeitraumV1 q:
+                        return Message_mapper.Dienstbuchungen_als_Message(Dienstbuchungen_im_Zeitraum(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Von), Message_mapper.Datum_aus(q.Bis)));
 
-                    case AbwesenheitenZumStichtagV1 q:
-                        return Message_mapper.Abwesenheiten_als_Message(Abwesenheiten_zum_Stichtag(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Stichtag)));
+                    case AbwesenheitenImZeitraumV1 q:
+                        return Message_mapper.Abwesenheiten_als_Message(Abwesenheiten_im_Zeitraum(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Von), Message_mapper.Datum_aus(q.Bis)));
 
                     default:
                         return new IOFehler($"Query '{query.GetType()}' nicht behandelt");
@@ -368,12 +368,17 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                 .ToList();
         }
 
-        private ReadOnlyCollection<Dienstbuchung> Dienstbuchungen_zum_Stichtag(Guid mandant, Datum stichtag)
+        private Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>> Dienstbuchungen_im_Zeitraum(Guid mandant, Datum von, Datum bis)
         {
-            var key = (mandant, stichtag);
-            return _dienstbuchungen.ContainsKey(key)
-                ? new ReadOnlyCollection<Dienstbuchung>(_dienstbuchungen[key])
-                : new ReadOnlyCollection<Dienstbuchung>(new List<Dienstbuchung>());
+            var dienstbuchungen = new Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>>();
+            var b = new DateTime(bis.Jahr, bis.Monat, bis.Tag);
+            for (var v = new DateTime(von.Jahr, von.Monat, von.Tag); v == b; v = v.AddDays(1))
+            {
+                var key = (mandant, Datum.DD_MM_YYYY(v.Day, v.Month, v.Year));
+                if (_dienstbuchungen.ContainsKey(key)) dienstbuchungen.Add(key.Item2, _dienstbuchungen[key].AsReadOnly());
+            }
+
+            return dienstbuchungen;
         }
 
         public void Dienstbuchungen_leeren()
@@ -394,21 +399,22 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
             if (_dienstbuchungen.ContainsKey(key)) _dienstbuchungen[key].RemoveAll(buchung => buchung.DienstId == dienst);
         }
 
-        private ReadOnlyCollection<Abwesenheit> Abwesenheiten_zum_Stichtag(Guid mandant, Datum stichtag)
+        private ReadOnlyCollection<Abwesenheit> Abwesenheiten_im_Zeitraum(Guid mandant, Datum von, Datum bis)
         {
-            var stichtagDateTime = new DateTime(stichtag.Jahr, stichtag.Monat, stichtag.Tag);
-            bool Gilt_an_Stichtag(Abwesenheit abwesenheit)
+            var zeitraumbeginn = new DateTime(von.Jahr, von.Monat, von.Tag);
+            var zeitraumende = new DateTime(bis.Jahr, bis.Monat, bis.Tag);
+            bool Gilt_im_Zeitraum(Abwesenheit abwesenheit)
             {
-                var von = new DateTime(abwesenheit.Abwesend_ab.Datum.Jahr, abwesenheit.Abwesend_ab.Datum.Monat, abwesenheit.Abwesend_ab.Datum.Tag);
-                var bis = new DateTime(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Datum.Jahr, abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Datum.Monat, abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Datum.Tag);
-                return von <= stichtagDateTime && stichtagDateTime <= bis;
+                var v = new DateTime(abwesenheit.Abwesend_ab.Datum.Jahr, abwesenheit.Abwesend_ab.Datum.Monat, abwesenheit.Abwesend_ab.Datum.Tag);
+                var b = new DateTime(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Datum.Jahr, abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Datum.Monat, abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Datum.Tag);
+                return (v >= zeitraumbeginn || v <= zeitraumende) && (b <= zeitraumende || b >= zeitraumbeginn);
             }
 
             var abwesenheiten =
                 _abwesenheiten.ContainsKey(mandant)
-                    ? _abwesenheiten[mandant].Where(Gilt_an_Stichtag).ToList()
+                    ? _abwesenheiten[mandant].Where(Gilt_im_Zeitraum).ToList()
                     : new List<Abwesenheit>();
-            return new ReadOnlyCollection<Abwesenheit>(abwesenheiten);
+            return abwesenheiten.AsReadOnly();
         }
 
         public void Abwesenheiten_leeren()
