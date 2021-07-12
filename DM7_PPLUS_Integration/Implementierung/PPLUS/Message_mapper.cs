@@ -219,7 +219,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
             new Abwesenheit(
                 Guid_aus(abwesenheit.Mitarbeiter),
                 Zeitpunkt_aus(abwesenheit.AbwesendAb),
-                Zeitpunkt_aus(abwesenheit.VorraussichtlichWiederVerfuegbarAb),
+                Option_Map(abwesenheit.VorraussichtlichWiederVerfuegbarAb, Zeitpunkt_aus),
                 abwesenheit.Grund,
                 Abwesenheitsart_aus(abwesenheit.Art));
 
@@ -227,7 +227,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
             new AbwesenheitV1(
                 UUID_aus(abwesenheit.MitarbeiterId),
                 Zeitpunkt_als_Message(abwesenheit.Abwesend_ab),
-                Zeitpunkt_als_Message(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab),
+                Option_Map(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab, Zeitpunkt_als_Message),
                 abwesenheit.Grund,
                 Abwesenheitsart_als_Message(abwesenheit.Art));
 
@@ -238,8 +238,8 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                 case AbwesenheitsartV1.FEHLZEIT:
                     return Abwesenheitsart.Fehlzeit;
 
-                case AbwesenheitsartV1.ANDERSWEITIG_VERPLANT:
-                    return Abwesenheitsart.Andersweitig_verplant;
+                case AbwesenheitsartV1.ANDERWEITIG_VERPLANT:
+                    return Abwesenheitsart.Anderweitig_verplant;
                 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(art), art, null);
@@ -253,8 +253,8 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                 case Abwesenheitsart.Fehlzeit:
                     return AbwesenheitsartV1.FEHLZEIT;
 
-                case Abwesenheitsart.Andersweitig_verplant:
-                    return AbwesenheitsartV1.ANDERSWEITIG_VERPLANT;
+                case Abwesenheitsart.Anderweitig_verplant:
+                    return AbwesenheitsartV1.ANDERWEITIG_VERPLANT;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(art), art, null);

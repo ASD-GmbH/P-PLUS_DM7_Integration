@@ -96,6 +96,7 @@ namespace Demo_Implementierung
                     Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(10, 02, 2021), api);
 
                     testServer.Abwesenheiten_eintragen(Mandant_1, Urlaub(Willenborg()));
+                    testServer.Abwesenheiten_eintragen(Mandant_1, Inaktiv(Heimeshoff()));
                     Console.WriteLine("\n### Abwesenheiten zum 20.02.2021 nach Eintragung");
                     Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(20, 02, 2021), api);
 
@@ -211,7 +212,11 @@ namespace Demo_Implementierung
                     mitarbeiter_lookup.ContainsKey(abwesenheit.MitarbeiterId)
                         ? mitarbeiter_lookup[abwesenheit.MitarbeiterId]
                         : "[Unbekannter Mitarbeiter]";
-                Console.WriteLine($" - {mitarbeiter}: {abwesenheit.Grund} für Zeitraum {Zeitpunkt_als_Text(abwesenheit.Abwesend_ab)} - {Zeitpunkt_als_Text(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab)}");
+
+                Console.WriteLine(
+                    abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.HasValue
+                        ? $" - {mitarbeiter}: {abwesenheit.Grund} für Zeitraum {Zeitpunkt_als_Text(abwesenheit.Abwesend_ab)} - {Zeitpunkt_als_Text(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Value)}"
+                        : $" - {mitarbeiter}: {abwesenheit.Grund} seit {Zeitpunkt_als_Text(abwesenheit.Abwesend_ab)}");
             }
         }
 
@@ -364,6 +369,14 @@ namespace Demo_Implementierung
                 "Krank",
                 Abwesenheitsart.Fehlzeit);
 
+        private static Abwesenheit Inaktiv(Mitarbeiter mitarbeiter) =>
+            new Abwesenheit(
+                mitarbeiter.Id,
+                Zeitpunkt.DD_MM_YYYY_HH_MM(10, 02, 2021, 07, 45),
+                null,
+                "Inaktiv",
+                Abwesenheitsart.Fehlzeit);
+
         private static Abwesenheit Urlaub(Mitarbeiter mitarbeiter) =>
             new Abwesenheit(
                 mitarbeiter.Id,
@@ -378,7 +391,7 @@ namespace Demo_Implementierung
                 Zeitpunkt.DD_MM_YYYY_HH_MM(04, 02, 2021, 11, 30),
                 Zeitpunkt.DD_MM_YYYY_HH_MM(04, 02, 2021, 14, 15),
                 "Testdienst",
-                Abwesenheitsart.Andersweitig_verplant);
+                Abwesenheitsart.Anderweitig_verplant);
 
         private static Guid Mandant_1 => Guid.Parse("58B053FA-1501-4DC2-B575-88F20CD3EFE5");
         private static Guid Mandant_2 => Guid.Parse("19651D9E-7C12-49D4-8860-70E5C0CF0199");

@@ -406,8 +406,14 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
             bool Gilt_im_Zeitraum(Abwesenheit abwesenheit)
             {
                 var v = new DateTime(abwesenheit.Abwesend_ab.Datum.Jahr, abwesenheit.Abwesend_ab.Datum.Monat, abwesenheit.Abwesend_ab.Datum.Tag);
-                var b = new DateTime(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Datum.Jahr, abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Datum.Monat, abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Datum.Tag);
-                return (v >= zeitraumbeginn || v <= zeitraumende) && (b <= zeitraumende || b >= zeitraumbeginn);
+
+                if (abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.HasValue)
+                {
+                    var b = new DateTime(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Value.Datum.Jahr, abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Value.Datum.Monat, abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Value.Datum.Tag);
+                    return (v >= zeitraumbeginn || v <= zeitraumende) && (b <= zeitraumende || b >= zeitraumbeginn);
+                }
+
+                return (v >= zeitraumbeginn || v <= zeitraumende);
             }
 
             var abwesenheiten =

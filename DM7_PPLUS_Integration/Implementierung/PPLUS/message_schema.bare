@@ -177,14 +177,14 @@ type DienstbuchungV1 {
 type AbwesenheitV1 {
 	mitarbeiter: UUID
 	abwesendAb: Zeitpunkt
-	vorraussichtlichWiederVerfuegbarAb: Zeitpunkt
+	vorraussichtlichWiederVerfuegbarAb: optional<Zeitpunkt>
 	grund: string
 	art: AbwesenheitsartV1
 }
 
 enum AbwesenheitsartV1 {
 	FEHLZEIT
-	ANDERSWEITIG_VERPLANT
+	ANDERWEITIG_VERPLANT
 }
 
 type SollIstAbgleichV1 {

@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 09.07.2021 10:44 //
+// Generated code by BareNET - 12.07.2021 13:21 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
@@ -1040,11 +1040,11 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 	{
 		public readonly UUID Mitarbeiter;
 		public readonly Zeitpunkt AbwesendAb;
-		public readonly Zeitpunkt VorraussichtlichWiederVerfuegbarAb;
+		public readonly Zeitpunkt? VorraussichtlichWiederVerfuegbarAb;
 		public readonly string Grund;
 		public readonly AbwesenheitsartV1 Art;
 	
-		public AbwesenheitV1(UUID mitarbeiter, Zeitpunkt abwesendAb, Zeitpunkt vorraussichtlichWiederVerfuegbarAb, string grund, AbwesenheitsartV1 art)
+		public AbwesenheitV1(UUID mitarbeiter, Zeitpunkt abwesendAb, Zeitpunkt? vorraussichtlichWiederVerfuegbarAb, string grund, AbwesenheitsartV1 art)
 		{
 			Mitarbeiter = mitarbeiter;
 			AbwesendAb = abwesendAb;
@@ -1057,7 +1057,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 		{
 			return Mitarbeiter.Encoded()
 				.Concat(AbwesendAb.Encoded())
-				.Concat(VorraussichtlichWiederVerfuegbarAb.Encoded())
+				.Concat(BareNET.Bare.Encode_optional<Zeitpunkt>(VorraussichtlichWiederVerfuegbarAb, VorraussichtlichWiederVerfuegbarAbOpt => VorraussichtlichWiederVerfuegbarAbOpt.Encoded()))
 				.Concat(BareNET.Bare.Encode_string(Grund))
 				.Concat(Encoding.AbwesenheitsartV1_Encoded(Art))
 				.ToArray();
@@ -1069,7 +1069,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 		{
 			var mitarbeiter = UUID.Decode(data);
 			var abwesendAb = Zeitpunkt.Decode(mitarbeiter.Item2);
-			var vorraussichtlichWiederVerfuegbarAb = Zeitpunkt.Decode(abwesendAb.Item2);
+			var vorraussichtlichWiederVerfuegbarAb = BareNET.Bare.Decode_optional(abwesendAb.Item2, abwesendAbOpt => Zeitpunkt.Decode(abwesendAbOpt));
 			var grund = BareNET.Bare.Decode_string(vorraussichtlichWiederVerfuegbarAb.Item2);
 			var art = Encoding.Decode_AbwesenheitsartV1(grund.Item2);
 			return new ValueTuple<AbwesenheitV1, byte[]>(
@@ -1081,7 +1081,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 	public enum AbwesenheitsartV1
 	{
 		FEHLZEIT,
-		ANDERSWEITIG_VERPLANT
+		ANDERWEITIG_VERPLANT
 	}
 
 	public readonly struct SollIstAbgleichV1

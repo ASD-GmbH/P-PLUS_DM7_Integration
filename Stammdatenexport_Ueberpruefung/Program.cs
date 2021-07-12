@@ -530,7 +530,7 @@ namespace Stammdatenexport_Überprüfung
                 sb.AppendLine(mitarbeiter);
                 sb.AppendJoin(
                     Environment.NewLine,
-                    abwesenheiten.Select(abwesenheit => $"\t{abwesenheit.Art}: {abwesenheit.Grund}\n\tAb {Zeitpunkt_als_Text(abwesenheit.Abwesend_ab)}\n\tBis {Zeitpunkt_als_Text(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab)}"));
+                    abwesenheiten.Select(abwesenheit => $"\t{abwesenheit.Art}: {abwesenheit.Grund}\n\tAb {Zeitpunkt_als_Text(abwesenheit.Abwesend_ab)}\n\tBis {(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.HasValue ? Zeitpunkt_als_Text(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Value) : "Ende offen")}"));
                 return sb.ToString();
             }
 
