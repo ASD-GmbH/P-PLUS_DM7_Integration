@@ -372,7 +372,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
         {
             var dienstbuchungen = new Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>>();
             var b = new DateTime(bis.Jahr, bis.Monat, bis.Tag);
-            for (var v = new DateTime(von.Jahr, von.Monat, von.Tag); v == b; v = v.AddDays(1))
+            for (var v = new DateTime(von.Jahr, von.Monat, von.Tag); v <= b; v = v.AddDays(1))
             {
                 var key = (mandant, Datum.DD_MM_YYYY(v.Day, v.Month, v.Year));
                 if (_dienstbuchungen.ContainsKey(key)) dienstbuchungen.Add(key.Item2, _dienstbuchungen[key].AsReadOnly());
