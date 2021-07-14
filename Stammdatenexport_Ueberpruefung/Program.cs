@@ -226,6 +226,7 @@ namespace Stammdatenexport_Überprüfung
                 foreach (var kontakt in ma.Kontakte) Console.WriteLine($"\t{(kontakt.Hauptkontakt ? "Hauptkontakt " : "")}{Kontaktform(kontakt.Kontaktform)} {Kontaktart(kontakt.Kontaktart)}: {kontakt.Eintrag}");
             }
             Console.WriteLine($"Personalnummer: {ma.Personalnummer}, Handzeichen: {ma.Handzeichen}");
+            Console.WriteLine(ma.PIN_für_mobile_Datenerfassung != null ? $"PIN für mobile Datenerfassung: {ma.PIN_für_mobile_Datenerfassung}" : "Ohne PIN für mobile Datenerfassung");
             if (ma.Qualifikationen.Count > 0)
             {
                 Console.WriteLine("Qualifiziert für");

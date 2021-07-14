@@ -9,7 +9,7 @@ namespace DM7_PPLUS_Integration.Daten
     /// </summary>
     public readonly struct Mitarbeiter
     {
-        public Mitarbeiter(Guid mitarbeiterId, ReadOnlyCollection<DM7_Mandantenzugehörigkeit> mandantenzugehörigkeiten, string personalnummer, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, string handzeichen, Datum? geburtstag, Guid geschlecht, Guid konfession, Guid familienstand, ReadOnlyCollection<Qualifikation> qualifikationen, ReadOnlyCollection<Kontakt> kontakte)
+        public Mitarbeiter(Guid mitarbeiterId, ReadOnlyCollection<DM7_Mandantenzugehörigkeit> mandantenzugehörigkeiten, string personalnummer, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, string handzeichen, Datum? geburtstag, Guid geschlecht, Guid konfession, Guid familienstand, ReadOnlyCollection<Qualifikation> qualifikationen, ReadOnlyCollection<Kontakt> kontakte, string pin_für_mobile_datenerfassung)
         {
             Guard_Pflichtfelder(mandantenzugehörigkeiten, nachname, handzeichen, geschlecht);
 
@@ -22,6 +22,7 @@ namespace DM7_PPLUS_Integration.Daten
             Postanschrift = postanschrift;
             Handzeichen = handzeichen;
             Kontakte = kontakte;
+            PIN_für_mobile_Datenerfassung = pin_für_mobile_datenerfassung;
             Geburtstag = geburtstag;
             Geschlecht = geschlecht;
             Konfession = konfession;
@@ -109,5 +110,10 @@ namespace DM7_PPLUS_Integration.Daten
         /// Kontaktmöglichkeiten des Mitarbeiters
         /// </summary>
         public readonly ReadOnlyCollection<Kontakt> Kontakte;
+
+        /// <summary>
+        /// Optionaler PIN für die mobile Datenerfassung
+        /// </summary>
+        public readonly string PIN_für_mobile_Datenerfassung;
     }
 }

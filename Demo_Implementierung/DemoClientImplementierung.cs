@@ -253,6 +253,9 @@ namespace Demo_Implementierung
             return Datum.DD_MM_YYYY(heute.Day, heute.Month, heute.Year);
         }
 
+        private const string Kein_PIN = null;
+        private static string PIN(string pin) => pin;
+
         private static Dienstplanabschluss Dienstplanabschluss(Guid mandant, Mitarbeiter mitarbeiter, Datum datum) =>
             new Dienstplanabschluss(mitarbeiter.Id, mandant, datum);
         private static Mitarbeiter Heimeshoff() =>
@@ -274,7 +277,8 @@ namespace Demo_Implementierung
                 Auswahllisten_1.Konfession.Keine,
                 Auswahllisten_1.Familienstand.Verheiratet,
                 new ReadOnlyCollection<Qualifikation>(new List<Qualifikation>()),
-                new ReadOnlyCollection<Kontakt>(new List<Kontakt>())
+                new ReadOnlyCollection<Kontakt>(new List<Kontakt>()),
+                Kein_PIN
             );
 
         private static Mitarbeiter Helmig() =>
@@ -296,7 +300,8 @@ namespace Demo_Implementierung
                 Auswahllisten_1.Konfession.Keine,
                 Auswahllisten_1.Familienstand.Ledig,
                 new ReadOnlyCollection<Qualifikation>(new List<Qualifikation>()),
-                new ReadOnlyCollection<Kontakt>(new List<Kontakt>())
+                new ReadOnlyCollection<Kontakt>(new List<Kontakt>()),
+                PIN("2839")
             );
         
         private static Mitarbeiter Willenborg() =>
@@ -318,7 +323,8 @@ namespace Demo_Implementierung
                 Auswahllisten_1.Konfession.Keine,
                 Auswahllisten_1.Familienstand.Verheiratet,
                 new ReadOnlyCollection<Qualifikation>(new List<Qualifikation>()),
-                new ReadOnlyCollection<Kontakt>(new List<Kontakt>())
+                new ReadOnlyCollection<Kontakt>(new List<Kontakt>()),
+                PIN("0329")
             );
 
         private static Dienst Frühtour() =>

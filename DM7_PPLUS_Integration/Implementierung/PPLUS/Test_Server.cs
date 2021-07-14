@@ -324,7 +324,8 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                 mitarbeiter.Konfession,
                 mitarbeiter.Familienstand,
                 mitarbeiter.Qualifikationen,
-                mitarbeiter.Kontakte
+                mitarbeiter.Kontakte,
+                mitarbeiter.PIN_für_mobile_Datenerfassung
             );
         }
 

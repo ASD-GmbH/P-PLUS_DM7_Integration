@@ -100,7 +100,8 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                 mitarbeiter.Handzeichen,
                 mitarbeiter.Personalnummer,
                 UUID_aus(mitarbeiter.Geschlecht),
-                Liste_als_Message(mitarbeiter.Kontakte, Kontakt_als_Message));
+                Liste_als_Message(mitarbeiter.Kontakte, Kontakt_als_Message),
+                mitarbeiter.PIN_für_mobile_Datenerfassung);
 
         private static Mitarbeiter Mitarbeiter_aus(MitarbeiterV1 mitarbeiter) =>
             new Mitarbeiter(
@@ -117,7 +118,8 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                 Guid_aus(mitarbeiter.Konfession),
                 Guid_aus(mitarbeiter.Familienstand),
                 Liste_aus(mitarbeiter.Qualifikationen, Qualifikation_aus),
-                Liste_aus(mitarbeiter.Kontakte, Kontakt_aus));
+                Liste_aus(mitarbeiter.Kontakte, Kontakt_aus),
+                mitarbeiter.PinFuerMobileDatenerfassung);
 
         private static KontaktV1 Kontakt_als_Message(Kontakt kontakt) => new KontaktV1(UUID_aus(kontakt.Kontaktart), UUID_aus(kontakt.Kontaktform), kontakt.Eintrag, kontakt.Hauptkontakt);
         private static Kontakt Kontakt_aus(KontaktV1 kontakt) => new Kontakt(Guid_aus(kontakt.Art), Guid_aus(kontakt.Form), kontakt.Eintrag, kontakt.Hauptkontakt);

@@ -118,6 +118,7 @@ type MitarbeiterV1 {
 	personalnummer: string
 	geschlecht: UUID
 	kontakte: []KontaktV1
+	pinFuerMobileDatenerfassung: optional<string>
 }
 
 type DM7MandantenzugehoerigkeitV1 {

@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 12.07.2021 13:21 //
+// Generated code by BareNET - 14.07.2021 12:23 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
@@ -688,8 +688,9 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 		public readonly string Personalnummer;
 		public readonly UUID Geschlecht;
 		public readonly List<KontaktV1> Kontakte;
+		public readonly string PinFuerMobileDatenerfassung;
 	
-		public MitarbeiterV1(UUID id, List<DM7MandantenzugehoerigkeitV1> mandantenzugehoerigkeiten, UUID titel, string vorname, string nachname, PostanschriftV1? postanschrift, Datum? geburtstag, UUID familienstand, UUID konfession, List<QualifikationV1> qualifikationen, string handzeichen, string personalnummer, UUID geschlecht, List<KontaktV1> kontakte)
+		public MitarbeiterV1(UUID id, List<DM7MandantenzugehoerigkeitV1> mandantenzugehoerigkeiten, UUID titel, string vorname, string nachname, PostanschriftV1? postanschrift, Datum? geburtstag, UUID familienstand, UUID konfession, List<QualifikationV1> qualifikationen, string handzeichen, string personalnummer, UUID geschlecht, List<KontaktV1> kontakte, string pinFuerMobileDatenerfassung)
 		{
 			Id = id;
 			Mandantenzugehoerigkeiten = mandantenzugehoerigkeiten;
@@ -705,6 +706,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 			Personalnummer = personalnummer;
 			Geschlecht = geschlecht;
 			Kontakte = kontakte;
+			PinFuerMobileDatenerfassung = pinFuerMobileDatenerfassung;
 		}
 	
 		public byte[] Encoded()
@@ -723,6 +725,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 				.Concat(BareNET.Bare.Encode_string(Personalnummer))
 				.Concat(Geschlecht.Encoded())
 				.Concat(BareNET.Bare.Encode_list(Kontakte, KontakteList => KontakteList.Encoded()))
+				.Concat(BareNET.Bare.Encode_optional_ref(PinFuerMobileDatenerfassung, PinFuerMobileDatenerfassungOpt => BareNET.Bare.Encode_string(PinFuerMobileDatenerfassungOpt)))
 				.ToArray();
 		}
 	
@@ -744,9 +747,10 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 			var personalnummer = BareNET.Bare.Decode_string(handzeichen.Item2);
 			var geschlecht = UUID.Decode(personalnummer.Item2);
 			var kontakte = BareNET.Bare.Decode_list(geschlecht.Item2, geschlechtList => KontaktV1.Decode(geschlechtList));
+			var pinFuerMobileDatenerfassung = BareNET.Bare.Decode_optional_ref(kontakte.Item2, kontakteOpt => BareNET.Bare.Decode_string(kontakteOpt));
 			return new ValueTuple<MitarbeiterV1, byte[]>(
-				new MitarbeiterV1(id.Item1, mandantenzugehoerigkeiten.Item1.ToList(), titel.Item1, vorname.Item1, nachname.Item1, postanschrift.Item1, geburtstag.Item1, familienstand.Item1, konfession.Item1, qualifikationen.Item1.ToList(), handzeichen.Item1, personalnummer.Item1, geschlecht.Item1, kontakte.Item1.ToList()),
-				kontakte.Item2);
+				new MitarbeiterV1(id.Item1, mandantenzugehoerigkeiten.Item1.ToList(), titel.Item1, vorname.Item1, nachname.Item1, postanschrift.Item1, geburtstag.Item1, familienstand.Item1, konfession.Item1, qualifikationen.Item1.ToList(), handzeichen.Item1, personalnummer.Item1, geschlecht.Item1, kontakte.Item1.ToList(), pinFuerMobileDatenerfassung.Item1),
+				pinFuerMobileDatenerfassung.Item2);
 		}
 	}
 
