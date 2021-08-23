@@ -43,9 +43,17 @@ namespace DM7_PPLUS_Integration
                 {
                     case Authenticated authenticated:
                         {
-                            var (_, missing_capabilities) = Negotiate_capabilities(authenticated.Handler.Capabilities(timeout).Result.Value.ToList());
-                            Guard_no_missing_capabilities(missing_capabilities);
-                            return new PPLUS(authenticated.Handler, authenticated.Token, timeout);
+                            try
+                            {
+                                var (_, missing_capabilities) = Negotiate_capabilities(authenticated.Handler.Capabilities(timeout).Result.Value.ToList());
+                                Guard_no_missing_capabilities(missing_capabilities);
+                                return new PPLUS(authenticated.Handler, authenticated.Token, timeout);
+                            }
+                            catch
+                            {
+                                authenticated.Handler.Dispose();
+                                throw;
+                            }
                         }
 
                     case Not_Authenticated _:
@@ -90,9 +98,10 @@ namespace DM7_PPLUS_Integration
             var pplusHandler = new Port($"{uri.Scheme}://{uri.Host}", uri.Port, encryptionKey, log);
             var token = pplusHandler.Authenticate(user, password, timeout).Result;
 
-            return token.HasValue
-                ? (Authentication_Result) new Authenticated(pplusHandler, token.Value)
-                : new Not_Authenticated();
+            if (token.HasValue) return new Authenticated(pplusHandler, token.Value);
+
+            pplusHandler.Dispose();
+            return new Not_Authenticated();
         }
 
         private static void Guard_no_missing_capabilities(List<string> missing_capabilities)
