@@ -88,6 +88,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
         private static MitarbeiterV1 Mitarbeiter_als_Message(Mitarbeiter mitarbeiter) =>
             new MitarbeiterV1(
                 UUID_aus(mitarbeiter.Id),
+                UUID_aus(mitarbeiter.PersonenId),
                 Liste_als_Message(mitarbeiter.DM7_Mandantenzugehörigkeiten, DM7_Mandantenzugehörigkeit_als_Message),
                 UUID_aus(mitarbeiter.Titel),
                 mitarbeiter.Vorname,
@@ -106,6 +107,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
         private static Mitarbeiter Mitarbeiter_aus(MitarbeiterV1 mitarbeiter) =>
             new Mitarbeiter(
                 Guid_aus(mitarbeiter.Id),
+                Guid_aus(mitarbeiter.PersonenId),
                 Liste_aus(mitarbeiter.Mandantenzugehoerigkeiten, DM7_Mandantenzugehörigkeit_aus),
                 mitarbeiter.Personalnummer,
                 Guid_aus(mitarbeiter.Titel),

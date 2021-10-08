@@ -9,11 +9,12 @@ namespace DM7_PPLUS_Integration.Daten
     /// </summary>
     public readonly struct Mitarbeiter
     {
-        public Mitarbeiter(Guid mitarbeiterId, ReadOnlyCollection<DM7_Mandantenzugehörigkeit> mandantenzugehörigkeiten, string personalnummer, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, string handzeichen, Datum? geburtstag, Guid geschlecht, Guid konfession, Guid familienstand, ReadOnlyCollection<Qualifikation> qualifikationen, ReadOnlyCollection<Kontakt> kontakte, string pin_für_mobile_datenerfassung)
+        public Mitarbeiter(Guid mitarbeiterId, Guid personenId, ReadOnlyCollection<DM7_Mandantenzugehörigkeit> mandantenzugehörigkeiten, string personalnummer, Guid titel, string vorname, string nachname, Postanschrift? postanschrift, string handzeichen, Datum? geburtstag, Guid geschlecht, Guid konfession, Guid familienstand, ReadOnlyCollection<Qualifikation> qualifikationen, ReadOnlyCollection<Kontakt> kontakte, string pin_für_mobile_datenerfassung)
         {
             Guard_Pflichtfelder(mandantenzugehörigkeiten, nachname, handzeichen, geschlecht);
 
             Id = mitarbeiterId;
+            PersonenId = personenId;
             DM7_Mandantenzugehörigkeiten = mandantenzugehörigkeiten;
             Personalnummer = personalnummer;
             Titel = titel;
@@ -45,6 +46,11 @@ namespace DM7_PPLUS_Integration.Daten
         /// Primärschlüssel
         /// </summary>
         public readonly Guid Id;
+
+        /// <summary>
+        /// PersonenId, eindeutig einer natürlichen Person zuzuordnen
+        /// </summary>
+        public readonly Guid PersonenId;
 
         /// <summary>
         /// DM7 Mandanten, in P-PLUS repräsentiert als Strukturen auf denen der Mitarbeiter arbeitet.

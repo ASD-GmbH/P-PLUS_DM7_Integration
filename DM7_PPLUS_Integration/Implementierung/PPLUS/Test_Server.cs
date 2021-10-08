@@ -308,6 +308,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
         {
             return new Mitarbeiter(
                 mitarbeiter.Id,
+                mitarbeiter.PersonenId,
                 new ReadOnlyCollection<DM7_Mandantenzugehörigkeit>(
                     mitarbeiter.DM7_Mandantenzugehörigkeiten
                         .Select(_ => new DM7_Mandantenzugehörigkeit(_.MandantId, _.GueltigAb, austrittsdatum))

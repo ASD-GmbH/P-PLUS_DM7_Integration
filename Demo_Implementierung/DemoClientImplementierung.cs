@@ -261,6 +261,7 @@ namespace Demo_Implementierung
         private static Mitarbeiter Heimeshoff() =>
             new Mitarbeiter(
                 Guid.Parse("36A19CB3-8969-435A-A00E-B5CE3A71E6CD"),
+                Guid.Parse("570666A3-2789-49A8-8914-76FD1391E9CF"),
                 new ReadOnlyCollection<DM7_Mandantenzugehörigkeit>(
                     new List<DM7_Mandantenzugehörigkeit>
                     {
@@ -284,6 +285,7 @@ namespace Demo_Implementierung
         private static Mitarbeiter Helmig() =>
             new Mitarbeiter(
                 Guid.Parse("49C696E4-4A14-47F2-8211-F931E2C75148"),
+                Guid.Parse("E46807DE-31D4-4D6C-938B-15EB9BF32F3E"),
                 new ReadOnlyCollection<DM7_Mandantenzugehörigkeit>(
                     new List<DM7_Mandantenzugehörigkeit>
                     {
@@ -307,6 +309,7 @@ namespace Demo_Implementierung
         private static Mitarbeiter Willenborg() =>
             new Mitarbeiter(
                 Guid.Parse("4A0694F4-02D1-466E-9F94-2D417140AE67"),
+                Guid.Parse("84437B76-5645-4E76-941B-78C186AD8444"),
                 new ReadOnlyCollection<DM7_Mandantenzugehörigkeit>(
                     new List<DM7_Mandantenzugehörigkeit>
                     {

@@ -105,6 +105,7 @@ type SollIstAbgleichFreigebenV1 SollIstAbgleichV1
 ### Daten ###
 type MitarbeiterV1 {
 	id: UUID
+	personenId : UUID
 	mandantenzugehoerigkeiten: []DM7MandantenzugehoerigkeitV1
 	titel: UUID
 	vorname: string

@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 14.07.2021 12:23 //
+// Generated code by BareNET - 08.10.2021 14:58 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
@@ -675,6 +675,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 	public readonly struct MitarbeiterV1
 	{
 		public readonly UUID Id;
+		public readonly UUID PersonenId;
 		public readonly List<DM7MandantenzugehoerigkeitV1> Mandantenzugehoerigkeiten;
 		public readonly UUID Titel;
 		public readonly string Vorname;
@@ -690,9 +691,10 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 		public readonly List<KontaktV1> Kontakte;
 		public readonly string PinFuerMobileDatenerfassung;
 	
-		public MitarbeiterV1(UUID id, List<DM7MandantenzugehoerigkeitV1> mandantenzugehoerigkeiten, UUID titel, string vorname, string nachname, PostanschriftV1? postanschrift, Datum? geburtstag, UUID familienstand, UUID konfession, List<QualifikationV1> qualifikationen, string handzeichen, string personalnummer, UUID geschlecht, List<KontaktV1> kontakte, string pinFuerMobileDatenerfassung)
+		public MitarbeiterV1(UUID id, UUID personenId, List<DM7MandantenzugehoerigkeitV1> mandantenzugehoerigkeiten, UUID titel, string vorname, string nachname, PostanschriftV1? postanschrift, Datum? geburtstag, UUID familienstand, UUID konfession, List<QualifikationV1> qualifikationen, string handzeichen, string personalnummer, UUID geschlecht, List<KontaktV1> kontakte, string pinFuerMobileDatenerfassung)
 		{
 			Id = id;
+			PersonenId = personenId;
 			Mandantenzugehoerigkeiten = mandantenzugehoerigkeiten;
 			Titel = titel;
 			Vorname = vorname;
@@ -712,6 +714,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 		public byte[] Encoded()
 		{
 			return Id.Encoded()
+				.Concat(PersonenId.Encoded())
 				.Concat(BareNET.Bare.Encode_list(Mandantenzugehoerigkeiten, MandantenzugehoerigkeitenList => MandantenzugehoerigkeitenList.Encoded()))
 				.Concat(Titel.Encoded())
 				.Concat(BareNET.Bare.Encode_string(Vorname))
@@ -734,7 +737,8 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 		public static ValueTuple<MitarbeiterV1, byte[]> Decode(byte[] data)
 		{
 			var id = UUID.Decode(data);
-			var mandantenzugehoerigkeiten = BareNET.Bare.Decode_list(id.Item2, idList => DM7MandantenzugehoerigkeitV1.Decode(idList));
+			var personenId = UUID.Decode(id.Item2);
+			var mandantenzugehoerigkeiten = BareNET.Bare.Decode_list(personenId.Item2, personenIdList => DM7MandantenzugehoerigkeitV1.Decode(personenIdList));
 			var titel = UUID.Decode(mandantenzugehoerigkeiten.Item2);
 			var vorname = BareNET.Bare.Decode_string(titel.Item2);
 			var nachname = BareNET.Bare.Decode_string(vorname.Item2);
@@ -749,7 +753,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 			var kontakte = BareNET.Bare.Decode_list(geschlecht.Item2, geschlechtList => KontaktV1.Decode(geschlechtList));
 			var pinFuerMobileDatenerfassung = BareNET.Bare.Decode_optional_ref(kontakte.Item2, kontakteOpt => BareNET.Bare.Decode_string(kontakteOpt));
 			return new ValueTuple<MitarbeiterV1, byte[]>(
-				new MitarbeiterV1(id.Item1, mandantenzugehoerigkeiten.Item1.ToList(), titel.Item1, vorname.Item1, nachname.Item1, postanschrift.Item1, geburtstag.Item1, familienstand.Item1, konfession.Item1, qualifikationen.Item1.ToList(), handzeichen.Item1, personalnummer.Item1, geschlecht.Item1, kontakte.Item1.ToList(), pinFuerMobileDatenerfassung.Item1),
+				new MitarbeiterV1(id.Item1, personenId.Item1, mandantenzugehoerigkeiten.Item1.ToList(), titel.Item1, vorname.Item1, nachname.Item1, postanschrift.Item1, geburtstag.Item1, familienstand.Item1, konfession.Item1, qualifikationen.Item1.ToList(), handzeichen.Item1, personalnummer.Item1, geschlecht.Item1, kontakte.Item1.ToList(), pinFuerMobileDatenerfassung.Item1),
 				pinFuerMobileDatenerfassung.Item2);
 		}
 	}

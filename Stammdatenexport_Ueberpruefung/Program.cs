@@ -215,6 +215,7 @@ namespace Stammdatenexport_Überprüfung
 
             var ma = mitarbeiter.First();
             Console.WriteLine($"{ma.Nachname}, {ma.Vorname}{Titel(ma.Titel)}");
+            Console.WriteLine($"PersonenId: {ma.PersonenId}");
             if (ma.Geburtstag.HasValue) Console.WriteLine($"Geboren am {Datum(ma.Geburtstag.Value)}");
             Console.WriteLine($"Familienstand: {Familienstand(ma.Familienstand)}");
             Console.WriteLine($"Geschlecht: {Geschlecht(ma.Geschlecht)}");
