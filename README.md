@@ -81,6 +81,8 @@ Wie behandeln wir mehrere (P-PLUS) Mandanten in der Integration.
 5. Submit a pull request :D
 
 ## Änderungen
+- 0.16.2 Mitarbeiterinfos um Personen-UUID erweitert.
+
 - 0.15 (08.11.2018): Rückgabewerte statt Exceptions, so dass auf Verbindungsfehler und Authentifizierungsfehler serverseitig besser reagiert werden kann.
 
 - 0.14 (05.11.2018): Verschlüsselung und Authentifizierung
