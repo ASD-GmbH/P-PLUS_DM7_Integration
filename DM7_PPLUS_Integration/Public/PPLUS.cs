@@ -95,13 +95,12 @@ namespace DM7_PPLUS_Integration
 
         private static Authentication_Result Authenticate(Uri uri, string user, string password, string encryptionKey, Log log, TimeSpan? timeout)
         {
-            var pplusHandler = new Port($"{uri.Scheme}://{uri.Host}", uri.Port, encryptionKey, log);
-            var token = pplusHandler.Authenticate(user, password, timeout).Result;
-
-            if (token.HasValue) return new Authenticated(pplusHandler, token.Value);
-
-            pplusHandler.Dispose();
-            return new Not_Authenticated();
+            using (var pplusHandler = new Port($"{uri.Scheme}://{uri.Host}", uri.Port, encryptionKey, log))
+            {
+                var token = pplusHandler.Authenticate(user, password, timeout).Result;
+                if (token.HasValue) return new Authenticated(pplusHandler, token.Value);
+                return new Not_Authenticated();
+            }
         }
 
         private static void Guard_no_missing_capabilities(List<string> missing_capabilities)

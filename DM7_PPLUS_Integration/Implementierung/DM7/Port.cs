@@ -63,7 +63,7 @@ namespace DM7_PPLUS_Integration.Implementierung.DM7
                             }
                             catch (CryptographicException e)
                             {
-                                _log.Info($"Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit P-PLUS ab: {e.Message}");
+                                _log.Info($"Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit DM7 ab: {e.Message}");
                                 return new IO_fehler("Unbekannte Verschlüsselung! Bitte gleichen Sie den benutzten Schlüssel mit DM7 ab");
                             }
                         }
