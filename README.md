@@ -81,7 +81,10 @@ Wie behandeln wir mehrere (P-PLUS) Mandanten in der Integration.
 5. Submit a pull request :D
 
 ## Änderungen
-- 0.16.3 (30.09.2024) PPLUS-Authenticate gibt Port wieder frei
+
+- 0.16.4 (24.10.2024) [Fix] Die nach einem Bug in 0.16.3 verworfene Verbindung wird nun wieder aufrecht erhalten, was die Events bei Änderungen an Personen-Stammdaten und Diensten wieder berücksichtigt.
+
+- 0.16.3 (30.09.2024) PPLUS-Authenticate gibt Port wieder frei.
 
 - 0.16.2 Mitarbeiterinfos um Personen-UUID erweitert.
 

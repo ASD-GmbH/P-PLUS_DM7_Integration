@@ -95,14 +95,27 @@ namespace DM7_PPLUS_Integration
 
         private static Authentication_Result Authenticate(Uri uri, string user, string password, string encryptionKey, Log log, TimeSpan? timeout)
         {
-            using (var pplusHandler = new Port($"{uri.Scheme}://{uri.Host}", uri.Port, encryptionKey, log))
-            {
-                var token = pplusHandler.Authenticate(user, password, timeout).Result;
-                if (token.HasValue) return new Authenticated(pplusHandler, token.Value);
-                return new Not_Authenticated();
-            }
-        }
+            Port pplusHandler = null;
 
+            try
+            {
+                pplusHandler = new Port($"{uri.Scheme}://{uri.Host}", uri.Port, encryptionKey, log);
+                var token = pplusHandler.Authenticate(user, password, timeout).Result;
+
+                if (token.HasValue) return new Authenticated(pplusHandler, token.Value);
+            }
+            catch (Exception ex)
+            {
+                log.Info($"PPLUS - Authenticate - ErrorMessage: {ex}\r\nStackTrace:\r\n{ex.StackTrace}");
+
+                pplusHandler?.Dispose();
+                throw;
+            }
+
+            pplusHandler.Dispose();
+            return new Not_Authenticated();
+        }
+        
         private static void Guard_no_missing_capabilities(List<string> missing_capabilities)
         {
             if (missing_capabilities.Any()) throw new NotSupportedException($"Folgende Capabilities nicht unterstützt: {string.Join(", ", missing_capabilities)}");
