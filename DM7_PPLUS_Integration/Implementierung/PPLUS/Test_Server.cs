@@ -216,6 +216,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
 
         public event Action Mitarbeiteränderungen_liegen_bereit;
         public event Action Dienständerungen_liegen_bereit;
+        public event Action Dienstbuchungsänderungen_liegen_bereit;
 
         private Soll_Ist_Abgleich_Verarbeitungsergebnis Verarbeite_Soll_Ist_Abgleich(Soll_Ist_Abgleich abgleich)
         {

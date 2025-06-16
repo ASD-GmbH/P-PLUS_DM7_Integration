@@ -17,6 +17,7 @@ namespace Stammdatenexport_Überprüfung
         Dienstdetails,
         Dienstbuchungen,
         Abwesenheiten,
+        Auf_Benachrichtigungen_lauschen,
         Debug_umschalten,
         Quit,
         Unbekannt
@@ -128,6 +129,10 @@ namespace Stammdatenexport_Überprüfung
                             Abwesenheiten_abfragen(api);
                             Console.ReadKey();
                             break;
+                        case Auswahl.Auf_Benachrichtigungen_lauschen:
+                            Auf_Benachrichtigung_lauschen(api);
+                            Console.ReadKey();
+                            break;
                         case Auswahl.Debug_umschalten:
                             debug_aktiv = !debug_aktiv;
                             break;
@@ -151,13 +156,14 @@ namespace Stammdatenexport_Überprüfung
                 Auswahl.Dienstdetails, 
                 Auswahl.Dienstbuchungen,
                 Auswahl.Abwesenheiten,
+                Auswahl.Auf_Benachrichtigungen_lauschen,
                 Auswahl.Debug_umschalten,
                 Auswahl.Quit
             })
             {
                 Console.WriteLine(auswahl == Auswahl.Debug_umschalten
                     ? $"\t{(int) auswahl}. Debug {(debug_aktiv ? "Ausschalten" : "Einschalten")}"
-                    : $"\t{(int) auswahl}. {auswahl}");
+                    : $"\t{(int) auswahl}. {auswahl.ToString().Replace('_', ' ')}");
             }
 
             try
@@ -170,6 +176,7 @@ namespace Stammdatenexport_Überprüfung
                 return Auswahl.Unbekannt;
             }
         }
+
 
         private static void Mitarbeiter_abfragen(PPLUS_API api)
         {
@@ -560,6 +567,19 @@ namespace Stammdatenexport_Überprüfung
                                     _.Abwesenheiten))
                         )));
         }
+
+        private static void Auf_Benachrichtigung_lauschen(PPLUS_API api)
+        {
+            string Zeitstempel() => $" [{DateTime.Now:HH:mm:ss.fff}] ";
+            api.Dienständerungen_liegen_bereit += () => Console.WriteLine(Zeitstempel() + "--> Dienständerungen");
+            api.Dienstbuchungsänderungen_liegen_bereit += () => Console.WriteLine(Zeitstempel() + "--> Dienstbuchungsänderungen");
+            api.Mitarbeiteränderungen_liegen_bereit += () => Console.WriteLine(Zeitstempel() + "--> Mitarbeiteränderungen");
+
+            Console.WriteLine("Lausche auf Benachrichtigungen von P-PLUS - Zurück zum Hauptmenü mit beliebiger Taste");
+            Console.WriteLine("\u255e" + new string('\u2550', 30)  + " Beginn" + Zeitstempel() + new string('\u2550', 30) + "\u2561" );
+        }
+
+
 
         private static string Zeitpunkt_als_Text(Zeitpunkt zeitpunkt) =>
             $"{zeitpunkt.Datum.Tag:00}.{zeitpunkt.Datum.Monat:00}.{zeitpunkt.Datum.Jahr:0000} {Uhrzeit(zeitpunkt.Uhrzeit)}";

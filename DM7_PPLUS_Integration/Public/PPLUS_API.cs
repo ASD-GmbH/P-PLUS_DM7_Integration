@@ -24,6 +24,11 @@ namespace DM7_PPLUS_Integration
         event Action Dienständerungen_liegen_bereit;
 
         /// <summary>
+        /// Meldet wenn auf P-PLUS Seite geänderte oder neue Dienste vorliegen
+        /// </summary>
+        event Action Dienstbuchungsänderungen_liegen_bereit;
+
+        /// <summary>
         /// Abruf aller Mitarbeiterdatensätze
         /// </summary>
         Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen();

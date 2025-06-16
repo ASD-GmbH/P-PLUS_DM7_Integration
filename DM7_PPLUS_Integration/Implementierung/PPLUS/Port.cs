@@ -31,6 +31,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                 {
                     notification_socket.Subscribe(Adapter.Dienste_Topic);
                     notification_socket.Subscribe(Adapter.Mitarbeiter_Topic);
+                    notification_socket.Subscribe(Adapter.Dienstbuchung_Topic);
                     notification_socket.ReceiveReady += (_, e) => Notification_empfangen(e.Socket);
 
                     using (_poller)
@@ -53,6 +54,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
             {
                 if (string.Equals(topic, Adapter.Dienste_Topic)) Dienständerungen_liegen_bereit?.Invoke();
                 if (string.Equals(topic, Adapter.Mitarbeiter_Topic)) Mitarbeiteränderungen_liegen_bereit?.Invoke();
+                if (string.Equals(topic, Adapter.Dienstbuchung_Topic)) Dienstbuchungsänderungen_liegen_bereit?.Invoke();
             }).Start();
         }
 
@@ -179,6 +181,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
 
         public event Action Mitarbeiteränderungen_liegen_bereit;
         public event Action Dienständerungen_liegen_bereit;
+        public event Action Dienstbuchungsänderungen_liegen_bereit;
 
         private static byte[] ReceiveBytes(NetMQSocket socket, TimeSpan? timeout = null)
         {

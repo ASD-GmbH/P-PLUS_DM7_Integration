@@ -50,6 +50,7 @@ namespace Demo_Implementierung
                 {
                     api.Mitarbeiteränderungen_liegen_bereit += () => Console.WriteLine($"Jetzt sind es {api.Mitarbeiter_abrufen().Result.Count} Mitarbeiter");
                     api.Dienständerungen_liegen_bereit += () => Console.WriteLine("Es liegen neue Dienste vor");
+                    api.Dienstbuchungsänderungen_liegen_bereit += () => Console.WriteLine("Es liegen neue Dienstbuchungen vor");
 
                     Console.WriteLine($"Daten arbeiten mit Auswahllisten Version {api.Auswahllisten_Version}");
 

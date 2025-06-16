@@ -130,6 +130,7 @@ namespace DM7_PPLUS_Integration
             _pplusHandler = pplusHandler;
             pplusHandler.Dienständerungen_liegen_bereit += () => Dienständerungen_liegen_bereit?.Invoke();
             pplusHandler.Mitarbeiteränderungen_liegen_bereit += () => Mitarbeiteränderungen_liegen_bereit?.Invoke();
+            pplusHandler.Dienstbuchungsänderungen_liegen_bereit += () => Dienstbuchungsänderungen_liegen_bereit?.Invoke();
             _token = token;
             _timeout = timeout;
         }
@@ -137,6 +138,7 @@ namespace DM7_PPLUS_Integration
         public int Auswahllisten_Version => 1;
         public event Action Mitarbeiteränderungen_liegen_bereit;
         public event Action Dienständerungen_liegen_bereit;
+        public event Action Dienstbuchungsänderungen_liegen_bereit;
 
         public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen()
         {
