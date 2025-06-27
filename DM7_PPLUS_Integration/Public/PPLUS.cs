@@ -233,6 +233,19 @@ namespace DM7_PPLUS_Integration
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }
 
+        public Task<AnzahlTage> DienstbuchungsUeberwachungszeitraum_abrufen()
+        {
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
+            Guard_no_missing_capabilities(missing);
+
+            if (best_fitting.Contains(Capability.DIENSTBUCHUNGEN_V1)) //evtl. umstellen auf V2?
+                return Handle_Query<AnzahlTageV1, AnzahlTage>(
+                    new DienstbuchungsUeberwachungszeitraumV1(),
+                    Message_mapper.AnzahlTage_aus);
+
+            throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
+        }
+
         public Task<Soll_Ist_Abgleich_Verarbeitungsergebnis> Soll_Ist_Abgleich_freigeben(Soll_Ist_Abgleich abgleich)
         {
             var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());

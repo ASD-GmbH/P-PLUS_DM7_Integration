@@ -47,6 +47,7 @@ type Query (
 	| DienstbeginnZumStichtagV1
 	| DienstbuchungenImZeitraumV1
 	| AbwesenheitenImZeitraumV1
+	| DienstbuchungsUeberwachungszeitraumV1
 )
 
 type MitarbeiterAbrufenV1 void
@@ -67,6 +68,7 @@ type AbwesenheitenImZeitraumV1 {
 	bis: Datum
 	mandant: UUID
 }
+type DienstbuchungsUeberwachungszeitraumV1 void
 
 type QueryResult (
 	IOFehler
@@ -75,6 +77,7 @@ type QueryResult (
 	| DienstbeginnV1
 	| DienstbuchungenV1
 	| AbwesenheitenV1
+	| AnzahlTageV1
 )
 
 type IOFehler { reason: string }
@@ -94,6 +97,8 @@ type DienstbeginnV1 optional<Uhrzeit>
 type DienstbuchungenV1 []{ datum: Datum  dienstbuchungen: []DienstbuchungV1 }
 
 type AbwesenheitenV1 []AbwesenheitV1
+
+type AnzahlTageV1 AnzahlTage
 
 ### Commands ###
 type Command (SollIstAbgleichFreigebenV1)
@@ -245,3 +250,4 @@ type Uhrzeit { stunden: u8 minuten: u8 }
 type Zeitpunkt { datum: Datum uhrzeit: Uhrzeit }
 type RelativeZeit { zeit: Uhrzeit amFolgetag: bool }
 type Datenstand u64
+type AnzahlTage int

@@ -17,6 +17,7 @@ namespace Stammdatenexport_Überprüfung
         Dienstdetails,
         Dienstbuchungen,
         Abwesenheiten,
+        Dienstbuchungsüberwachungszeitraum,
         Auf_Benachrichtigungen_lauschen,
         Debug_umschalten,
         Quit,
@@ -129,6 +130,10 @@ namespace Stammdatenexport_Überprüfung
                             Abwesenheiten_abfragen(api);
                             Console.ReadKey();
                             break;
+                        case Auswahl.Dienstbuchungsüberwachungszeitraum:
+                            Dienstbuchungsüberwachungszeitraum_abfragen(api);
+                            Console.ReadKey();
+                            break;
                         case Auswahl.Auf_Benachrichtigungen_lauschen:
                             Auf_Benachrichtigung_lauschen(api);
                             Console.ReadKey();
@@ -156,6 +161,7 @@ namespace Stammdatenexport_Überprüfung
                 Auswahl.Dienstdetails, 
                 Auswahl.Dienstbuchungen,
                 Auswahl.Abwesenheiten,
+                Auswahl.Dienstbuchungsüberwachungszeitraum,
                 Auswahl.Auf_Benachrichtigungen_lauschen,
                 Auswahl.Debug_umschalten,
                 Auswahl.Quit
@@ -567,6 +573,17 @@ namespace Stammdatenexport_Überprüfung
                                     _.Abwesenheiten))
                         )));
         }
+
+
+        private static void Dienstbuchungsüberwachungszeitraum_abfragen(PPLUS_API api)
+        {
+            var anzahlTage = (int)api.DienstbuchungsUeberwachungszeitraum_abrufen().Result.Value;
+
+
+            Console.WriteLine($"Der in PPLUS konfigurierte Zeitraum für die Überwachung von Dienstbuchungsänderungen beträgt {anzahlTage} Tage.");
+        }
+
+
 
         private static void Auf_Benachrichtigung_lauschen(PPLUS_API api)
         {
