@@ -12,5 +12,6 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
         Task<CommandResult> HandleCommand(Token token, Command command, TimeSpan? timeout = null);
         event Action Mitarbeiteränderungen_liegen_bereit;
         event Action Dienständerungen_liegen_bereit;
+        event Action Dienstbuchungsänderungen_liegen_bereit;
     }
 }

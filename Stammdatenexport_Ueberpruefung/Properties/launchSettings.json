@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Stammdatenexport_Überprüfung": {
+      "commandName": "Project",
+      "commandLineArgs": "\"tcp://127.0.0.1:21000|1MWVQh+xQ+5EhtnBneyekqDjEs5x59JeS1+Bg1FJgNI=\" jan test"
+    }
+  }
+}

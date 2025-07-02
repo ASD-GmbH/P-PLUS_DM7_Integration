@@ -48,6 +48,13 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
         public static DienstbuchungenV1 Dienstbuchungen_als_Message(Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>> dienstbuchungen) =>
             new DienstbuchungenV1(Liste_als_Message(dienstbuchungen, kv => new DienstbuchungenV1ValueStruct(Datum_als_Message(kv.Key), Liste_als_Message(kv.Value, Dienstbuchung_als_Message))));
 
+
+
+
+        public static Messages.PPLUS.AnzahlTageV1 AnzahlTage_als_Message(AnzahlTage anzahlTage) => new Messages.PPLUS.AnzahlTageV1(anzahlTage);
+        public static AnzahlTage AnzahlTage_aus(AnzahlTageV1 anzahlTage) => anzahlTage.Value;
+
+
         public static ReadOnlyCollection<Abwesenheit> Abwesenheiten(AbwesenheitenV1 abwesenheiten) => Liste_aus(abwesenheiten.Value, Abwesenheit_aus);
         public static AbwesenheitenV1 Abwesenheiten_als_Message(ReadOnlyCollection<Abwesenheit> abwesenheiten) => new AbwesenheitenV1(Liste_als_Message(abwesenheiten, Abwesenheit_als_Message));
 

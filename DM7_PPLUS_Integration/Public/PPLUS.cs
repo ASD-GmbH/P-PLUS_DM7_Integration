@@ -130,6 +130,7 @@ namespace DM7_PPLUS_Integration
             _pplusHandler = pplusHandler;
             pplusHandler.Dienständerungen_liegen_bereit += () => Dienständerungen_liegen_bereit?.Invoke();
             pplusHandler.Mitarbeiteränderungen_liegen_bereit += () => Mitarbeiteränderungen_liegen_bereit?.Invoke();
+            pplusHandler.Dienstbuchungsänderungen_liegen_bereit += () => Dienstbuchungsänderungen_liegen_bereit?.Invoke();
             _token = token;
             _timeout = timeout;
         }
@@ -137,6 +138,7 @@ namespace DM7_PPLUS_Integration
         public int Auswahllisten_Version => 1;
         public event Action Mitarbeiteränderungen_liegen_bereit;
         public event Action Dienständerungen_liegen_bereit;
+        public event Action Dienstbuchungsänderungen_liegen_bereit;
 
         public Task<Stammdaten<Mitarbeiter>> Mitarbeiter_abrufen()
         {
@@ -227,6 +229,19 @@ namespace DM7_PPLUS_Integration
                 return Handle_Query<AbwesenheitenV1, ReadOnlyCollection<Abwesenheit>>(
                     new AbwesenheitenImZeitraumV1(Message_mapper.Datum_als_Message(von), Message_mapper.Datum_als_Message(bis), Message_mapper.UUID_aus(mandantId)),
                     Message_mapper.Abwesenheiten);
+
+            throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
+        }
+
+        public Task<AnzahlTage> DienstbuchungsUeberwachungszeitraum_abrufen()
+        {
+            var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
+            Guard_no_missing_capabilities(missing);
+
+            if (best_fitting.Contains(Capability.DIENSTBUCHUNGEN_V1)) //evtl. umstellen auf V2?
+                return Handle_Query<AnzahlTageV1, AnzahlTage>(
+                    new DienstbuchungsUeberwachungszeitraumV1(),
+                    Message_mapper.AnzahlTage_aus);
 
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }

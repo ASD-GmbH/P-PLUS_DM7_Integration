@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Auswahllisten;
 using DM7_PPLUS_Integration.Daten;
@@ -48,8 +49,9 @@ namespace Demo_Implementierung
                 //using (var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("0123456789abcdef0123456789abcdef")), logger).Result)
                 using (var api = PPLUS.Connect(testServer.ConnectionString, "user", "password", key, logger).Result)
                 {
-                    api.Mitarbeiteränderungen_liegen_bereit += () => Console.WriteLine($"Jetzt sind es {api.Mitarbeiter_abrufen().Result.Count} Mitarbeiter");
-                    api.Dienständerungen_liegen_bereit += () => Console.WriteLine("Es liegen neue Dienste vor");
+                    api.Mitarbeiteränderungen_liegen_bereit += () => Console.WriteLine($"<EVENT> Jetzt sind es {api.Mitarbeiter_abrufen().Result.Count} Mitarbeiter");
+                    api.Dienständerungen_liegen_bereit += () => Console.WriteLine("<EVENT> Es liegen neue Dienste vor");
+                    api.Dienstbuchungsänderungen_liegen_bereit += () => Console.WriteLine("<EVENT> Es liegen neue Dienstbuchungen vor");
 
                     Console.WriteLine($"Daten arbeiten mit Auswahllisten Version {api.Auswahllisten_Version}");
 
@@ -57,21 +59,27 @@ namespace Demo_Implementierung
                     var mitarbeiter = api.Mitarbeiter_abrufen().Result;
                     Mitarbeiter_anzeigen(mitarbeiter);
 
+                    Console.WriteLine("\n--> Mitarbeiter wird hinzugefügt");
                     testServer.Mitarbeiter_hinzufügen(Willenborg());
+                    Thread.Sleep(500);
                     Console.WriteLine("\n### Mitarbeiter nach Hinzufügen");
                     Mitarbeiter_anzeigen(api);
 
                     Console.WriteLine("\n### Nur Mitarbeiter seit neuen Stand");
                     Mitarbeiter_anzeigen(api.Mitarbeiter_abrufen_ab(mitarbeiter.Stand).Result);
 
+                    Console.WriteLine("\n--> Mitarbeiter tritt aus");
                     testServer.Mitarbeiter_austreten_zum(Heute(), Willenborg().Id);
+                    Thread.Sleep(500);
                     Console.WriteLine("\n### Mitarbeiter nach Austritt");
                     Mitarbeiter_anzeigen(api);
 
                     Console.WriteLine("\n### Initiale Dienste");
                     Dienste_anzeigen(api);
 
+                    Console.WriteLine("\n--> Dienst wird angelegt");
                     testServer.Dienste_anlegen(Frühtour());
+                    Thread.Sleep(500);
                     Console.WriteLine("\n### Dienste nach Neuanlage");
                     Dienste_anzeigen(api);
                     
@@ -81,11 +89,15 @@ namespace Demo_Implementierung
                     Console.WriteLine("\n### Initiale Dienstbuchungen");
                     Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
 
+                    Console.WriteLine("\n--> Dienst wird gebucht");
                     testServer.Dienste_buchen(Mandant_1, Heute(), Fährt_Frühtour(Willenborg()));
+                    Thread.Sleep(500);
                     Console.WriteLine("\n### Dienstbuchungen nach Buchung");
                     Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
 
+                    Console.WriteLine("\n--> Dienst wird gestrichen");
                     testServer.Dienst_streichen(Mandant_1, Heute(), Testdienst().Id);
+                    Thread.Sleep(500);
                     Console.WriteLine("\n### Dienstbuchungen nach Streichung");
                     Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
 
@@ -95,8 +107,11 @@ namespace Demo_Implementierung
                     Console.WriteLine("\n### Initiale Abwesenheiten zum 10.02.2021");
                     Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(10, 02, 2021), api);
 
+                    Console.WriteLine("\n--> Abwesenheiten werde eingetragen");
                     testServer.Abwesenheiten_eintragen(Mandant_1, Urlaub(Willenborg()));
                     testServer.Abwesenheiten_eintragen(Mandant_1, Inaktiv(Heimeshoff()));
+                    Thread.Sleep(500);
+
                     Console.WriteLine("\n### Abwesenheiten zum 20.02.2021 nach Eintragung");
                     Abwesenheiten_anzeigen(Mandant_1, Datum.DD_MM_YYYY(20, 02, 2021), api);
 
@@ -110,7 +125,9 @@ namespace Demo_Implementierung
                     Soll_Ist_Abgleich_freigeben(api);
                     testServer.Soll_Ist_Abgleich_Verarbeitung_nicht_verhindern();
 
+                    Console.WriteLine("\n--> Dienst wird gebucht");
                     testServer.Dienste_buchen(Mandant_1, Heute(), Fährt_Frühtour(Heimeshoff()));
+                    Thread.Sleep(500);
                     Console.WriteLine("\n### Dienstbuchungen vor Soll/Ist Abgleich");
                     Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
 

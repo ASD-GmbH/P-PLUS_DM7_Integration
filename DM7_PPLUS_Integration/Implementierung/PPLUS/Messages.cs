@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 08.10.2021 14:58 //
+// Generated code by BareNET - 17.06.2025 16:12 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
@@ -451,7 +451,15 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 		}
 	}
 
-	public interface QueryResult { /* Base type of union */ }
+	public readonly struct DienstbuchungsUeberwachungszeitraumV1 : Query
+	{
+		public byte[] Encoded() { return new byte[0]; }
+		public static DienstbuchungsUeberwachungszeitraumV1 Decoded(byte[] data) { return new DienstbuchungsUeberwachungszeitraumV1(); }
+		public static ValueTuple<DienstbuchungsUeberwachungszeitraumV1, byte[]> Decode(byte[] data) { return new ValueTuple<DienstbuchungsUeberwachungszeitraumV1, byte[]>(new DienstbuchungsUeberwachungszeitraumV1(), data); }
+	}
+
+
+    public interface QueryResult { /* Base type of union */ }
 
 	public readonly struct IOFehler : QueryResult, CommandResult
 	{
@@ -639,6 +647,31 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 			var value = BareNET.Bare.Decode_list(data, dataList => AbwesenheitV1.Decode(dataList));
 			return new ValueTuple<AbwesenheitenV1, byte[]>(
 				new AbwesenheitenV1(value.Item1.ToList()),
+				value.Item2);
+		}
+	}
+
+	public readonly struct AnzahlTageV1 : QueryResult
+	{
+		public readonly AnzahlTage Value;
+	
+		public AnzahlTageV1(AnzahlTage value)
+		{
+			Value = value;
+		}
+	
+		public byte[] Encoded()
+		{
+			return Value.Encoded();
+		}
+	
+		public static AnzahlTageV1 Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<AnzahlTageV1, byte[]> Decode(byte[] data)
+		{
+			var value = AnzahlTage.Decode(data);
+			return new ValueTuple<AnzahlTageV1, byte[]>(
+				new AnzahlTageV1(value.Item1),
 				value.Item2);
 		}
 	}
@@ -1569,6 +1602,31 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 		}
 	}
 
+	public readonly struct AnzahlTage
+	{
+		public readonly long Value;
+	
+		public AnzahlTage(long value)
+		{
+			Value = value;
+		}
+	
+		public byte[] Encoded()
+		{
+			return BareNET.Bare.Encode_int(Value);
+		}
+	
+		public static AnzahlTage Decoded(byte[] data) { return Decode(data).Item1; }
+	
+		public static ValueTuple<AnzahlTage, byte[]> Decode(byte[] data)
+		{
+			var value = BareNET.Bare.Decode_int(data);
+			return new ValueTuple<AnzahlTage, byte[]>(
+				new AnzahlTage(value.Item1),
+				value.Item2);
+		}
+	}
+
 	public static class Encoding
 	{
 		private static readonly BareNET.Union<AuthenticationResult> _AuthenticationResult =
@@ -1658,7 +1716,8 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 				.With_Case<DiensteAbrufenAbV1>(v => ((DiensteAbrufenAbV1) v).Encoded(), d => { var decoded = DiensteAbrufenAbV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DienstbeginnZumStichtagV1>(v => ((DienstbeginnZumStichtagV1) v).Encoded(), d => { var decoded = DienstbeginnZumStichtagV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DienstbuchungenImZeitraumV1>(v => ((DienstbuchungenImZeitraumV1) v).Encoded(), d => { var decoded = DienstbuchungenImZeitraumV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
-				.With_Case<AbwesenheitenImZeitraumV1>(v => ((AbwesenheitenImZeitraumV1) v).Encoded(), d => { var decoded = AbwesenheitenImZeitraumV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); });
+				.With_Case<AbwesenheitenImZeitraumV1>(v => ((AbwesenheitenImZeitraumV1) v).Encoded(), d => { var decoded = AbwesenheitenImZeitraumV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<DienstbuchungsUeberwachungszeitraumV1>(v => ((DienstbuchungsUeberwachungszeitraumV1) v).Encoded(), d => { var decoded = DienstbuchungsUeberwachungszeitraumV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); });
 		
 		public static byte[] Query_Encoded(Query value)
 		{
@@ -1683,7 +1742,8 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 				.With_Case<DiensteV1>(v => ((DiensteV1) v).Encoded(), d => { var decoded = DiensteV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DienstbeginnV1>(v => ((DienstbeginnV1) v).Encoded(), d => { var decoded = DienstbeginnV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DienstbuchungenV1>(v => ((DienstbuchungenV1) v).Encoded(), d => { var decoded = DienstbuchungenV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
-				.With_Case<AbwesenheitenV1>(v => ((AbwesenheitenV1) v).Encoded(), d => { var decoded = AbwesenheitenV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); });
+				.With_Case<AbwesenheitenV1>(v => ((AbwesenheitenV1) v).Encoded(), d => { var decoded = AbwesenheitenV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<AnzahlTageV1>(v => ((AnzahlTageV1) v).Encoded(), d => { var decoded = AnzahlTageV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); });
 		
 		public static byte[] QueryResult_Encoded(QueryResult value)
 		{

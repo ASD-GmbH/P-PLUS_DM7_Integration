@@ -16,6 +16,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
         public static int Notification_Port(int portRangeStart) => portRangeStart + 4;
         public const string Mitarbeiter_Topic = "Mitarbeiter";
         public const string Dienste_Topic = "Dienste";
+        public const string Dienstbuchung_Topic = "Dienstbuchung";
 
         private readonly PPLUS_Handler _pplusHandler;
         private readonly string _encryptionKey;
@@ -51,6 +52,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                     notification_socket.Bind($"tcp://{address}:{Notification_Port(port_range_start)}");
                     pplusHandler.Mitarbeiteränderungen_liegen_bereit += () => notification_socket.SendMoreFrame(Mitarbeiter_Topic).SendFrameEmpty();
                     pplusHandler.Dienständerungen_liegen_bereit += () => notification_socket.SendMoreFrame(Dienste_Topic).SendFrameEmpty();
+                    pplusHandler.Dienstbuchungsänderungen_liegen_bereit += () => notification_socket.SendMoreFrame(Dienstbuchung_Topic).SendFrameEmpty();
 
                     using (_poller)
                     {

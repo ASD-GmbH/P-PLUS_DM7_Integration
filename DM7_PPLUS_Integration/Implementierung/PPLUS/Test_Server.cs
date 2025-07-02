@@ -216,6 +216,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
 
         public event Action Mitarbeiteränderungen_liegen_bereit;
         public event Action Dienständerungen_liegen_bereit;
+        public event Action Dienstbuchungsänderungen_liegen_bereit;
 
         private Soll_Ist_Abgleich_Verarbeitungsergebnis Verarbeite_Soll_Ist_Abgleich(Soll_Ist_Abgleich abgleich)
         {
@@ -386,6 +387,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
         public void Dienstbuchungen_leeren()
         {
             _dienstbuchungen.Clear();
+            Dienstbuchungsänderungen_liegen_bereit?.Invoke();
         }
 
         public void Dienstbuchungen_hinzufügen(Guid mandant, Datum tag, IEnumerable<Dienstbuchung> dienstbuchungen)
@@ -393,12 +395,17 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
             var key = (mandant, tag);
             if (_dienstbuchungen.ContainsKey(key)) _dienstbuchungen[key].AddRange(dienstbuchungen);
             else _dienstbuchungen.Add(key, dienstbuchungen.ToList());
+            Dienstbuchungsänderungen_liegen_bereit?.Invoke();
         }
 
         public void Dienst_streichen(Guid mandant, Datum tag, int dienst)
         {
             var key = (mandant, tag);
-            if (_dienstbuchungen.ContainsKey(key)) _dienstbuchungen[key].RemoveAll(buchung => buchung.DienstId == dienst);
+            if (_dienstbuchungen.ContainsKey(key))
+            {
+                _dienstbuchungen[key].RemoveAll(buchung => buchung.DienstId == dienst);
+                Dienstbuchungsänderungen_liegen_bereit?.Invoke();
+            }
         }
 
         private ReadOnlyCollection<Abwesenheit> Abwesenheiten_im_Zeitraum(Guid mandant, Datum von, Datum bis)
@@ -428,17 +435,24 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
         public void Abwesenheiten_leeren()
         {
             _abwesenheiten.Clear();
+            Dienstbuchungsänderungen_liegen_bereit.Invoke();
         }
 
         public void Abwesenheiten_eintragen(Guid mandant, IEnumerable<Abwesenheit> abwesenheiten)
         {
             if (_abwesenheiten.ContainsKey(mandant)) _abwesenheiten[mandant].AddRange(abwesenheiten);
             else _abwesenheiten.Add(mandant, abwesenheiten.ToList());
+            Dienstbuchungsänderungen_liegen_bereit.Invoke();
         }
 
         public void Abwesenheiten_streichen_von(Guid mandant, Guid mitarbeiter)
         {
-            if (_abwesenheiten.ContainsKey(mandant)) _abwesenheiten[mandant].RemoveAll(abwesenheit => abwesenheit.MitarbeiterId == mitarbeiter);
+            if (_abwesenheiten.ContainsKey(mandant))
+            {
+                _abwesenheiten[mandant].RemoveAll(abwesenheit => abwesenheit.MitarbeiterId == mitarbeiter);
+                Dienstbuchungsänderungen_liegen_bereit.Invoke();
+            }
+            
         }
 
         public void Dienstplanbschlüsse_zum_verhindern_der_Soll_Ist_Abgleich_Verarbeitung(IEnumerable<Dienstplanabschluss> abschlüsse)

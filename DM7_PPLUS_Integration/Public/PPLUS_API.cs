@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using DM7_PPLUS_Integration.Daten;
+using DM7_PPLUS_Integration.Messages.PPLUS;
+using Datenstand = DM7_PPLUS_Integration.Daten.Datenstand;
+using Datum = DM7_PPLUS_Integration.Daten.Datum;
+using Uhrzeit = DM7_PPLUS_Integration.Daten.Uhrzeit;
 
 namespace DM7_PPLUS_Integration
 {
@@ -22,6 +26,11 @@ namespace DM7_PPLUS_Integration
         /// Meldet wenn auf P-PLUS Seite geänderte oder neue Dienste vorliegen
         /// </summary>
         event Action Dienständerungen_liegen_bereit;
+
+        /// <summary>
+        /// Meldet wenn auf P-PLUS Seite geänderte oder neue Dienste vorliegen
+        /// </summary>
+        event Action Dienstbuchungsänderungen_liegen_bereit;
 
         /// <summary>
         /// Abruf aller Mitarbeiterdatensätze
@@ -75,5 +84,10 @@ namespace DM7_PPLUS_Integration
         /// <param name="abgleich">Die Daten von dem Soll/Ist Abgleich</param>
         /// <returns>Ergebnis von der Verarbeitung seitens P-PLUS</returns>
         Task<Soll_Ist_Abgleich_Verarbeitungsergebnis> Soll_Ist_Abgleich_freigeben(Soll_Ist_Abgleich abgleich);
+
+        /// <summary>
+        /// Abruf des DienstbuchungsUeberwachungszeitraums
+        /// </summary>
+        Task<AnzahlTage> DienstbuchungsUeberwachungszeitraum_abrufen();
     }
 }
