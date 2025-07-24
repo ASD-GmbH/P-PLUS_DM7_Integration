@@ -183,6 +183,9 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                     case AbwesenheitenImZeitraumV1 q:
                         return Message_mapper.Abwesenheiten_als_Message(Abwesenheiten_im_Zeitraum(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Von), Message_mapper.Datum_aus(q.Bis)));
 
+                    case DienstbuchungsUeberwachungszeitraumV1 q: 
+                        return Message_mapper.AnzahlTage_als_Message(new AnzahlTage(21));
+
                     default:
                         return new IOFehler($"Query '{query.GetType()}' nicht behandelt");
                 }

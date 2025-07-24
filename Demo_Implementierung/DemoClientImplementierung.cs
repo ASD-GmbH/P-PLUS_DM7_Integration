@@ -89,6 +89,10 @@ namespace Demo_Implementierung
                     Console.WriteLine("\n### Initiale Dienstbuchungen");
                     Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
 
+                    Console.WriteLine("\n### Abfrage des 'Dienstbuchungsüberwachungszeitraums'");
+                    var überwachungszeitraum = api.DienstbuchungsUeberwachungszeitraum_abrufen().Result;
+                    Console.WriteLine($"Dienstbuchungsüberwachungszeitraum: {(int)überwachungszeitraum.Value} Tage.");
+
                     Console.WriteLine("\n--> Dienst wird gebucht");
                     testServer.Dienste_buchen(Mandant_1, Heute(), Fährt_Frühtour(Willenborg()));
                     Thread.Sleep(500);
