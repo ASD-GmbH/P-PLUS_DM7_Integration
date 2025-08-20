@@ -33,11 +33,13 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                 Liste_aus(dienste.Dienste, Dienst_aus),
                 Stand_aus(dienste.Stand));
 
-        public static DienstbeginnV1 Dienstbeginn_als_Message(Uhrzeit? beginn) =>
-            new DienstbeginnV1(Option_Map(beginn, Uhrzeit_als_Message));
+        public static DienstBeginnUndEnde DienstBeginnUndEnde_als_Message(Uhrzeit? beginn, Uhrzeit? ende) =>
+            new DienstBeginnUndEnde(
+                Option_Map(beginn, Uhrzeit_als_Message),
+                Option_Map(ende, Uhrzeit_als_Message));
 
-        public static Uhrzeit? Dienstbeginn_aus_Message(DienstbeginnV1 beginn) =>
-            Option_Map(beginn.Value, Uhrzeit_aus);
+        public static (Uhrzeit?,Uhrzeit?) DienstBeginnUndEnde_aus_Message(DienstBeginnUndEnde dienstzeiten) =>
+            (Option_Map(dienstzeiten.Beginn, Uhrzeit_aus), Option_Map(dienstzeiten.Ende, Uhrzeit_aus));
 
         public static Messages.PPLUS.Datenstand Stand_als_Message(Datenstand stand) => new Messages.PPLUS.Datenstand(stand.Value);
         public static Datenstand Stand_aus(Messages.PPLUS.Datenstand stand) => new Datenstand(stand.Value);
@@ -214,17 +216,20 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                 gültigkeit.Sonntag,
                 gültigkeit.Feiertags);
 
+
         private static Dienstbuchung Dienstbuchung_aus(DienstbuchungV1 dienstbuchung) =>
             new Dienstbuchung(
                 Guid_aus(dienstbuchung.Mitarbeiter),
                 (int)dienstbuchung.Dienst,
-                Uhrzeit_aus(dienstbuchung.BeginntUm));
+                Uhrzeit_aus(dienstbuchung.BeginntUm),
+                Uhrzeit_aus(dienstbuchung.EndetUm));
 
         private static DienstbuchungV1 Dienstbuchung_als_Message(Dienstbuchung dienstbuchung) =>
             new DienstbuchungV1(
                 UUID_aus(dienstbuchung.MitarbeiterId),
                 dienstbuchung.DienstId,
-                Uhrzeit_als_Message(dienstbuchung.Beginnt_um));
+                Uhrzeit_als_Message(dienstbuchung.Beginnt_um),
+                Uhrzeit_als_Message(dienstbuchung.Endet_um));
 
         private static Abwesenheit Abwesenheit_aus(AbwesenheitV1 abwesenheit) =>
             new Abwesenheit(

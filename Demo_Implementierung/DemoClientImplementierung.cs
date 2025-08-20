@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using DM7_PPLUS_Integration;
 using DM7_PPLUS_Integration.Auswahllisten;
 using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Implementierung.PPLUS;
+using DM7_PPLUS_Integration.Messages.PPLUS;
+using Datum = DM7_PPLUS_Integration.Daten.Datum;
+using Uhrzeit = DM7_PPLUS_Integration.Daten.Uhrzeit;
+using Zeitpunkt = DM7_PPLUS_Integration.Daten.Zeitpunkt;
 
 namespace Demo_Implementierung
 {
@@ -83,9 +88,10 @@ namespace Demo_Implementierung
                     Console.WriteLine("\n### Dienste nach Neuanlage");
                     Dienste_anzeigen(api);
                     
-                    Console.WriteLine("\n### Heutiger Dienstbeginn");
-                    Beginn_von_Dienst_anzeigen(Frühtour(), Heute(), api);
-
+                    Console.WriteLine("\n### Heutige Dienstzeiten");
+                    //Beginn_und_Ende_von_Dienst_anzeigen(Frühtour(), Heute(), api);
+                    DienstDetails_anzeigen(Heute(), api);
+                    
                     Console.WriteLine("\n### Initiale Dienstbuchungen");
                     Dienstbuchungen_anzeigen(Mandant_1, Heute(), api);
 
@@ -158,13 +164,18 @@ namespace Demo_Implementierung
             Console.ReadKey();
         }
 
-        private static void Beginn_von_Dienst_anzeigen(Dienst dienst, Datum stichtag, PPLUS api)
+        private static void Beginn_und_Ende_von_Dienst_anzeigen(Dienst dienst, Datum stichtag, PPLUS_API api)
         {
-            var beginn = api.Dienstbeginn_am(stichtag, dienst.Id).Result;
+            var (beginn,ende) = api.DienstBeginnUndEnde_am(stichtag, dienst.Id).Result;
+
             Console.WriteLine(
-                beginn.HasValue
-                    ? $"{dienst.Bezeichnung} beginnt am {Datum_als_Text(stichtag)} um {Uhrzeit_als_Text(beginn.Value)} Uhr"
-                    : $"Kein Beginn vom Dienst {dienst.Bezeichnung} am {Datum_als_Text(stichtag)}");
+                beginn.HasValue && ende.HasValue
+                    ? $"{dienst.Bezeichnung} beginnt am {Datum_als_Text(stichtag)} um {Uhrzeit_als_Text(beginn.Value)} Uhr und endet um {Uhrzeit_als_Text(ende.Value)}"
+                    : beginn.HasValue
+                        ? $"{dienst.Bezeichnung} beginnt am {Datum_als_Text(stichtag)} um {Uhrzeit_als_Text(beginn.Value)} Uhr und hat kein Ende an diesem Tag"
+                        : ende.HasValue
+                            ? $"{dienst.Bezeichnung} hat kein Beginn am {Datum_als_Text(stichtag)} aber endet an diesem Tag um {Uhrzeit_als_Text(ende.Value)} Uhr"
+                            : $"Kein Beginn oder Ende von Dienst {dienst.Bezeichnung} am {Datum_als_Text(stichtag)}");
         }
 
         private static PPLUS Verbinden_mit_Timeout(TimeSpan timeout)
@@ -204,6 +215,17 @@ namespace Demo_Implementierung
             }
         }
 
+
+        private static void DienstDetails_anzeigen(Datum stichtag, PPLUS_API api)
+        {
+            var dienste = api.Dienste_abrufen().Result;
+            foreach (var dienst in dienste)
+            {
+                Beginn_und_Ende_von_Dienst_anzeigen(dienst, stichtag, api);
+            }
+        }
+
+
         private static void Dienstbuchungen_anzeigen(Guid mandantId, Datum stichtag, PPLUS_API api)
         {
             var mitarbeiter_lookup = api.Mitarbeiter_abrufen().Result.ToDictionary(_ => _.Id, _ => $"{_.Nachname}, {_.Vorname}");
@@ -219,7 +241,7 @@ namespace Demo_Implementierung
                     dienst_lookup.ContainsKey(dienstbuchung.DienstId)
                         ? dienst_lookup[dienstbuchung.DienstId]
                         : "[Unbekannter Dienst]";
-                Console.WriteLine($" - {mitarbeiter}: {dienst} - {Datum_als_Text(stichtag)} {Uhrzeit_als_Text(dienstbuchung.Beginnt_um)}");
+                Console.WriteLine($" - {mitarbeiter}: {dienst} - {Datum_als_Text(stichtag)} {Uhrzeit_als_Text(dienstbuchung.Beginnt_um)}-{Uhrzeit_als_Text(dienstbuchung.Endet_um)}");
             }
         }
 
@@ -383,13 +405,15 @@ namespace Demo_Implementierung
             new Dienstbuchung(
                 mitarbeiter.Id,
                 Frühtour().Id,
-                Uhrzeit.HH_MM(06, 30));
+                Uhrzeit.HH_MM(06, 30),
+                Uhrzeit.HH_MM(11, 0));
 
         private static Dienstbuchung Ist_im_Testdienst(Mitarbeiter mitarbeiter) =>
             new Dienstbuchung(
                 mitarbeiter.Id,
                 Testdienst().Id,
-                Uhrzeit.HH_MM(14, 45));
+                Uhrzeit.HH_MM(14, 45),
+                Uhrzeit.HH_MM(18, 0));
 
         private static Abwesenheit Krank(Mitarbeiter mitarbeiter) =>
             new Abwesenheit(

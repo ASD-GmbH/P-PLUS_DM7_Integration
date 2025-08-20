@@ -81,6 +81,8 @@ Wie behandeln wir mehrere (P-PLUS) Mandanten in der Integration.
 5. Submit a pull request :D
 
 ## Änderungen
+- 0.17 (21.08.2025) End-Zeit zu Diensten und Dienstbuchungen hinzugefügt
+
 - 0.16.4.1 (24.07.2025) Erweiterung der DemoClientImplementierung um die Abrage des DienstbuchungsUeberwachungszeitraums
 
 - 0.16.4 (02.07.2025) Event für StaP-Relevante Dienstbuchungsänderungen in P-PLUS / Query für DienstbuchungsUeberwachungszeitraum

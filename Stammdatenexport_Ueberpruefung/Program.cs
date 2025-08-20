@@ -389,10 +389,11 @@ namespace Stammdatenexport_Überprüfung
 
             var dienst = dienste.First();
             var now = DateTime.Now;
-            var dienstbeginn = api.Dienstbeginn_am(DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(now.Day, now.Month, now.Year), dienst.Id).Result;
+            var (dienstbeginn,dienstende) = api.DienstBeginnUndEnde_am(DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(now.Day, now.Month, now.Year), dienst.Id).Result;
             Console.WriteLine($"{dienst.Bezeichnung} ({dienst.Kurzbezeichnung}) {(dienst.Gelöscht ? "GELÖSCHT" : "")}");
             Console.WriteLine($"\t{Ausgabe_Option("Mo", dienst.Gültig_an.Montag)}, {Ausgabe_Option("Di", dienst.Gültig_an.Dienstag)}, {Ausgabe_Option("Mi", dienst.Gültig_an.Mittwoch)}, {Ausgabe_Option("Do", dienst.Gültig_an.Donnerstag)}, {Ausgabe_Option("Fr", dienst.Gültig_an.Freitag)}, {Ausgabe_Option("Sa", dienst.Gültig_an.Samstag)}, {Ausgabe_Option("So", dienst.Gültig_an.Sonntag)}, {Ausgabe_Option("Fei", dienst.Gültig_an.Feiertags)}");
             Console.WriteLine($"\t{(dienstbeginn.HasValue ? $"Beginnt heute um {Uhrzeit(dienstbeginn.Value)} Uhr" : "Dienst hat heute kein Beginn")}");
+            Console.WriteLine($"\t{(dienstende.HasValue ? $"Endet um {Uhrzeit(dienstende.Value)} Uhr" : "Dienst hat kein Ende")}");
             Console.WriteLine("Mandantenzugehörigkeiten");
             Console.WriteLine(Mandantenzugehörigkeiten(dienst.Mandantenzugehörigkeiten));
         }
@@ -473,7 +474,7 @@ namespace Stammdatenexport_Überprüfung
                     Environment.NewLine,
                     dienstbuchungen
                         .OrderBy(_ => _.Beginnt_um.Stunden * 60 + _.Beginnt_um.Minuten)
-                        .Select(dienstbuchung => $"\t{dienstbuchung.Beginnt_um.Stunden:00}:{dienstbuchung.Beginnt_um.Minuten:00} Uhr geplant für '{Dienstbezeichnung(dienstbuchung.DienstId)}'"));
+                        .Select(dienstbuchung => $"\t{dienstbuchung.Beginnt_um.Stunden:00}:{dienstbuchung.Beginnt_um.Minuten:00} - {dienstbuchung.Endet_um.Stunden:00}:{dienstbuchung.Endet_um.Minuten:00} Uhr geplant für '{Dienstbezeichnung(dienstbuchung.DienstId)}'"));
                 return sb.ToString();
             }
 

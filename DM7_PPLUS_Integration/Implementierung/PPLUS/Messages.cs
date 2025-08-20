@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-// Generated code by BareNET - 17.06.2025 16:12 //
+// Generated code by BareNET - 21.08.2025 14:58 //
 //////////////////////////////////////////////////
 using System;
 using System.Linq;
@@ -281,7 +281,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 	{
 		MITARBEITER_V1,
 		DIENSTE_V1,
-		BEGINN_VON_DIENST_V1,
+		BEGINN_UND_ENDE_VON_DIENST,
 		DIENSTBUCHUNGEN_V1,
 		ABWESENHEITEN_V1,
 		SOLL_IST_ABGLEICH_V1
@@ -328,12 +328,12 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 		public static ValueTuple<DiensteAbrufenV1, byte[]> Decode(byte[] data) { return new ValueTuple<DiensteAbrufenV1, byte[]>(new DiensteAbrufenV1(), data); }
 	}
 
-	public readonly struct DienstbeginnZumStichtagV1 : Query
+	public readonly struct DienstBeginnUndEndeZumStichtag : Query
 	{
 		public readonly Datum Stichtag;
 		public readonly ulong Dienst;
 	
-		public DienstbeginnZumStichtagV1(Datum stichtag, ulong dienst)
+		public DienstBeginnUndEndeZumStichtag(Datum stichtag, ulong dienst)
 		{
 			Stichtag = stichtag;
 			Dienst = dienst;
@@ -346,14 +346,14 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 				.ToArray();
 		}
 	
-		public static DienstbeginnZumStichtagV1 Decoded(byte[] data) { return Decode(data).Item1; }
+		public static DienstBeginnUndEndeZumStichtag Decoded(byte[] data) { return Decode(data).Item1; }
 	
-		public static ValueTuple<DienstbeginnZumStichtagV1, byte[]> Decode(byte[] data)
+		public static ValueTuple<DienstBeginnUndEndeZumStichtag, byte[]> Decode(byte[] data)
 		{
 			var stichtag = Datum.Decode(data);
 			var dienst = BareNET.Bare.Decode_uint(stichtag.Item2);
-			return new ValueTuple<DienstbeginnZumStichtagV1, byte[]>(
-				new DienstbeginnZumStichtagV1(stichtag.Item1, dienst.Item1),
+			return new ValueTuple<DienstBeginnUndEndeZumStichtag, byte[]>(
+				new DienstBeginnUndEndeZumStichtag(stichtag.Item1, dienst.Item1),
 				dienst.Item2);
 		}
 	}
@@ -458,8 +458,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 		public static ValueTuple<DienstbuchungsUeberwachungszeitraumV1, byte[]> Decode(byte[] data) { return new ValueTuple<DienstbuchungsUeberwachungszeitraumV1, byte[]>(new DienstbuchungsUeberwachungszeitraumV1(), data); }
 	}
 
-
-    public interface QueryResult { /* Base type of union */ }
+	public interface QueryResult { /* Base type of union */ }
 
 	public readonly struct IOFehler : QueryResult, CommandResult
 	{
@@ -546,28 +545,33 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 		}
 	}
 
-	public readonly struct DienstbeginnV1 : QueryResult
+	public readonly struct DienstBeginnUndEnde : QueryResult
 	{
-		public readonly Uhrzeit? Value;
+		public readonly Uhrzeit? Beginn;
+		public readonly Uhrzeit? Ende;
 	
-		public DienstbeginnV1(Uhrzeit? value)
+		public DienstBeginnUndEnde(Uhrzeit? beginn, Uhrzeit? ende)
 		{
-			Value = value;
+			Beginn = beginn;
+			Ende = ende;
 		}
 	
 		public byte[] Encoded()
 		{
-			return BareNET.Bare.Encode_optional<Uhrzeit>(Value, ValueOpt => ValueOpt.Encoded());
+			return BareNET.Bare.Encode_optional<Uhrzeit>(Beginn, BeginnOpt => BeginnOpt.Encoded())
+				.Concat(BareNET.Bare.Encode_optional<Uhrzeit>(Ende, EndeOpt => EndeOpt.Encoded()))
+				.ToArray();
 		}
 	
-		public static DienstbeginnV1 Decoded(byte[] data) { return Decode(data).Item1; }
+		public static DienstBeginnUndEnde Decoded(byte[] data) { return Decode(data).Item1; }
 	
-		public static ValueTuple<DienstbeginnV1, byte[]> Decode(byte[] data)
+		public static ValueTuple<DienstBeginnUndEnde, byte[]> Decode(byte[] data)
 		{
-			var value = BareNET.Bare.Decode_optional(data, dataOpt => Uhrzeit.Decode(dataOpt));
-			return new ValueTuple<DienstbeginnV1, byte[]>(
-				new DienstbeginnV1(value.Item1),
-				value.Item2);
+			var beginn = BareNET.Bare.Decode_optional(data, dataOpt => Uhrzeit.Decode(dataOpt));
+			var ende = BareNET.Bare.Decode_optional(beginn.Item2, beginnOpt => Uhrzeit.Decode(beginnOpt));
+			return new ValueTuple<DienstBeginnUndEnde, byte[]>(
+				new DienstBeginnUndEnde(beginn.Item1, ende.Item1),
+				ende.Item2);
 		}
 	}
 
@@ -1048,12 +1052,14 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 		public readonly UUID Mitarbeiter;
 		public readonly long Dienst;
 		public readonly Uhrzeit BeginntUm;
+		public readonly Uhrzeit EndetUm;
 	
-		public DienstbuchungV1(UUID mitarbeiter, long dienst, Uhrzeit beginntUm)
+		public DienstbuchungV1(UUID mitarbeiter, long dienst, Uhrzeit beginntUm, Uhrzeit endetUm)
 		{
 			Mitarbeiter = mitarbeiter;
 			Dienst = dienst;
 			BeginntUm = beginntUm;
+			EndetUm = endetUm;
 		}
 	
 		public byte[] Encoded()
@@ -1061,6 +1067,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 			return Mitarbeiter.Encoded()
 				.Concat(BareNET.Bare.Encode_int(Dienst))
 				.Concat(BeginntUm.Encoded())
+				.Concat(EndetUm.Encoded())
 				.ToArray();
 		}
 	
@@ -1071,9 +1078,10 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 			var mitarbeiter = UUID.Decode(data);
 			var dienst = BareNET.Bare.Decode_int(mitarbeiter.Item2);
 			var beginntUm = Uhrzeit.Decode(dienst.Item2);
+			var endetUm = Uhrzeit.Decode(beginntUm.Item2);
 			return new ValueTuple<DienstbuchungV1, byte[]>(
-				new DienstbuchungV1(mitarbeiter.Item1, dienst.Item1, beginntUm.Item1),
-				beginntUm.Item2);
+				new DienstbuchungV1(mitarbeiter.Item1, dienst.Item1, beginntUm.Item1, endetUm.Item1),
+				endetUm.Item2);
 		}
 	}
 
@@ -1714,7 +1722,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 				.With_Case<MitarbeiterAbrufenAbV1>(v => ((MitarbeiterAbrufenAbV1) v).Encoded(), d => { var decoded = MitarbeiterAbrufenAbV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DiensteAbrufenV1>(v => ((DiensteAbrufenV1) v).Encoded(), d => { var decoded = DiensteAbrufenV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DiensteAbrufenAbV1>(v => ((DiensteAbrufenAbV1) v).Encoded(), d => { var decoded = DiensteAbrufenAbV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
-				.With_Case<DienstbeginnZumStichtagV1>(v => ((DienstbeginnZumStichtagV1) v).Encoded(), d => { var decoded = DienstbeginnZumStichtagV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<DienstBeginnUndEndeZumStichtag>(v => ((DienstBeginnUndEndeZumStichtag) v).Encoded(), d => { var decoded = DienstBeginnUndEndeZumStichtag.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DienstbuchungenImZeitraumV1>(v => ((DienstbuchungenImZeitraumV1) v).Encoded(), d => { var decoded = DienstbuchungenImZeitraumV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<AbwesenheitenImZeitraumV1>(v => ((AbwesenheitenImZeitraumV1) v).Encoded(), d => { var decoded = AbwesenheitenImZeitraumV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DienstbuchungsUeberwachungszeitraumV1>(v => ((DienstbuchungsUeberwachungszeitraumV1) v).Encoded(), d => { var decoded = DienstbuchungsUeberwachungszeitraumV1.Decode(d); return new ValueTuple<Query, byte[]>(decoded.Item1, decoded.Item2); });
@@ -1740,7 +1748,7 @@ namespace DM7_PPLUS_Integration.Messages.PPLUS
 				.With_Case<IOFehler>(v => ((IOFehler) v).Encoded(), d => { var decoded = IOFehler.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<MitarbeiterlisteV1>(v => ((MitarbeiterlisteV1) v).Encoded(), d => { var decoded = MitarbeiterlisteV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DiensteV1>(v => ((DiensteV1) v).Encoded(), d => { var decoded = DiensteV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
-				.With_Case<DienstbeginnV1>(v => ((DienstbeginnV1) v).Encoded(), d => { var decoded = DienstbeginnV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
+				.With_Case<DienstBeginnUndEnde>(v => ((DienstBeginnUndEnde) v).Encoded(), d => { var decoded = DienstBeginnUndEnde.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<DienstbuchungenV1>(v => ((DienstbuchungenV1) v).Encoded(), d => { var decoded = DienstbuchungenV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<AbwesenheitenV1>(v => ((AbwesenheitenV1) v).Encoded(), d => { var decoded = AbwesenheitenV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); })
 				.With_Case<AnzahlTageV1>(v => ((AnzahlTageV1) v).Encoded(), d => { var decoded = AnzahlTageV1.Decode(d); return new ValueTuple<QueryResult, byte[]>(decoded.Item1, decoded.Item2); });

@@ -6,6 +6,7 @@ using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Messages.PPLUS;
 using Datenstand = DM7_PPLUS_Integration.Daten.Datenstand;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
+using Dienstbuchung = DM7_PPLUS_Integration.Daten.Dienstbuchung;
 using Uhrzeit = DM7_PPLUS_Integration.Daten.Uhrzeit;
 
 namespace DM7_PPLUS_Integration
@@ -53,11 +54,13 @@ namespace DM7_PPLUS_Integration
         Task<Stammdaten<Dienst>> Dienste_abrufen();
 
         /// <summary>
-        /// Ermittelt den Beginn des Dienstes für den gegebenen Stichtag
+        /// Ermittelt Beginn und Ende des Dienstes für den gegebenen Stichtag
         /// </summary>
-        /// <returns>Beginn des Dienstes</returns>
-        Task<Uhrzeit?> Dienstbeginn_am(Datum stichtag, int dienstId);
-
+        /// <param name="stichtag">Datum des betrachteten Tages</param>
+        /// <param name="dienstId">ID des Dienstes</param>
+        /// <returns>Beginn und Ende des Dienstes</returns>
+        Task<(Uhrzeit?, Uhrzeit?)> DienstBeginnUndEnde_am(Datum stichtag, int dienstId);
+        
         /// <summary>
         /// Abruf aller Dienstbuchungen gültig im gegebenen Zeitraum für den gegebenen Mandanten (mandantId)
         /// <param name="von">Startdatum des Zeitraums</param>

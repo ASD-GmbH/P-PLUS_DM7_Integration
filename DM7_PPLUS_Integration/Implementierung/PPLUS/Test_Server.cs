@@ -7,6 +7,7 @@ using DM7_PPLUS_Integration.Daten;
 using DM7_PPLUS_Integration.Messages.PPLUS;
 using Datenstand = DM7_PPLUS_Integration.Daten.Datenstand;
 using Datum = DM7_PPLUS_Integration.Daten.Datum;
+using Dienstbuchung = DM7_PPLUS_Integration.Daten.Dienstbuchung;
 using Uhrzeit = DM7_PPLUS_Integration.Daten.Uhrzeit;
 
 namespace DM7_PPLUS_Integration.Implementierung.PPLUS
@@ -144,7 +145,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
             {
                 Capability.MITARBEITER_V1,
                 Capability.DIENSTE_V1,
-                Capability.BEGINN_VON_DIENST_V1,
+                Capability.BEGINN_UND_ENDE_VON_DIENST,
                 Capability.ABWESENHEITEN_V1,
                 Capability.DIENSTBUCHUNGEN_V1,
                 Capability.SOLL_IST_ABGLEICH_V1
@@ -174,8 +175,8 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                     case DiensteAbrufenAbV1 q:
                         return Message_mapper.Dienste_als_Message(Dienste_abrufen_ab(Message_mapper.Stand_aus(q.Value)));
 
-                    case DienstbeginnZumStichtagV1 _:
-                        return Message_mapper.Dienstbeginn_als_Message(Uhrzeit.HH_MM(08, 30));
+                    case DienstBeginnUndEndeZumStichtag _:
+                        return Message_mapper.DienstBeginnUndEnde_als_Message(Uhrzeit.HH_MM(08, 30), Uhrzeit.HH_MM(10, 30));
 
                     case DienstbuchungenImZeitraumV1 q:
                         return Message_mapper.Dienstbuchungen_als_Message(Dienstbuchungen_im_Zeitraum(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Von), Message_mapper.Datum_aus(q.Bis)));
