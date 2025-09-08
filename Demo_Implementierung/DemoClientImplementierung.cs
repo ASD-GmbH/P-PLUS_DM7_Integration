@@ -280,14 +280,10 @@ namespace Demo_Implementierung
             Console.WriteLine($"Ergebnis {ergebnis.GetType().Name}");
         }
         
-        private static string Datum_als_Text(Datum? datum)
-        {
-            return datum.HasValue
-                ? $"{datum.Value.Tag:00}.{datum.Value.Monat:00}.{datum.Value.Jahr:0000}"
-                : "[Ende offen]";
-        }
+        private static string Datum_als_Text(Datum? datum) => datum.HasValue ? $"{datum.Value.Tag:00}.{datum.Value.Monat:00}.{datum.Value.Jahr:0000}" : "[Ende offen]";
 
-        private static string Uhrzeit_als_Text(Uhrzeit uhrzeit) => $"{uhrzeit.Stunden:00}:{uhrzeit.Minuten:00}";
+        private static string Uhrzeit_als_Text(Uhrzeit? uhrzeit) => uhrzeit.HasValue ? $"{uhrzeit.Value.Stunden:00}:{uhrzeit.Value.Minuten:00}" : "[keine Zeitangabe]";
+        
         private static string Zeitpunkt_als_Text(Zeitpunkt zeitpunkt) => $"{Datum_als_Text(zeitpunkt.Datum)} {Uhrzeit_als_Text(zeitpunkt.Uhrzeit)}";
 
         private static Datum Heute()

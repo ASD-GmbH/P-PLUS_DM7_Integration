@@ -23,6 +23,7 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                 Liste_aus(mitarbeiter.Mitarbeiter, Mitarbeiter_aus),
                 Stand_aus(mitarbeiter.Stand));
 
+        
         public static DiensteV1 Dienste_als_Message(Stammdaten<Dienst> dienste) =>
             new DiensteV1(
                 Liste_als_Message(dienste, Dienst_als_Message),
@@ -33,13 +34,20 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                 Liste_aus(dienste.Dienste, Dienst_aus),
                 Stand_aus(dienste.Stand));
 
-        public static DienstBeginnUndEnde DienstBeginnUndEnde_als_Message(Uhrzeit? beginn, Uhrzeit? ende) =>
-            new DienstBeginnUndEnde(
+
+        public static DienstbeginnV1 Dienstbeginn_als_Message(Uhrzeit? beginn) =>
+            new DienstbeginnV1(Option_Map(beginn, Uhrzeit_als_Message));
+        public static (Uhrzeit?, Uhrzeit?) Dienstbeginn_aus_Message(DienstbeginnV1 beginn) =>
+            (Option_Map(beginn.Value, Uhrzeit_aus),null);
+
+        public static DienstBeginnUndEndeV1 DienstBeginnUndEnde_als_Message(Uhrzeit? beginn, Uhrzeit? ende) =>
+            new DienstBeginnUndEndeV1(
                 Option_Map(beginn, Uhrzeit_als_Message),
                 Option_Map(ende, Uhrzeit_als_Message));
-
-        public static (Uhrzeit?,Uhrzeit?) DienstBeginnUndEnde_aus_Message(DienstBeginnUndEnde dienstzeiten) =>
+        public static (Uhrzeit?,Uhrzeit?) DienstBeginnUndEnde_aus_Message(DienstBeginnUndEndeV1 dienstzeiten) =>
             (Option_Map(dienstzeiten.Beginn, Uhrzeit_aus), Option_Map(dienstzeiten.Ende, Uhrzeit_aus));
+        //public static (Uhrzeit?, Uhrzeit?) DienstBeginnUndEnde_aus_Message(DienstbeginnV1 beginn) =>
+        //    (Option_Map(beginn.Value, Uhrzeit_aus), null);
 
         public static Messages.PPLUS.Datenstand Stand_als_Message(Datenstand stand) => new Messages.PPLUS.Datenstand(stand.Value);
         public static Datenstand Stand_aus(Messages.PPLUS.Datenstand stand) => new Datenstand(stand.Value);
@@ -47,12 +55,15 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
         public static Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>> Dienstbuchungen(DienstbuchungenV1 dienstbuchungen) =>
             Liste_aus(dienstbuchungen.Value, kv => new KeyValuePair<Datum, ReadOnlyCollection<Dienstbuchung>>(Datum_aus(kv.Datum), Liste_aus(kv.Dienstbuchungen, Dienstbuchung_aus)))
                 .ToDictionary(_ => _.Key, _ => _.Value);
+        public static Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>> Dienstbuchungen(DienstbuchungenV2 dienstbuchungen) =>
+            Liste_aus(dienstbuchungen.Value, kv => new KeyValuePair<Datum, ReadOnlyCollection<Dienstbuchung>>(Datum_aus(kv.Datum), Liste_aus(kv.Dienstbuchungen, Dienstbuchung_aus)))
+                .ToDictionary(_ => _.Key, _ => _.Value);
         public static DienstbuchungenV1 Dienstbuchungen_als_Message(Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>> dienstbuchungen) =>
             new DienstbuchungenV1(Liste_als_Message(dienstbuchungen, kv => new DienstbuchungenV1ValueStruct(Datum_als_Message(kv.Key), Liste_als_Message(kv.Value, Dienstbuchung_als_Message))));
+        public static DienstbuchungenV2 DienstbuchungenV2_als_Message(Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>> dienstbuchungen) =>
+            new DienstbuchungenV2(Liste_als_Message(dienstbuchungen, kv => new DienstbuchungenV2ValueStruct(Datum_als_Message(kv.Key), Liste_als_Message(kv.Value, DienstbuchungV2_als_Message))));
 
-
-
-
+        
         public static Messages.PPLUS.AnzahlTageV1 AnzahlTage_als_Message(AnzahlTage anzahlTage) => new Messages.PPLUS.AnzahlTageV1(anzahlTage);
         public static AnzahlTage AnzahlTage_aus(AnzahlTageV1 anzahlTage) => anzahlTage.Value;
 
@@ -221,6 +232,12 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
             new Dienstbuchung(
                 Guid_aus(dienstbuchung.Mitarbeiter),
                 (int)dienstbuchung.Dienst,
+                Uhrzeit_aus(dienstbuchung.BeginntUm), null);
+
+        private static Dienstbuchung Dienstbuchung_aus(DienstbuchungV2 dienstbuchung) =>
+            new Dienstbuchung(
+                Guid_aus(dienstbuchung.Mitarbeiter),
+                (int)dienstbuchung.Dienst,
                 Uhrzeit_aus(dienstbuchung.BeginntUm),
                 Uhrzeit_aus(dienstbuchung.EndetUm));
 
@@ -228,8 +245,15 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
             new DienstbuchungV1(
                 UUID_aus(dienstbuchung.MitarbeiterId),
                 dienstbuchung.DienstId,
+                Uhrzeit_als_Message(dienstbuchung.Beginnt_um));
+
+        private static DienstbuchungV2 DienstbuchungV2_als_Message(Dienstbuchung dienstbuchung) =>
+            new DienstbuchungV2(
+                UUID_aus(dienstbuchung.MitarbeiterId),
+                dienstbuchung.DienstId,
                 Uhrzeit_als_Message(dienstbuchung.Beginnt_um),
-                Uhrzeit_als_Message(dienstbuchung.Endet_um));
+                Uhrzeit_als_Message((Uhrzeit)dienstbuchung.Endet_um));
+
 
         private static Abwesenheit Abwesenheit_aus(AbwesenheitV1 abwesenheit) =>
             new Abwesenheit(

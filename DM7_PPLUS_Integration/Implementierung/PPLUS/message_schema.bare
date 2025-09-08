@@ -32,10 +32,13 @@ type Capabilities []Capability
 enum Capability {
 	MITARBEITER_V1
 	DIENSTE_V1
-	BEGINN_UND_ENDE_VON_DIENST
+	BEGINN_VON_DIENST_V1
 	DIENSTBUCHUNGEN_V1
 	ABWESENHEITEN_V1
 	SOLL_IST_ABGLEICH_V1
+	BEGINN_UND_ENDE_VON_DIENST_V1
+	DIENSTBUCHUNGEN_V2
+	DIENSTBUCHUNGSUEBERWACHUNGSZEITRAUM_V1
 }
 
 ### Queries ###
@@ -44,16 +47,21 @@ type Query (
 	| MitarbeiterAbrufenAbV1
 	| DiensteAbrufenV1
 	| DiensteAbrufenAbV1
-	| DienstBeginnUndEndeZumStichtag
+	| DienstbeginnZumStichtagV1
 	| DienstbuchungenImZeitraumV1
 	| AbwesenheitenImZeitraumV1
+	| DienstBeginnUndEndeZumStichtagV1
 	| DienstbuchungsUeberwachungszeitraumV1
 )
 
 type MitarbeiterAbrufenV1 void
 type MitarbeiterAbrufenAbV1 Datenstand
 type DiensteAbrufenV1 void
-type DienstBeginnUndEndeZumStichtag {
+type DienstbeginnZumStichtagV1 {
+	stichtag: Datum
+	dienst: uint
+}
+type DienstBeginnUndEndeZumStichtagV1 {
 	stichtag: Datum
 	dienst: uint
 }
@@ -74,9 +82,11 @@ type QueryResult (
 	IOFehler
 	| MitarbeiterlisteV1
 	| DiensteV1
-	| DienstBeginnUndEnde
+	| DienstbeginnV1
 	| DienstbuchungenV1
 	| AbwesenheitenV1
+	| DienstBeginnUndEndeV1
+	| DienstbuchungenV2
 	| AnzahlTageV1
 )
 
@@ -92,12 +102,15 @@ type DiensteV1 {
 	stand: Datenstand
 }
 
-type DienstBeginnUndEnde {
+type DienstbeginnV1 optional<Uhrzeit>
+
+type DienstBeginnUndEndeV1 {
 	beginn: optional<Uhrzeit>
 	ende: optional<Uhrzeit>
 }
 
 type DienstbuchungenV1 []{ datum: Datum  dienstbuchungen: []DienstbuchungV1 }
+type DienstbuchungenV2 []{ datum: Datum  dienstbuchungen: []DienstbuchungV2 }
 
 type AbwesenheitenV1 []AbwesenheitV1
 
@@ -179,6 +192,12 @@ type DienstGueltigkeitV1 {
 }
 
 type DienstbuchungV1 {
+	mitarbeiter: UUID
+	dienst: int
+	beginntUm: Uhrzeit
+}
+
+type DienstbuchungV2 {
 	mitarbeiter: UUID
 	dienst: int
 	beginntUm: Uhrzeit

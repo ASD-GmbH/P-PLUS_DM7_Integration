@@ -145,10 +145,13 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
             {
                 Capability.MITARBEITER_V1,
                 Capability.DIENSTE_V1,
-                Capability.BEGINN_UND_ENDE_VON_DIENST,
+                Capability.BEGINN_VON_DIENST_V1,
+                Capability.BEGINN_UND_ENDE_VON_DIENST_V1,
                 Capability.ABWESENHEITEN_V1,
                 Capability.DIENSTBUCHUNGEN_V1,
-                Capability.SOLL_IST_ABGLEICH_V1
+                Capability.DIENSTBUCHUNGEN_V2,
+                Capability.SOLL_IST_ABGLEICH_V1,
+                Capability.DIENSTBUCHUNGSUEBERWACHUNGSZEITRAUM_V1
             }.ToList()));
         }
 
@@ -175,11 +178,14 @@ namespace DM7_PPLUS_Integration.Implementierung.PPLUS
                     case DiensteAbrufenAbV1 q:
                         return Message_mapper.Dienste_als_Message(Dienste_abrufen_ab(Message_mapper.Stand_aus(q.Value)));
 
-                    case DienstBeginnUndEndeZumStichtag _:
+                    case DienstbeginnZumStichtagV1 _:
+                        return Message_mapper.Dienstbeginn_als_Message(Uhrzeit.HH_MM(08, 30));
+                        
+                    case DienstBeginnUndEndeZumStichtagV1 _:
                         return Message_mapper.DienstBeginnUndEnde_als_Message(Uhrzeit.HH_MM(08, 30), Uhrzeit.HH_MM(10, 30));
 
                     case DienstbuchungenImZeitraumV1 q:
-                        return Message_mapper.Dienstbuchungen_als_Message(Dienstbuchungen_im_Zeitraum(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Von), Message_mapper.Datum_aus(q.Bis)));
+                        return Message_mapper.DienstbuchungenV2_als_Message(Dienstbuchungen_im_Zeitraum(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Von), Message_mapper.Datum_aus(q.Bis)));
 
                     case AbwesenheitenImZeitraumV1 q:
                         return Message_mapper.Abwesenheiten_als_Message(Abwesenheiten_im_Zeitraum(Message_mapper.Guid_aus(q.Mandant), Message_mapper.Datum_aus(q.Von), Message_mapper.Datum_aus(q.Bis)));

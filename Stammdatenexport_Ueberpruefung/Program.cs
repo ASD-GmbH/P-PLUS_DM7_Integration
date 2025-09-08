@@ -392,8 +392,8 @@ namespace Stammdatenexport_Überprüfung
             var (dienstbeginn,dienstende) = api.DienstBeginnUndEnde_am(DM7_PPLUS_Integration.Daten.Datum.DD_MM_YYYY(now.Day, now.Month, now.Year), dienst.Id).Result;
             Console.WriteLine($"{dienst.Bezeichnung} ({dienst.Kurzbezeichnung}) {(dienst.Gelöscht ? "GELÖSCHT" : "")}");
             Console.WriteLine($"\t{Ausgabe_Option("Mo", dienst.Gültig_an.Montag)}, {Ausgabe_Option("Di", dienst.Gültig_an.Dienstag)}, {Ausgabe_Option("Mi", dienst.Gültig_an.Mittwoch)}, {Ausgabe_Option("Do", dienst.Gültig_an.Donnerstag)}, {Ausgabe_Option("Fr", dienst.Gültig_an.Freitag)}, {Ausgabe_Option("Sa", dienst.Gültig_an.Samstag)}, {Ausgabe_Option("So", dienst.Gültig_an.Sonntag)}, {Ausgabe_Option("Fei", dienst.Gültig_an.Feiertags)}");
-            Console.WriteLine($"\t{(dienstbeginn.HasValue ? $"Beginnt heute um {Uhrzeit(dienstbeginn.Value)} Uhr" : "Dienst hat heute kein Beginn")}");
-            Console.WriteLine($"\t{(dienstende.HasValue ? $"Endet um {Uhrzeit(dienstende.Value)} Uhr" : "Dienst hat kein Ende")}");
+            Console.WriteLine($"\t{(dienstbeginn.HasValue ? $"Beginnt heute um {UhrzeitAlsText(dienstbeginn.Value)} Uhr" : "Dienst hat heute kein Beginn")}");
+            Console.WriteLine($"\t{(dienstende.HasValue ? $"Endet um {UhrzeitAlsText(dienstende.Value)} Uhr" : "Dienst hat kein Ende")}");
             Console.WriteLine("Mandantenzugehörigkeiten");
             Console.WriteLine(Mandantenzugehörigkeiten(dienst.Mandantenzugehörigkeiten));
         }
@@ -466,6 +466,7 @@ namespace Stammdatenexport_Überprüfung
                 return diensteLookup.ContainsKey(id) ? diensteLookup[id].Bezeichnung : "[Nicht exportierter Dienst]";
             }
 
+           
             string Dienstbuchungsinfo(string mitarbeiter, IEnumerable<Dienstbuchung> dienstbuchungen)
             {
                 var sb = new StringBuilder();
@@ -474,7 +475,7 @@ namespace Stammdatenexport_Überprüfung
                     Environment.NewLine,
                     dienstbuchungen
                         .OrderBy(_ => _.Beginnt_um.Stunden * 60 + _.Beginnt_um.Minuten)
-                        .Select(dienstbuchung => $"\t{dienstbuchung.Beginnt_um.Stunden:00}:{dienstbuchung.Beginnt_um.Minuten:00} - {dienstbuchung.Endet_um.Stunden:00}:{dienstbuchung.Endet_um.Minuten:00} Uhr geplant für '{Dienstbezeichnung(dienstbuchung.DienstId)}'"));
+                        .Select(dienstbuchung => $"\t{UhrzeitAlsText(dienstbuchung.Beginnt_um)} - {UhrzeitAlsText(dienstbuchung.Endet_um)} Uhr geplant für '{Dienstbezeichnung(dienstbuchung.DienstId)}'"));
                 return sb.ToString();
             }
 
@@ -546,7 +547,7 @@ namespace Stammdatenexport_Überprüfung
                 sb.AppendLine(mitarbeiter);
                 sb.AppendJoin(
                     Environment.NewLine,
-                    abwesenheiten.Select(abwesenheit => $"\t{abwesenheit.Art}: {abwesenheit.Grund}\n\tAb {Zeitpunkt_als_Text(abwesenheit.Abwesend_ab)}\n\tBis {(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.HasValue ? Zeitpunkt_als_Text(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Value) : "Ende offen")}"));
+                    abwesenheiten.Select(abwesenheit => $"\t{abwesenheit.Art}: {abwesenheit.Grund}\n\tAb {ZeitpunktAlsText(abwesenheit.Abwesend_ab)}\n\tBis {(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.HasValue ? ZeitpunktAlsText(abwesenheit.Vorraussichtlich_wieder_verfügbar_ab.Value) : "Ende offen")}"));
                 return sb.ToString();
             }
 
@@ -578,10 +579,15 @@ namespace Stammdatenexport_Überprüfung
 
         private static void Dienstbuchungsüberwachungszeitraum_abfragen(PPLUS_API api)
         {
-            var anzahlTage = (int)api.DienstbuchungsUeberwachungszeitraum_abrufen().Result.Value;
-
-
-            Console.WriteLine($"Der in PPLUS konfigurierte Zeitraum für die Überwachung von Dienstbuchungsänderungen beträgt {anzahlTage} Tage.");
+            try
+            {
+                var anzahlTage = (int)api.DienstbuchungsUeberwachungszeitraum_abrufen().Result.Value;
+                Console.WriteLine($"Der in PPLUS konfigurierte Zeitraum für die Überwachung von Dienstbuchungsänderungen beträgt {anzahlTage} Tage.");
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                Console.WriteLine("Die Verwendete P-PLUS-Version unterstützt keine Abfrage des Dienstbuchungsüberwachungszeitraums");
+            }
         }
 
 
@@ -599,10 +605,10 @@ namespace Stammdatenexport_Überprüfung
 
 
 
-        private static string Zeitpunkt_als_Text(Zeitpunkt zeitpunkt) =>
-            $"{zeitpunkt.Datum.Tag:00}.{zeitpunkt.Datum.Monat:00}.{zeitpunkt.Datum.Jahr:0000} {Uhrzeit(zeitpunkt.Uhrzeit)}";
+        private static string ZeitpunktAlsText(Zeitpunkt zeitpunkt) =>
+            $"{zeitpunkt.Datum.Tag:00}.{zeitpunkt.Datum.Monat:00}.{zeitpunkt.Datum.Jahr:0000} {UhrzeitAlsText(zeitpunkt.Uhrzeit)}";
 
-        private static string Uhrzeit(Uhrzeit zeit) => $"{zeit.Stunden:00}:{zeit.Minuten:00}";
+        private static string UhrzeitAlsText(Uhrzeit? uhrzeit) => uhrzeit == null ? "[keine Zeitangabe]" : $"{uhrzeit.Value.Stunden:00}:{uhrzeit.Value.Minuten:00}";
     }
 
     internal class Logger : Log

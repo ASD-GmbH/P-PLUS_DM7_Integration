@@ -86,10 +86,11 @@ namespace DM7_PPLUS_Integration
 
             Evaluate("Mitarbeiter - Version 1", Capability.MITARBEITER_V1);
             Evaluate("Dienste - Version 1", Capability.DIENSTE_V1);
-            Evaluate("Beginn und Ende von Dienst", Capability.BEGINN_UND_ENDE_VON_DIENST);
+            Evaluate("Beginn (und Ende) von Dienst", Capability.BEGINN_UND_ENDE_VON_DIENST_V1, Capability.BEGINN_VON_DIENST_V1);
             Evaluate("Abwesenheiten - Version 1", Capability.ABWESENHEITEN_V1);
-            Evaluate("Dienstbuchungen - Version 1", Capability.DIENSTBUCHUNGEN_V1);
+            Evaluate("Dienstbuchungen", Capability.DIENSTBUCHUNGEN_V2, Capability.DIENSTBUCHUNGEN_V1);
             Evaluate("Soll/Ist Abgleich - Version 1", Capability.SOLL_IST_ABGLEICH_V1);
+            Evaluate("Dienstbuchungsüberwachungszeitraum", Capability.DIENSTBUCHUNGSUEBERWACHUNGSZEITRAUM_V1);
 
             return (best_fitting_capabilites, missing_capabilities);
         }
@@ -185,12 +186,15 @@ namespace DM7_PPLUS_Integration
             var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
             Guard_no_missing_capabilities(missing);
 
-            if (best_fitting.Contains(Capability.BEGINN_UND_ENDE_VON_DIENST))
-                return Handle_Query<DienstBeginnUndEnde, (Uhrzeit?, Uhrzeit?)>(
-                    new DienstBeginnUndEndeZumStichtag(
-                        Message_mapper.Datum_als_Message(stichtag),
-                        (ulong) dienstId),
+            if (best_fitting.Contains(Capability.BEGINN_UND_ENDE_VON_DIENST_V1))
+                return Handle_Query<DienstBeginnUndEndeV1, (Uhrzeit?, Uhrzeit?)>(
+                    new DienstBeginnUndEndeZumStichtagV1(Message_mapper.Datum_als_Message(stichtag), (ulong) dienstId),
                     Message_mapper.DienstBeginnUndEnde_aus_Message);
+
+            if (best_fitting.Contains(Capability.BEGINN_VON_DIENST_V1))
+                return Handle_Query<DienstbeginnV1, (Uhrzeit?, Uhrzeit?)>(
+                    new DienstbeginnZumStichtagV1(Message_mapper.Datum_als_Message(stichtag), (ulong)dienstId),
+                    Message_mapper.Dienstbeginn_aus_Message);
 
             throw new ArgumentOutOfRangeException(nameof(best_fitting), best_fitting, null);
         }
@@ -212,6 +216,11 @@ namespace DM7_PPLUS_Integration
         {
             var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
             Guard_no_missing_capabilities(missing);
+
+            if (best_fitting.Contains(Capability.DIENSTBUCHUNGEN_V2))
+                return Handle_Query<DienstbuchungenV2, Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>>>(
+                    new DienstbuchungenImZeitraumV1(Message_mapper.Datum_als_Message(von), Message_mapper.Datum_als_Message(bis), Message_mapper.UUID_aus(mandantId)),
+                    Message_mapper.Dienstbuchungen);
 
             if (best_fitting.Contains(Capability.DIENSTBUCHUNGEN_V1))
                 return Handle_Query<DienstbuchungenV1, Dictionary<Datum, ReadOnlyCollection<Dienstbuchung>>>(
@@ -239,7 +248,7 @@ namespace DM7_PPLUS_Integration
             var (best_fitting, missing) = Negotiate_capabilities(_pplusHandler.Capabilities(_timeout).Result.Value.ToList());
             Guard_no_missing_capabilities(missing);
 
-            if (best_fitting.Contains(Capability.DIENSTBUCHUNGEN_V1)) //evtl. umstellen auf V2?
+            if (best_fitting.Contains(Capability.DIENSTBUCHUNGSUEBERWACHUNGSZEITRAUM_V1)) 
                 return Handle_Query<AnzahlTageV1, AnzahlTage>(
                     new DienstbuchungsUeberwachungszeitraumV1(),
                     Message_mapper.AnzahlTage_aus);
