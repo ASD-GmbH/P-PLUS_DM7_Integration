@@ -81,6 +81,8 @@ namespace DM7_PPLUS_Integration
                         return;
                     }
                 }
+
+                if (nicht_zutreffend == "Dienstbuchungsüberwachungszeitraum") return; //Gilt derzeit noch als optional und soll keinen Fehler auswerfen, wenn nicht vorhanden. Zeile streichen, wenn obligatorisch
                 missing_capabilities.Add(nicht_zutreffend);
             }
 
